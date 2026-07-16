@@ -713,6 +713,25 @@
       "analyze": "Analyze",
       "risks": "Risks",
       "simplify": "Simplify"
+    },
+    "templates": "Templates",
+    "pickTitle": "Start from a template",
+    "pickSub": "Pick a ready legal document and edit it",
+    "tpl": {
+      "demand": "Demand letter",
+      "lawsuit": "Court claim",
+      "reconciliation": "Reconciliation act",
+      "reply": "Reply letter",
+      "contract": "Contract",
+      "blank": "Blank document"
+    },
+    "tplDesc": {
+      "demand": "Debt payment demand",
+      "lawsuit": "Economic court claim",
+      "reconciliation": "Balance reconciliation",
+      "reply": "Reply to an official letter",
+      "contract": "Sale / service contract",
+      "blank": "Start from scratch"
     }
   },
   "contractsHub": {

@@ -713,6 +713,25 @@
       "analyze": "Tahlil",
       "risks": "Risklar",
       "simplify": "Soddalashtir"
+    },
+    "templates": "Namunalar",
+    "pickTitle": "Shablondan boshlang",
+    "pickSub": "Tayyor huquqiy hujjatni tanlang va tahrirlang",
+    "tpl": {
+      "demand": "Talabnoma",
+      "lawsuit": "Da'vo arizasi",
+      "reconciliation": "Akt-sverka",
+      "reply": "Javob xati",
+      "contract": "Shartnoma",
+      "blank": "Bo'sh hujjat"
+    },
+    "tplDesc": {
+      "demand": "Qarzni to'lash talabnomasi",
+      "lawsuit": "Iqtisodiy sudga da'vo",
+      "reconciliation": "Solishtirma dalolatnoma",
+      "reply": "Rasmiy xatga javob",
+      "contract": "Oldi-sotdi / xizmat shartnomasi",
+      "blank": "Noldan yozish"
     }
   },
   "contractsHub": {

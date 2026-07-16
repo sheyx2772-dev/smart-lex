@@ -1,6 +1,23 @@
 "use client";
 
-import { ArrowRight, CircleNotch, DownloadSimple, MagicWand, PenNib, Plus, Sparkle, WarningCircle } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  CircleNotch,
+  ClipboardText,
+  DownloadSimple,
+  Envelope,
+  FileDashed,
+  Gavel,
+  Handshake,
+  type Icon,
+  MagicWand,
+  PenNib,
+  Plus,
+  Scroll,
+  Sparkle,
+  SquaresFour,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import type { Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
@@ -31,10 +48,85 @@ function plainText(html: string): string {
     .trim();
 }
 
+// Tayyor huquqiy shablonlar — LLM'siz ham to'liq ishlaydi (foydalanuvchi tahrirlaydi).
+// [...] — to'ldiriladigan joylar. Matn O'zbekiston huquqiga mos.
+interface Template {
+  key: string;
+  icon: Icon;
+  html: string;
+}
+const TEMPLATES: Template[] = [
+  {
+    key: "demand",
+    icon: Scroll,
+    html: `<h2>TALABNOMA</h2><p>Hurmatli [Qarzdor nomi]!</p><p>"[Kreditor nomi]" Siz bilan tuzilgan shartnoma bo'yicha muddati o'tgan qarzdorlik yuzaga kelganini ma'lum qiladi.</p><p><strong>Shartnoma:</strong> № [Shartnoma raqami]<br><strong>Hisob-fakturalar:</strong> [Faktura raqamlari]</p><p><strong>Asosiy qarz:</strong> [summa]<br><strong>Penya:</strong> [summa]<br><strong>Jami to'lanishi lozim:</strong> [summa]</p><p>Ushbu talabnoma olingan kundan boshlab [muddat] kalendar kun ichida qarzni to'liq to'lashingizni talab qilamiz. Aks holda kreditor O'zbekiston Respublikasi qonunchiligiga muvofiq iqtisodiy sudga da'vo arizasi bilan murojaat qilish huquqini o'zida saqlaydi.</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+  },
+  {
+    key: "lawsuit",
+    icon: Gavel,
+    html: `<h2>IQTISODIY SUDGA DA'VO ARIZASI</h2><p><strong>Da'vogar:</strong> "[Da'vogar nomi]", STIR: [STIR]<br><strong>Javobgar:</strong> "[Javobgar nomi]", STIR: [STIR], manzil: [manzil]<br><strong>Da'vo narxi:</strong> [summa]<br><strong>To'langan davlat boji:</strong> [summa]</p><p>Da'vogar va javobgar o'rtasida [Shartnoma raqami] shartnoma tuzilgan. [Faktura raqamlari] hisob-fakturalar bo'yicha javobgar zimmasiga to'lov majburiyati yuklatilgan.</p><p>Javobgar to'lovni belgilangan muddatda bajarmagan. Asosiy qarz [summa] ni tashkil etadi. Muddat [kun] kun o'tgan, penya [summa] ni tashkil etadi.</p><p><strong>Huquqiy asos:</strong> O'zbekiston Respublikasi Fuqarolik kodeksi va Iqtisodiy protsessual kodeksi.</p><p><strong>SO'RAYMAN:</strong> Javobgardan da'vogar foydasiga jami [summa] (asosiy qarz va penya) undirilsin. To'langan davlat boji javobgar zimmasiga yuklatilsin.</p><p>Da'vogar nomidan: [Imzolovchi] _________________ (imzo, sana)</p>`,
+  },
+  {
+    key: "reconciliation",
+    icon: ClipboardText,
+    html: `<h2>SOLISHTIRMA DALOLATNOMA (AKT-SVERKA)</h2><p>"[Kreditor nomi]" (STIR [STIR]) va "[Qarzdor nomi]" (STIR [STIR]) o'rtasida [sana] holatiga tuzildi.</p><p>[Bu yerga hisob-kitob jadvalini (debet/kredit) kiriting]</p><p><strong>Yakuniy qoldiq (saldo):</strong> [summa]</p><p>Kreditor nomidan: _________________ (imzo, sana)<br>Qarzdor nomidan: _________________ (imzo, sana)</p>`,
+  },
+  {
+    key: "reply",
+    icon: Envelope,
+    html: `<h2>JAVOB XATI</h2><p>[Sana], № [chiquvchi raqam]</p><p>Kimga: "[Tashkilot nomi]"</p><p>Hurmatli [F.I.Sh]!</p><p>Sizning [sana] dagi № [kiruvchi raqam] xatingizga javoban quyidagilarni ma'lum qilamiz:</p><p>[Javob matnini shu yerga yozing]</p><p>Hurmat bilan,<br>[Tashkilot nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+  },
+  {
+    key: "contract",
+    icon: Handshake,
+    html: `<h2>SHARTNOMA № [raqam]</h2><p>[Shahar], [sana]</p><p>"[Sotuvchi nomi]" (bundan buyon "Sotuvchi"), bir tomondan, va "[Xaridor nomi]" (bundan buyon "Xaridor"), ikkinchi tomondan, quyidagilar haqida ushbu shartnomani tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni (xizmatni) topshirish, Xaridor esa uni qabul qilib, [summa] to'lash majburiyatini oladi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [muddat] ichida amalga oshiriladi.</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
+  },
+  { key: "blank", icon: FileDashed, html: "" },
+];
+
+function TemplateGallery({ t, onPick }: { t: ReturnType<typeof useTranslations>; onPick: (tpl: Template) => void }) {
+  return (
+    <div className="scroll-clean min-h-0 flex-1 overflow-y-auto rounded-lg border border-border bg-background p-6">
+      <div className="mx-auto max-w-2xl">
+        <div className="mb-5 flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/25">
+            <PenNib weight="fill" className="size-5" />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-semibold tracking-tight">{t("pickTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("pickSub")}</p>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {TEMPLATES.map((tpl) => {
+            const Ic = tpl.icon;
+            return (
+              <button
+                key={tpl.key}
+                onClick={() => onPick(tpl)}
+                className="group flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+              >
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary transition-colors group-hover:bg-gradient-to-br group-hover:from-primary group-hover:to-secondary group-hover:text-white">
+                  <Ic weight="fill" className="size-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">{t(`tpl.${tpl.key}` as never)}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t(`tplDesc.${tpl.key}` as never)}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DocumentStudio() {
   const t = useTranslations("studio");
   const [title, setTitle] = useState("");
   const [docHtml, setDocHtml] = useState("");
+  const [picker, setPicker] = useState(true);
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,6 +165,12 @@ export function DocumentStudio() {
     else setDocHtml((h) => h + html);
   }
 
+  function chooseTemplate(tpl: Template) {
+    setDocHtml(tpl.html);
+    if (!title.trim() && tpl.key !== "blank") setTitle(t(`tpl.${tpl.key}` as never));
+    setPicker(false);
+  }
+
   function download() {
     const name = (title.trim() || t("untitled")).replace(/[^\p{L}\p{N} _-]/gu, "");
     const html = `<!doctype html><meta charset="utf-8"><title>${escapeHtml(name)}</title><body>${docHtml || `<p>${escapeHtml(text)}</p>`}</body>`;
@@ -103,6 +201,12 @@ export function DocumentStudio() {
           />
           <span className="shrink-0 text-xs text-muted-foreground">{t("words", { n: words })}</span>
           <button
+            onClick={() => setPicker(true)}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30"
+          >
+            <SquaresFour className="size-4" /> {t("templates")}
+          </button>
+          <button
             onClick={download}
             disabled={!hasDoc}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30 disabled:opacity-40"
@@ -110,7 +214,11 @@ export function DocumentStudio() {
             <DownloadSimple className="size-4" /> {t("export")}
           </button>
         </div>
-        <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" />
+        {picker ? (
+          <TemplateGallery t={t} onPick={chooseTemplate} />
+        ) : (
+          <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" />
+        )}
       </div>
 
       {/* ── AI Yordamchi paneli ──────────────────────── */}
