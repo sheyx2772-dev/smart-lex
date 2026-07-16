@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { formatPhoneInput } from "@/lib/format";
 import { Card } from "@/components/ui/card";
+import { PaymentSchedule } from "@/components/contracts/payment-schedule";
 import { cn } from "@/lib/utils";
 
 const TEMPLATES: { key: string; icon: Icon }[] = [
@@ -157,6 +158,12 @@ export function ContractsHub() {
             </div>
           )}
         </Card>
+      </section>
+
+      {/* To'lov jadvali (nasiya) — avtomatik generatsiya */}
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("scheduleSection")}</h2>
+        <PaymentSchedule />
       </section>
     </div>
   );

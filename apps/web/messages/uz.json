@@ -788,6 +788,25 @@
         "name": "Ko’p tomonlama",
         "desc": "Bir necha tomon imzolaydigan shartnoma"
       }
-    }
+    },
+    "scheduleSection": "To'lov jadvali (nasiya)"
+  },
+  "schedule": {
+    "desc": "Nasiya to'lov jadvalini avtomatik hisoblang — summa, boshlang'ich to'lov, muddat va ustama bo'yicha.",
+    "total": "Umumiy summa",
+    "down": "Boshlang'ich to'lov",
+    "months": "Muddat",
+    "mo": "oy",
+    "markup": "Ustama",
+    "start": "Boshlanish",
+    "generate": "Jadvalni hisoblash",
+    "invalid": "Moliyalashtiriladigan summa 0 dan katta bo'lishi kerak (umumiy − boshlang'ich).",
+    "title": "To'lov jadvali",
+    "dueDate": "To'lov sanasi",
+    "payment": "To'lov",
+    "balance": "Qoldiq",
+    "copy": "Nusxa",
+    "copied": "Nusxa olindi",
+    "download": "Yuklab olish"
   }
 }

@@ -788,6 +788,25 @@
         "name": "Multi-party",
         "desc": "Contract signed by several parties"
       }
-    }
+    },
+    "scheduleSection": "Payment schedule (installment)"
+  },
+  "schedule": {
+    "desc": "Auto-calculate an installment schedule from total, down payment, term and markup.",
+    "total": "Total amount",
+    "down": "Down payment",
+    "months": "Term",
+    "mo": "mo",
+    "markup": "Markup",
+    "start": "Start",
+    "generate": "Generate schedule",
+    "invalid": "The financed amount must be greater than 0 (total − down payment).",
+    "title": "Payment schedule",
+    "dueDate": "Due date",
+    "payment": "Payment",
+    "balance": "Balance",
+    "copy": "Copy",
+    "copied": "Copied",
+    "download": "Download"
   }
 }
