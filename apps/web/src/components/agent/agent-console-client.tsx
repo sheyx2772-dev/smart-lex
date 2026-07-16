@@ -107,53 +107,70 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
 
   return (
     <div className="space-y-6 pb-8">
-      {/* Sarlavha + agent run */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/30">
-            <Robot weight="fill" className="size-6" />
-          </div>
-          <div>
-            <h2 className="font-display text-xl font-semibold tracking-tight">{t("title")}</h2>
-            <p className="mt-0.5 max-w-xl text-sm text-muted-foreground">{t("subtitle")}</p>
-          </div>
-        </div>
-        <button
-          onClick={runAgent}
-          disabled={running}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-secondary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:shadow-xl disabled:opacity-70"
-        >
-          {running ? <Spinner className="size-4 animate-spin" /> : <Lightning weight="fill" className="size-4" />}
-          {running ? t("running") : t("runAgent")}
-        </button>
-      </div>
-
-      {/* Chat-buyruq qatori — agentga to'g'ridan-to'g'ri buyruq beriladi */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          runCommand();
-        }}
+      {/* Premium "mission control" hero — sarlavha + agent run + buyruq qatori */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/10 p-5 text-white shadow-lg"
+        style={{ background: "linear-gradient(135deg, #232a44 0%, #1b2136 55%, #171c2e 100%)" }}
       >
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm focus-within:border-primary/40">
-          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
-            <Sparkle weight="fill" className="size-4" />
-          </span>
-          <input
-            value={cmd}
-            onChange={(e) => setCmd(e.target.value)}
-            placeholder={t("cmdPlaceholder")}
-            className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
-          />
+        <div
+          className="pointer-events-none absolute -right-10 -top-12 size-56 rounded-full opacity-50"
+          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.35), transparent 70%)" }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.7) 1px,transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/40 ring-1 ring-white/15">
+              <Robot weight="fill" className="size-6" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-semibold tracking-tight">{t("title")}</h2>
+              <p className="mt-0.5 max-w-xl text-sm text-white/60">{t("subtitle")}</p>
+            </div>
+          </div>
           <button
-            type="submit"
-            disabled={!cmd.trim() || cmdLoading}
-            className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+            onClick={runAgent}
+            disabled={running}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-secondary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition-all hover:shadow-xl disabled:opacity-70"
           >
-            {cmdLoading ? <Spinner className="size-4 animate-spin" /> : <PaperPlaneRight weight="fill" className="size-4" />}
+            {running ? <Spinner className="size-4 animate-spin" /> : <Lightning weight="fill" className="size-4" />}
+            {running ? t("running") : t("runAgent")}
           </button>
         </div>
-      </form>
+
+        {/* Chat-buyruq qatori — agentga to'g'ridan-to'g'ri buyruq (glass) */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            runCommand();
+          }}
+          className="relative mt-4"
+        >
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] p-1.5 backdrop-blur focus-within:border-primary/50">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
+              <Sparkle weight="fill" className="size-4" />
+            </span>
+            <input
+              value={cmd}
+              onChange={(e) => setCmd(e.target.value)}
+              placeholder={t("cmdPlaceholder")}
+              className="min-w-0 flex-1 bg-transparent px-1 text-sm text-white outline-none placeholder:text-white/40"
+            />
+            <button
+              type="submit"
+              disabled={!cmd.trim() || cmdLoading}
+              className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              {cmdLoading ? <Spinner className="size-4 animate-spin" /> : <PaperPlaneRight weight="fill" className="size-4" />}
+            </button>
+          </div>
+        </form>
+      </div>
 
       {cmdReply && (
         <div className="flex gap-2.5 rounded-lg border border-border bg-muted/40 p-3">
