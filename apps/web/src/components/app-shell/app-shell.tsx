@@ -4,6 +4,7 @@ import {
   Bell,
   Buildings,
   FileText,
+  Gavel,
   GearSix,
   type Icon,
   PaperPlaneTilt,
@@ -30,6 +31,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
       { href: "/receivables", key: "receivables", icon: Wallet },
       { href: "/overdue", key: "overdue", icon: Timer },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
+      { href: "/court", key: "court", icon: Gavel },
     ],
   },
   {
