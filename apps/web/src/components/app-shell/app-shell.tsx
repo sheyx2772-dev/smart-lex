@@ -19,6 +19,7 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
@@ -219,6 +220,9 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
         </header>
         <main className="scroll-clean min-h-0 min-w-0 flex-1 overflow-y-auto px-6 pb-2 pt-6">{children}</main>
       </div>
+
+      {/* Doimiy AI Agent paneli — o'ngdagi dumaloq tugma + o'ng sheet + notification */}
+      <AgentPanel initialFeed={[]} initialApprovals={[]} />
     </div>
   );
 }

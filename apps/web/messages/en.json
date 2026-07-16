@@ -474,5 +474,19 @@
     "signedBy": "Signed by",
     "demoNote": "Demo mode — sign via E-IMZO",
     "signFailed": "Signing failed"
+  },
+  "agentPanel": {
+    "title": "AI Agent",
+    "subtitle": "Live activity and approvals",
+    "open": "Open",
+    "close": "Close",
+    "feedToday": "Today",
+    "feedEarlier": "Earlier",
+    "feedEmpty": "No activity yet",
+    "needsYou": "Needs your approval",
+    "needsYouEmpty": "Nothing awaiting approval",
+    "newActivity": "New activity",
+    "review": "Review",
+    "viewAll": "View all"
   }
 }

@@ -474,5 +474,19 @@
     "signedBy": "Подписал",
     "demoNote": "Демо-режим — подписание через E-IMZO",
     "signFailed": "Ошибка при подписании"
+  },
+  "agentPanel": {
+    "title": "AI Agent",
+    "subtitle": "Живая активность и подтверждения",
+    "open": "Открыть",
+    "close": "Закрыть",
+    "feedToday": "Сегодня",
+    "feedEarlier": "Ранее",
+    "feedEmpty": "Пока нет активности",
+    "needsYou": "Требуется ваше подтверждение",
+    "needsYouEmpty": "Нет задач на подтверждение",
+    "newActivity": "Новая активность",
+    "review": "Просмотреть",
+    "viewAll": "Все"
   }
 }

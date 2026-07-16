@@ -552,5 +552,19 @@
     "s1": "Eng katta qarzdorlar kimlar?",
     "s2": "Muddati o'tgan qarzlar qancha?",
     "s3": "Bugun qanday hujjatlar tayyorlandi?"
+  },
+  "agentPanel": {
+    "title": "AI Agent",
+    "subtitle": "Jonli faoliyat va tasdiqlar",
+    "open": "Ochish",
+    "close": "Yopish",
+    "feedToday": "Bugun",
+    "feedEarlier": "Avvalroq",
+    "feedEmpty": "Hozircha faoliyat yo'q",
+    "needsYou": "Sizning tasdig'ingiz kerak",
+    "needsYouEmpty": "Tasdiq kutayotgan ish yo'q",
+    "newActivity": "Yangi faoliyat",
+    "review": "Ko'rib chiqish",
+    "viewAll": "Barchasi"
   }
 }
