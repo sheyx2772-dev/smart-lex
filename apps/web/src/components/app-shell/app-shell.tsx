@@ -209,7 +209,7 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
       </aside>
 
       {/* ── Main ───────────────────────────────────────────── */}
-      <div className="flex min-h-0 min-w-0 flex-col">
+      <div className="relative flex min-h-0 min-w-0 flex-col bg-gradient-to-b from-primary-soft/25 via-background to-background">
         <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-card/85 px-6 shadow-[0_1px_3px_rgba(15,23,42,0.04)] backdrop-blur-xl">
           <div className="flex min-w-0 items-center gap-3">
             <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary ring-1 ring-primary/10">
