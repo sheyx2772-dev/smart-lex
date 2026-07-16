@@ -413,6 +413,25 @@
         "desc": "Tegishli bo'limda ko'rib chiqing.",
         "action": "O'tish"
       }
+    },
+    "create": "Yaratish",
+    "searchTin": "STIR bo'yicha qidirish",
+    "filter": "Filtr",
+    "folderEmpty": "Bu papkada hujjat yo'q",
+    "folder": {
+      "incoming": "Kiruvchi",
+      "outgoing": "Chiquvchi",
+      "drafts": "Qoralama",
+      "templates": "Shablonlar",
+      "excel": "Excel yuklash"
+    },
+    "col": {
+      "status": "Holati",
+      "type": "Hujjat turi",
+      "updated": "Yangilangan",
+      "contractor": "Kontragent",
+      "docNo": "Hujjat №",
+      "contractNo": "Shartnoma №"
     }
   },
   "court": {

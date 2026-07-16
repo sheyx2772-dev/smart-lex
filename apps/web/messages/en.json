@@ -378,6 +378,25 @@
         "desc": "Review in the relevant section.",
         "action": "Go"
       }
+    },
+    "create": "Create",
+    "searchTin": "Search by TIN",
+    "filter": "Filter",
+    "folderEmpty": "No documents in this folder",
+    "folder": {
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "drafts": "Drafts",
+      "templates": "Templates",
+      "excel": "Excel upload"
+    },
+    "col": {
+      "status": "Status",
+      "type": "Document type",
+      "updated": "Updated",
+      "contractor": "Counterparty",
+      "docNo": "Document №",
+      "contractNo": "Contract №"
     }
   },
   "court": {

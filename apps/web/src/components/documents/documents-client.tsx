@@ -2,39 +2,38 @@
 
 import {
   ArrowRight,
-  CircleNotch,
   ClipboardText,
   CloudArrowDown,
   Envelope,
-  FilePlus,
+  FileArrowUp,
   FileText,
+  Funnel,
   Gavel,
   IdentificationBadge,
   MagnifyingGlass,
   NotePencil,
-  Package,
-  PenNib,
+  Plus,
   Receipt,
   Scroll,
   SealCheck,
   ShieldCheck,
   Sparkle,
+  Tray,
+  TrayArrowUp,
   Truck,
   Wallet,
   Warning,
+  X,
   type Icon,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { fetchDocuments, getDocumentDetail, signDocument, syncDidox } from "@/app/(app)/documents/actions";
 import { signWithEimzo } from "@/lib/eimzo";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
-import { Pagination } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 
 interface DocItem {
@@ -70,7 +69,7 @@ export interface DocumentsData {
 
 const TYPE_META: Record<string, { icon: Icon; tone: BadgeProps["tone"] }> = {
   contract: { icon: Scroll, tone: "primary" },
-  supplementary_agreement: { icon: FilePlus, tone: "primary" },
+  supplementary_agreement: { icon: FileText, tone: "primary" },
   invoice: { icon: Receipt, tone: "secondary" },
   act: { icon: ClipboardText, tone: "neutral" },
   reconciliation_act: { icon: ClipboardText, tone: "neutral" },
@@ -81,26 +80,21 @@ const TYPE_META: Record<string, { icon: Icon; tone: BadgeProps["tone"] }> = {
   court_claim: { icon: Gavel, tone: "danger" },
   other: { icon: FileText, tone: "neutral" },
 };
-const TYPE_ORDER = [
-  "contract",
-  "invoice",
-  "act",
-  "reconciliation_act",
-  "ttn",
-  "power_of_attorney",
-  "letter",
-  "demand_letter",
-  "court_claim",
-  "supplementary_agreement",
-  "other",
+const TYPE_ORDER = ["contract", "invoice", "act", "reconciliation_act", "ttn", "power_of_attorney", "letter", "demand_letter", "court_claim", "supplementary_agreement", "other"];
+
+// Didox uslubidagi yon panel papkalari.
+const FOLDERS: { key: string; icon: Icon }[] = [
+  { key: "incoming", icon: Tray },
+  { key: "outgoing", icon: TrayArrowUp },
+  { key: "drafts", icon: NotePencil },
+  { key: "templates", icon: ClipboardText },
+  { key: "excel", icon: FileArrowUp },
 ];
 
-// Kelgan Didox hujjatini turi bo'yicha keyingi qadamga marshrutlaydi:
-// shartnoma → imzolash, rasmiy xat → javob (studio) + rahbarni ogohlantirish,
-// faktura/akt → qarzdorlik nazoratiga, huquqiy hujjat → tegishli bo'lim.
+// Kelgan hujjatni turi bo'yicha keyingi qadamga marshrutlaydi.
 const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; href: string; icon: Icon; warn?: boolean }> = {
-  contract: { cat: "sign", href: "/contracts", icon: PenNib },
-  supplementary_agreement: { cat: "sign", href: "/contracts", icon: PenNib },
+  contract: { cat: "sign", href: "/contracts", icon: SealCheck },
+  supplementary_agreement: { cat: "sign", href: "/contracts", icon: SealCheck },
   letter: { cat: "reply", href: "/studio?template=reply", icon: NotePencil, warn: true },
   power_of_attorney: { cat: "reply", href: "/studio?template=reply", icon: NotePencil },
   invoice: { cat: "monitor", href: "/receivables", icon: Wallet },
@@ -112,98 +106,68 @@ const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; h
   other: { cat: "reply", href: "/studio", icon: NotePencil },
 };
 
-function DocAiAction({ type, t }: { type: string; t: ReturnType<typeof useTranslations> }) {
-  const a = AI_ACTION[type] ?? AI_ACTION.other;
-  const Icon = a.icon;
-  return (
-    <Card className="border-primary/25 bg-primary-soft/20 p-4">
-      <div className="flex items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
-          <Sparkle weight="fill" className="size-4" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-primary/70">{t("ai.heading")}</p>
-          <p className="mt-0.5 text-sm font-semibold">{t(`ai.${a.cat}.title` as never)}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">{t(`ai.${a.cat}.desc` as never)}</p>
-          {a.warn && (
-            <p className="mt-2 flex items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-xs text-warning">
-              <Warning weight="fill" className="size-3.5 shrink-0" /> {t("ai.warnManager")}
-            </p>
-          )}
-        </div>
-      </div>
-      <Link
-        href={a.href}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-      >
-        <Icon weight="fill" className="size-4" /> {t(`ai.${a.cat}.action` as never)} <ArrowRight className="size-3.5" />
-      </Link>
-    </Card>
-  );
+function fmtDate(s: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(s));
 }
 
 export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   const t = useTranslations("documents");
   const tType = useTranslations("docType");
   const locale = useLocale();
-  const router = useRouter();
 
   const [data, setData] = useState<DocumentsData>(initial);
+  const [folder, setFolder] = useState("incoming");
   const [type, setType] = useState("all");
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<DocDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const firstQ = useRef(true);
+  const first = useRef(true);
 
-  const fmtDate = (d: string) =>
-    new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" }).format(new Date(d));
-
-  async function load(page: number, ty = type, query = q) {
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    let alive = true;
     setLoading(true);
-    setSelectedId(null);
-    const d = await fetchDocuments({ page, type: ty, q: query });
-    if (d) setData(d);
-    setLoading(false);
+    const id = setTimeout(async () => {
+      const d = await fetchDocuments({ page, type, q });
+      if (alive && d) setData(d);
+      if (alive) setLoading(false);
+    }, 300);
+    return () => {
+      alive = false;
+      clearTimeout(id);
+    };
+  }, [type, q, page]);
+
+  async function openDoc(docId: string) {
+    setSelectedId(docId);
+    setDetail(null);
+    setDetailLoading(true);
+    const d = await getDocumentDetail(docId);
+    setDetail(d);
+    setDetailLoading(false);
   }
 
-  useEffect(() => {
-    if (firstQ.current) {
-      firstQ.current = false;
-      return;
-    }
-    const id = setTimeout(() => load(1, type, q), 350);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  async function sync() {
+    setSyncing(true);
+    await syncDidox();
+    const d = await fetchDocuments({ page: 1, type, q });
+    if (d) setData(d);
+    setSyncing(false);
+  }
 
-  // Tanlangan hujjatning to'liq matnini kerak bo'lganda tortamiz.
-  useEffect(() => {
-    if (!selectedId) {
-      setDetail(null);
-      return;
-    }
-    let cancelled = false;
-    setDetailLoading(true);
-    setDetail(null);
-    getDocumentDetail(selectedId).then((d) => {
-      if (!cancelled) {
-        setDetail(d);
-        setDetailLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedId]);
-
-  const selected = selectedId ? data.items.find((d) => d.id === selectedId) ?? null : null;
-  const types = ["all", ...TYPE_ORDER.filter((ty) => data.byType[ty])];
+  const tabs = ["all", ...TYPE_ORDER.filter((ty) => data.byType[ty])];
+  const isIncoming = folder === "incoming";
+  const rows = isIncoming ? data.items : [];
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full min-h-0 w-full flex-col">
       {/* Header */}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -212,265 +176,266 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={async () => {
-              if (syncing) return;
-              setSyncing(true);
-              await syncDidox();
-              setSyncing(false);
-              router.refresh();
-            }}
+            onClick={sync}
             disabled={syncing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium transition-colors hover:border-primary/40 disabled:opacity-60"
           >
-            {syncing ? <CircleNotch className="size-4 animate-spin" /> : <CloudArrowDown weight="fill" className="size-4" />}
-            {syncing ? t("syncing") : t("syncDidox")}
+            <CloudArrowDown className={cn("size-4", syncing && "animate-bounce")} /> {syncing ? t("syncing") : t("syncDidox")}
           </button>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2">
-            <FileText weight="fill" className="size-4 text-primary" />
-            <span className="text-xs text-muted-foreground">{t("total")}</span>
-            <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
-          </div>
+          <Link href="/studio" className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3.5 py-2 text-sm font-semibold text-amber-950 shadow-sm transition-opacity hover:opacity-90">
+            <Plus weight="bold" className="size-4" /> {t("create")}
+          </Link>
         </div>
       </div>
 
-      {/* Filter bar */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="inline-flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1">
-          {types.map((ty) => (
-            <button
-              key={ty}
-              onClick={() => {
-                setType(ty);
-                load(1, ty, q);
-              }}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                type === ty ? "bg-primary-soft text-primary" : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {ty === "all" ? t("all") : tType(ty as never)}
-              <span
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[184px_1fr]">
+        {/* Papkalar (Didox yon paneli) */}
+        <div className="space-y-1">
+          {FOLDERS.map((f) => {
+            const Ic = f.icon;
+            const active = folder === f.key;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setFolder(f.key)}
                 className={cn(
-                  "grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs",
-                  type === ty ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  active ? "bg-primary text-primary-foreground shadow-sm shadow-primary/30" : "text-muted-foreground hover:bg-muted",
                 )}
               >
-                {ty === "all" ? data.allTotal : data.byType[ty] ?? 0}
-              </span>
-            </button>
-          ))}
+                <Ic weight={active ? "fill" : "regular"} className="size-4" /> {t(`folder.${f.key}` as never)}
+              </button>
+            );
+          })}
         </div>
-        <div className="relative ml-auto">
-          <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="h-9 w-64 rounded-lg border border-border bg-card pl-9 pr-3 text-sm outline-none transition-shadow placeholder:text-muted-foreground/55 focus:ring-4 focus:ring-primary/10"
-          />
-        </div>
-      </div>
 
-      {/* Master-detail */}
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[400px_1fr]">
-        {/* List + pagination */}
-        <div className="flex min-h-0 flex-col">
-          <div className={cn("scroll-clean min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 transition-opacity", loading && "opacity-50")}>
-            {data.items.length === 0 && (
-              <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-                {t("empty")}
-              </div>
-            )}
-            {data.items.map((d) => {
-              const meta = TYPE_META[d.type] ?? TYPE_META.other;
-              const Ic = meta.icon;
-              const active = selected?.id === d.id;
+        {/* Asosiy */}
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
+            <div className="relative min-w-0 flex-1">
+              <MagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => {
+                  setPage(1);
+                  setQ(e.target.value);
+                }}
+                placeholder={t("searchTin")}
+                className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none focus:border-primary/50"
+              />
+            </div>
+            <button className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
+              <Funnel className="size-4" /> {t("filter")}
+            </button>
+          </div>
+
+          {/* Tur tab'lari (Didox status qatori uslubida) */}
+          <div className="scroll-clean flex items-center gap-1 overflow-x-auto border-b border-border px-3 py-2">
+            {tabs.map((ty) => {
+              const activeTab = type === ty;
+              const count = ty === "all" ? data.allTotal : data.byType[ty] ?? 0;
               return (
                 <button
-                  key={d.id}
-                  onClick={() => setSelectedId(d.id)}
+                  key={ty}
+                  onClick={() => {
+                    setPage(1);
+                    setType(ty);
+                  }}
                   className={cn(
-                    "flex w-full items-start gap-3 rounded-xl border p-3.5 text-left transition-all",
-                    active
-                      ? "border-primary bg-primary-soft/40 shadow-sm"
-                      : "border-border bg-card hover:border-muted-foreground/25 hover:bg-muted/40",
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors",
+                    activeTab ? "bg-primary-soft text-primary" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "grid size-9 shrink-0 place-items-center rounded-lg",
-                      active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    <Ic weight={active ? "fill" : "regular"} className="size-[18px]" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-sm font-medium leading-snug">{d.title}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Badge tone={meta.tone}>{tType(d.type as never)}</Badge>
-                      <span className="truncate text-xs text-muted-foreground">{d.contractorName ?? "—"}</span>
-                    </div>
-                  </div>
+                  {ty === "all" ? t("all") : tType(ty as never)}
+                  <span className={cn("grid h-5 min-w-5 place-items-center rounded-full px-1 text-xs", activeTab ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>{count}</span>
                 </button>
               );
             })}
           </div>
-          <div className="mt-3">
-            <Pagination page={data.page} pageCount={data.pageCount} pageSize={data.pageSize} total={data.total} onPage={(p) => load(p)} disabled={loading} />
-          </div>
-        </div>
 
-        {/* Preview */}
-        <div className="scroll-clean min-h-0 overflow-y-auto">
-          {!selected ? (
-            <div className="flex h-full min-h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
-              {t("select")}
+          {/* Jadval */}
+          <div className="scroll-clean min-h-0 flex-1 overflow-auto">
+            {!isIncoming ? (
+              <div className="flex h-full min-h-52 flex-col items-center justify-center gap-2 text-muted-foreground">
+                <Tray className="size-8" />
+                <p className="text-sm">{t("folderEmpty")}</p>
+              </div>
+            ) : rows.length === 0 ? (
+              <div className="flex h-full min-h-52 items-center justify-center text-sm text-muted-foreground">{t("empty")}</div>
+            ) : (
+              <table className="w-full min-w-[820px] text-sm">
+                <thead className="sticky top-0 z-10 bg-muted/70 backdrop-blur">
+                  <tr className="text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-2.5 font-medium">{t("col.status")}</th>
+                    <th className="px-4 py-2.5 font-medium">{t("col.type")}</th>
+                    <th className="px-4 py-2.5 font-medium">{t("col.updated")}</th>
+                    <th className="px-4 py-2.5 font-medium">{t("col.contractor")}</th>
+                    <th className="px-4 py-2.5 font-medium">{t("col.docNo")}</th>
+                    <th className="px-4 py-2.5 font-medium">{t("col.contractNo")}</th>
+                    <th className="px-4 py-2.5" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => {
+                    const meta = TYPE_META[r.type] ?? TYPE_META.other!;
+                    const Ic = meta.icon;
+                    const active = selectedId === r.id;
+                    return (
+                      <tr key={r.id} onClick={() => openDoc(r.id)} className={cn("cursor-pointer border-b border-border/60 transition-colors", active ? "bg-primary-soft/40" : "hover:bg-muted/40")}>
+                        <td className="px-4 py-3">
+                          <span className="inline-block size-2.5 rounded-full bg-amber-500" title={t("col.status")} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center gap-2">
+                            <span className="grid size-7 place-items-center rounded-md bg-muted text-muted-foreground">
+                              <Ic weight="fill" className="size-4" />
+                            </span>
+                            <span className="font-medium">{tType(r.type as never)}</span>
+                          </span>
+                        </td>
+                        <td className="tabular px-4 py-3 text-muted-foreground">{fmtDate(r.createdAt, locale)}</td>
+                        <td className="max-w-[220px] px-4 py-3">
+                          <span className="line-clamp-2 font-medium">{r.contractorName ?? "—"}</span>
+                        </td>
+                        <td className="tabular px-4 py-3 font-mono text-xs text-muted-foreground">{r.didoxId ?? "—"}</td>
+                        <td className="tabular px-4 py-3 font-mono text-xs text-muted-foreground">{r.contractNumber ?? "—"}</td>
+                        <td className="px-4 py-3 text-right">
+                          <ArrowRight className="size-4 text-muted-foreground" />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Sahifalash */}
+          {isIncoming && data.pageCount > 1 && (
+            <div className="flex items-center justify-between border-t border-border px-4 py-2 text-sm text-muted-foreground">
+              <span>
+                {(data.page - 1) * data.pageSize + 1}–{Math.min(data.page * data.pageSize, data.total)} / {data.total}
+              </span>
+              <div className="flex gap-1">
+                <button disabled={data.page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-md border border-border px-2 py-1 disabled:opacity-40">
+                  ‹
+                </button>
+                <button disabled={data.page >= data.pageCount} onClick={() => setPage((p) => p + 1)} className="rounded-md border border-border px-2 py-1 disabled:opacity-40">
+                  ›
+                </button>
+              </div>
             </div>
-          ) : (
-            <Preview
-              item={selected}
-              detail={detail && detail.id === selected.id ? detail : null}
-              loading={detailLoading}
-              t={t}
-              tType={tType}
-              fmtDate={fmtDate}
-              onSigned={() => selectedId && getDocumentDetail(selectedId).then(setDetail)}
-            />
           )}
         </div>
       </div>
+
+      {/* Detal drawer */}
+      {selectedId && (
+        <div className="fixed inset-0 z-50 flex" onClick={() => setSelectedId(null)}>
+          <div className="flex-1 bg-black/30" />
+          <div className="scroll-clean flex w-full max-w-md flex-col gap-4 overflow-y-auto border-l border-border bg-background p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="font-display text-lg font-semibold">{detail?.title ?? t("body")}</h2>
+              <button onClick={() => setSelectedId(null)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+                <X className="size-4" />
+              </button>
+            </div>
+            {detail && <DetailBody detail={detail} t={t} tType={tType} locale={locale} onSigned={() => openDoc(detail.id)} />}
+            {detailLoading && <p className="text-sm text-muted-foreground">…</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function Preview({
-  item,
+function DetailBody({
   detail,
-  loading,
   t,
   tType,
-  fmtDate,
+  locale,
   onSigned,
 }: {
-  item: DocItem;
-  detail: DocDetail | null;
-  loading: boolean;
+  detail: DocDetail;
   t: ReturnType<typeof useTranslations>;
   tType: ReturnType<typeof useTranslations>;
-  fmtDate: (d: string) => string;
+  locale: string;
   onSigned: () => void;
 }) {
   const tA = useTranslations("approvals");
-  const meta = TYPE_META[item.type] ?? TYPE_META.other;
-  const Ic = meta.icon;
-  const body = typeof detail?.extracted?.body === "string" ? (detail.extracted.body as string) : null;
-  const signature = (detail?.extracted?.signature ?? null) as { signerName: string; certSerial: string; provider: string } | null;
+  const body = typeof detail.extracted?.body === "string" ? (detail.extracted.body as string) : null;
+  const signature = (detail.extracted?.signature ?? null) as { signerName: string; certSerial: string; provider: string } | null;
   const [signing, setSigning] = useState(false);
-  const [signErr, setSignErr] = useState<string | null>(null);
+  const a = AI_ACTION[detail.type] ?? AI_ACTION.other!;
+  const AIcon = a.icon;
 
   async function doSign() {
     if (signing) return;
     setSigning(true);
-    setSignErr(null);
     try {
-      const sig = await signWithEimzo(body ?? item.title, "Rahbar");
-      const res = await signDocument(item.id, sig);
+      const sig = await signWithEimzo(body ?? detail.title, "Rahbar");
+      const res = await signDocument(detail.id, sig);
       if (res.success) onSigned();
-      else setSignErr(res.message || tA("signFailed"));
-    } catch (e) {
-      setSignErr(e instanceof Error ? e.message : tA("signFailed"));
     } finally {
       setSigning(false);
     }
   }
 
   return (
-    <div className="space-y-4">
-      <Card className="p-5">
-        <div className="flex items-start gap-3">
-          <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-            <Ic weight="fill" className="size-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="mb-1 flex items-center gap-2">
-              <Badge tone={meta.tone}>{tType(item.type as never)}</Badge>
-              <span className="text-xs text-muted-foreground">{fmtDate(item.createdAt)}</span>
-            </div>
-            <h2 className="font-display text-lg font-semibold leading-snug tracking-tight">{item.title}</h2>
-          </div>
-        </div>
+    <>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <Field label={tType(detail.type as never)} value={fmtDate(detail.createdAt, locale)} />
+        <Field label={t("contractor")} value={detail.contractorName} />
+        <Field label={t("contract")} value={detail.contractNumber} />
+        <Field label={t("didox")} value={detail.didoxId} />
+      </dl>
 
-        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
-          <Field label={t("contractor")} value={item.contractorName} />
-          <Field label={t("contract")} value={item.contractNumber} />
-          <Field label={t("didox")} value={item.didoxId} mono />
-        </dl>
-
-        {/* E-IMZO imzo — istalgan hujjatni imzolash */}
-        {detail && (
-          <div className="mt-4 border-t border-border pt-4">
-            {signature ? (
-              <div className="flex items-center gap-2.5">
-                <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-success-soft text-success">
-                  <ShieldCheck weight="fill" className="size-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-success">{signature.provider === "eimzo" ? tA("realSigned") : tA("signed")}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {tA("signedBy")}: {signature.signerName} · {signature.certSerial}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs text-muted-foreground">{tA("demoNote")}</p>
-                  <Button variant="outline" onClick={doSign} disabled={signing}>
-                    <PenNib weight="fill" className="size-4" />
-                    {signing ? tA("signing") : tA("sign")}
-                  </Button>
-                </div>
-                {signErr && <p className="text-xs text-danger">{signErr}</p>}
-              </div>
-            )}
-          </div>
-        )}
-      </Card>
-
-      {/* AI marshrutlash — hujjat turi bo'yicha keyingi qadam */}
-      <DocAiAction type={item.type} t={t} />
-
-      {loading ? (
-        <Card className="flex items-center justify-center p-10 text-muted-foreground">
-          <CircleNotch className="size-6 animate-spin" />
-        </Card>
-      ) : body ? (
-        <Card className="p-5">
-          <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            <FileText className="size-4" /> {t("body")}
+      {/* AI marshrutlash */}
+      <div className="rounded-xl border border-primary/25 bg-primary-soft/20 p-3">
+        <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-primary/70">
+          <Sparkle weight="fill" className="size-3.5" /> {t("ai.heading")}
+        </p>
+        <p className="mt-1 text-sm font-semibold">{t(`ai.${a.cat}.title` as never)}</p>
+        <p className="text-xs text-muted-foreground">{t(`ai.${a.cat}.desc` as never)}</p>
+        {a.warn && (
+          <p className="mt-1.5 flex items-center gap-1 rounded-md bg-warning-soft px-2 py-1 text-xs text-warning">
+            <Warning weight="fill" className="size-3.5" /> {t("ai.warnManager")}
           </p>
-          <DocumentView body={body} />
-        </Card>
-      ) : (
-        <Card className="flex flex-col items-center justify-center gap-3 p-10 text-center">
-          <div className="grid size-12 place-items-center rounded-xl bg-muted text-muted-foreground">
-            <Package className="size-6" />
+        )}
+        <Link href={a.href} className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <AIcon weight="fill" className="size-4" /> {t(`ai.${a.cat}.action` as never)} <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+
+      {/* E-IMZO */}
+      <div className="rounded-lg border border-border bg-muted/20 p-3">
+        {signature ? (
+          <div className="flex items-center gap-2 text-sm text-success">
+            <ShieldCheck weight="fill" className="size-4" /> {signature.provider === "eimzo" ? tA("realSigned") : tA("signed")}
           </div>
-          <p className="max-w-xs text-sm text-muted-foreground">{t("noPreview")}</p>
-          {item.didoxId && (
-            <span className="tabular rounded-md bg-muted px-2.5 py-1 font-mono text-xs text-muted-foreground">{item.didoxId}</span>
-          )}
-        </Card>
+        ) : (
+          <Button variant="outline" onClick={doSign} disabled={signing}>
+            <ShieldCheck weight="fill" className="size-4" /> {signing ? tA("signing") : tA("sign")}
+          </Button>
+        )}
+      </div>
+
+      {body && (
+        <div className="rounded-lg border border-border p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("body")}</p>
+          <DocumentView body={body} />
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
-function Field({ label, value, mono }: { label: string; value: string | null; mono?: boolean }) {
+function Field({ label, value }: { label: string; value?: string | null }) {
   return (
-    <div className="min-w-0">
+    <div>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={cn("truncate font-medium", mono && "font-mono text-xs")}>{value || "—"}</dd>
+      <dd className="mt-0.5 truncate font-medium">{value || "—"}</dd>
     </div>
   );
 }
