@@ -350,7 +350,9 @@
     "ttn": "Yuk xati (TTN)",
     "demand_letter": "Talabnoma",
     "court_claim": "Da'vo arizasi",
-    "other": "Boshqa"
+    "other": "Boshqa",
+    "power_of_attorney": "Ishonchnoma",
+    "letter": "Xat"
   },
   "reminders": {
     "title": "Eslatmalar",

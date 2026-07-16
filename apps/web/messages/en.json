@@ -315,7 +315,9 @@
     "ttn": "Waybill (TTN)",
     "demand_letter": "Demand letter",
     "court_claim": "Court claim",
-    "other": "Other"
+    "other": "Other",
+    "power_of_attorney": "Power of attorney",
+    "letter": "Letter"
   },
   "reminders": {
     "title": "Reminders",
