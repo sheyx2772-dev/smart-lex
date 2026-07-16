@@ -13,7 +13,10 @@
     "documents": "Hujjatlar",
     "reminders": "Eslatmalar",
     "audit": "Audit jurnali",
-    "settings": "Sozlamalar"
+    "settings": "Sozlamalar",
+    "companies": "Kontragentlar",
+    "court": "Sud",
+    "reports": "Hisobotlar"
   },
   "agent": {
     "status": "Agent holati",
@@ -566,5 +569,37 @@
     "newActivity": "Yangi faoliyat",
     "review": "Ko'rib chiqish",
     "viewAll": "Barchasi"
+  },
+  "reports": {
+    "title": "Hisobotlar",
+    "subtitle": "Moliyaviy tahlil, qarz yoshi va undiruv samaradorligi",
+    "exportCsv": "CSV yuklab olish",
+    "print": "Chop etish / PDF",
+    "invoiced": "Jami hisob-faktura",
+    "collected": "Undirilgan",
+    "outstanding": "Undirilmagan qoldiq",
+    "penalty": "Jami penya",
+    "writtenOff": "Hisobdan chiqarilgan",
+    "collectionRate": "Undiruv samaradorligi",
+    "monthlyTitle": "6 oylik dinamika",
+    "monthlyInvoiced": "Hisob-faktura",
+    "monthlyCollected": "Undirilgan",
+    "agingTitle": "Qarz yoshi tahlili",
+    "colBucket": "Muddat",
+    "colCount": "Soni",
+    "colAmount": "Summa",
+    "colShare": "Ulush",
+    "riskTitle": "Risk taqsimoti",
+    "riskLow": "Past",
+    "riskMedium": "O‘rta",
+    "riskHigh": "Yuqori",
+    "riskCritical": "Kritik",
+    "funnelTitle": "Undiruv bosqichlari",
+    "topDebtorsTitle": "Eng katta qarzdorlar",
+    "colContractor": "Kontragent",
+    "colOverdue": "Kechikish",
+    "colRisk": "Risk",
+    "days": "kun",
+    "empty": "Ma’lumot yo‘q"
   }
 }

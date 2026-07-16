@@ -13,7 +13,10 @@
     "documents": "Документы",
     "reminders": "Напоминания",
     "audit": "Журнал аудита",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "companies": "Контрагенты",
+    "court": "Суд",
+    "reports": "Отчёты"
   },
   "agent": {
     "status": "Статус агента",
@@ -488,5 +491,37 @@
     "newActivity": "Новая активность",
     "review": "Просмотреть",
     "viewAll": "Все"
+  },
+  "reports": {
+    "title": "Отчёты",
+    "subtitle": "Финансовый анализ, возраст долга и эффективность взыскания",
+    "exportCsv": "Скачать CSV",
+    "print": "Печать / PDF",
+    "invoiced": "Всего счетов",
+    "collected": "Взыскано",
+    "outstanding": "Остаток задолженности",
+    "penalty": "Всего пеня",
+    "writtenOff": "Списано",
+    "collectionRate": "Эффективность взыскания",
+    "monthlyTitle": "Динамика за 6 месяцев",
+    "monthlyInvoiced": "Счета",
+    "monthlyCollected": "Взыскано",
+    "agingTitle": "Анализ возраста долга",
+    "colBucket": "Срок",
+    "colCount": "Кол-во",
+    "colAmount": "Сумма",
+    "colShare": "Доля",
+    "riskTitle": "Распределение риска",
+    "riskLow": "Низкий",
+    "riskMedium": "Средний",
+    "riskHigh": "Высокий",
+    "riskCritical": "Критический",
+    "funnelTitle": "Этапы взыскания",
+    "topDebtorsTitle": "Крупнейшие должники",
+    "colContractor": "Контрагент",
+    "colOverdue": "Просрочка",
+    "colRisk": "Риск",
+    "days": "дн.",
+    "empty": "Нет данных"
   }
 }

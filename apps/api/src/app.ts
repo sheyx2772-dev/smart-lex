@@ -17,6 +17,7 @@ import { miscRoutes } from "./routes/misc";
 import { overdueRoutes } from "./routes/overdue";
 import { receivableRoutes } from "./routes/receivables";
 import { reminderRoutes } from "./routes/reminders";
+import { reportRoutes } from "./routes/reports";
 import { syncRoutes } from "./routes/sync";
 import { settingsRoutes } from "./routes/settings";
 
@@ -41,6 +42,7 @@ export function createApp() {
   api.route("/", courtRoutes);
   api.route("/", receivableRoutes);
   api.route("/", overdueRoutes);
+  api.route("/", reportRoutes);
   api.route("/", documentRoutes);
   api.route("/", reminderRoutes);
   api.route("/", syncRoutes);

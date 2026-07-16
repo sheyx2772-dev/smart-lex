@@ -3,6 +3,7 @@
 import {
   Bell,
   Buildings,
+  ChartBar,
   FileText,
   Gavel,
   GearSix,
@@ -40,6 +41,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     items: [
       { href: "/documents", key: "documents", icon: FileText },
       { href: "/reminders", key: "reminders", icon: PaperPlaneTilt },
+      { href: "/reports", key: "reports", icon: ChartBar },
       { href: "/audit", key: "audit", icon: Pulse },
       { href: "/settings", key: "settings", icon: GearSix },
     ],

@@ -13,7 +13,10 @@
     "documents": "Documents",
     "reminders": "Reminders",
     "audit": "Audit log",
-    "settings": "Settings"
+    "settings": "Settings",
+    "companies": "Companies",
+    "court": "Court",
+    "reports": "Reports"
   },
   "agent": {
     "status": "Agent status",
@@ -488,5 +491,37 @@
     "newActivity": "New activity",
     "review": "Review",
     "viewAll": "View all"
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Financial analysis, debt aging and collection efficiency",
+    "exportCsv": "Download CSV",
+    "print": "Print / PDF",
+    "invoiced": "Total invoiced",
+    "collected": "Collected",
+    "outstanding": "Outstanding balance",
+    "penalty": "Total penalty",
+    "writtenOff": "Written off",
+    "collectionRate": "Collection rate",
+    "monthlyTitle": "6-month dynamics",
+    "monthlyInvoiced": "Invoiced",
+    "monthlyCollected": "Collected",
+    "agingTitle": "Debt aging analysis",
+    "colBucket": "Age",
+    "colCount": "Count",
+    "colAmount": "Amount",
+    "colShare": "Share",
+    "riskTitle": "Risk distribution",
+    "riskLow": "Low",
+    "riskMedium": "Medium",
+    "riskHigh": "High",
+    "riskCritical": "Critical",
+    "funnelTitle": "Collection stages",
+    "topDebtorsTitle": "Top debtors",
+    "colContractor": "Contractor",
+    "colOverdue": "Overdue",
+    "colRisk": "Risk",
+    "days": "d",
+    "empty": "No data"
   }
 }
