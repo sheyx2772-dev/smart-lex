@@ -23,7 +23,9 @@
     "contracts": "Shartnomalar",
     "enforcement": "Ijro",
     "studio": "Hujjat tayyorlash",
-    "scoring": "Skoring"
+    "scoring": "Skoring",
+    "active": "Faol",
+    "monitoring": "Kuzatuvda"
   },
   "agent": {
     "status": "Agent holati",
@@ -77,7 +79,30 @@
     "dueDate": "Muddat",
     "overdueDays": "Kun o'tgan",
     "risk": "Xavf",
-    "empty": "Ma'lumot yo'q"
+    "empty": "Ma'lumot yo'q",
+    "goodMorning": "Xayrli tong",
+    "goodDay": "Xayrli kun",
+    "goodEvening": "Xayrli kech",
+    "aiToday": "Bugungi holat",
+    "allDone": "Barcha ishlar bajarildi",
+    "wDocuments": "hujjat",
+    "wReminders": "eslatma",
+    "wDemands": "talabnoma",
+    "wApprovals": "tasdiq",
+    "totalReceivables": "Jami debitorlik",
+    "recovered": "Undirilgan",
+    "collectionRate": "Undirish darajasi",
+    "avgOverdue": "O'rtacha kechikish",
+    "remindersSent": "Yuborilgan eslatmalar",
+    "pendingApprovals": "Tasdiq kutmoqda",
+    "topDebtors": "Yirik qarzdorlar",
+    "viewAll": "Barchasi",
+    "agentActivity": "Agent faoliyati",
+    "noActivity": "Faoliyat yo'q",
+    "funnel": "Undirish varonkasi",
+    "funnelDesc": "Qarzdorlik bosqichlari bo'yicha",
+    "reached": "yetdi",
+    "days": "kun"
   },
   "status": {
     "pending": "Kutilmoqda",
@@ -98,7 +123,9 @@
     "logout": "Chiqish",
     "search": "Qidirish",
     "days": "kun",
-    "language": "Til"
+    "language": "Til",
+    "next": "Keyingi",
+    "prev": "Oldingi"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -234,7 +261,37 @@
       "eimzoSiteId": "E-IMZO SiteID",
       "smsProvider": "SMS provayder",
       "smsApiKey": "SMS API kaliti",
-      "telegramBotToken": "Telegram bot token"
+      "telegramBotToken": "Telegram bot token",
+      "telegramChatId": "Telegram chat ID",
+      "telegramTopicId": "Telegram topic ID",
+      "telegramDest": "Telegram manzili",
+      "telegramDestHint": "Chat yoki kanal ID"
+    },
+    "heading": "Sozlamalar",
+    "desc": "Hisob va kompaniya sozlamalari",
+    "name": "Nomi",
+    "email": "Elektron pochta",
+    "phone": "Telefon",
+    "legalAddress": "Yuridik manzil",
+    "bankAccount": "Hisob raqami",
+    "bankMfo": "MFO",
+    "defaultLocale": "Standart til",
+    "note": "Izoh",
+    "reset": "Qayta tiklash",
+    "variables": "O'zgaruvchilar",
+    "insert": "Qo'shish",
+    "smsProvider": "SMS provayder",
+    "eimzoSiteId": "E-IMZO SiteID",
+    "telegramChatId": "Telegram chat ID",
+    "telegramTopicId": "Telegram topic ID",
+    "tab": "Bo'lim",
+    "docTemplates": {
+      "heading": "Hujjat shablonlari",
+      "desc": "Talabnoma, da'vo va akt shablonlarini tahrirlang",
+      "insert": "Qo'shish",
+      "note": "O'zgaruvchilardan foydalaning",
+      "reset": "Standartga qaytarish",
+      "variables": "O'zgaruvchilar"
     }
   },
   "approvals": {
@@ -270,7 +327,9 @@
     "realSigned": "E-IMZO bilan imzolangan",
     "signedBy": "Imzolagan",
     "demoNote": "Demo rejim — E-IMZO orqali imzolash",
-    "signFailed": "Imzolashda xatolik yuz berdi"
+    "signFailed": "Imzolashda xatolik yuz berdi",
+    "approveSigned": "Imzolab tasdiqlash",
+    "editable": "tahrirlanadi"
   },
   "audit": {
     "title": "Audit jurnali",
@@ -342,7 +401,8 @@
     "queued": "Navbatda",
     "sent": "Yuborildi",
     "delivered": "Yetkazildi",
-    "failed": "Xatolik"
+    "failed": "Xatolik",
+    "all": "Barchasi"
   },
   "paymentStatus": {
     "expected": "Kutilmoqda",
@@ -626,7 +686,11 @@
     "dueAt": "To'lov muddati",
     "creating": "Yaratilmoqda...",
     "create": "Shartnoma yaratish",
-    "newBtn": "Yangi shartnoma"
+    "newBtn": "Yangi shartnoma",
+    "dueDate": "To'lov muddati",
+    "invNumber": "Hisob-faktura raqami",
+    "penaltyCapBps": "Penya chegarasi (%)",
+    "penaltyDailyBps": "Kunlik penya (bps)"
   },
   "chat": {
     "greeting": "Assalomu alaykum! Men Lex AI yordamchisiman. Qarzdorlik, kontragent va hujjatlar bo'yicha savollaringizga javob beraman.",

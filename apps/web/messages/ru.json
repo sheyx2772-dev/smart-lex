@@ -23,7 +23,9 @@
     "contracts": "Договоры",
     "enforcement": "Исполнение",
     "studio": "Подготовка документа",
-    "scoring": "Скоринг"
+    "scoring": "Скоринг",
+    "active": "Активен",
+    "monitoring": "Мониторинг"
   },
   "agent": {
     "status": "Статус агента",
@@ -77,7 +79,30 @@
     "dueDate": "Срок",
     "overdueDays": "Дней просрочки",
     "risk": "Риск",
-    "empty": "Нет данных"
+    "empty": "Нет данных",
+    "goodMorning": "Доброе утро",
+    "goodDay": "Добрый день",
+    "goodEvening": "Добрый вечер",
+    "aiToday": "Сегодня",
+    "allDone": "Все задачи выполнены",
+    "wDocuments": "документов",
+    "wReminders": "напоминаний",
+    "wDemands": "претензий",
+    "wApprovals": "на подтверждении",
+    "totalReceivables": "Всего дебиторки",
+    "recovered": "Взыскано",
+    "collectionRate": "Уровень взыскания",
+    "avgOverdue": "Средняя просрочка",
+    "remindersSent": "Отправлено напоминаний",
+    "pendingApprovals": "Ожидают подтверждения",
+    "topDebtors": "Крупнейшие должники",
+    "viewAll": "Все",
+    "agentActivity": "Активность агента",
+    "noActivity": "Нет активности",
+    "funnel": "Воронка взыскания",
+    "funnelDesc": "По этапам взыскания",
+    "reached": "достигло",
+    "days": "дн."
   },
   "status": {
     "pending": "Ожидается",
@@ -98,7 +123,9 @@
     "logout": "Выйти",
     "search": "Поиск",
     "days": "дн.",
-    "language": "Язык"
+    "language": "Язык",
+    "next": "Далее",
+    "prev": "Назад"
   },
   "settings": {
     "title": "Настройки",
@@ -213,7 +240,11 @@
       "secretNote": "Секретные ключи хранятся безопасно и не отображаются повторно. Для обновления введите заново.",
       "smsApiKey": "API-ключ SMS",
       "smsProvider": "SMS-провайдер",
-      "telegramBotToken": "Telegram bot token"
+      "telegramBotToken": "Telegram bot token",
+      "telegramChatId": "Telegram chat ID",
+      "telegramTopicId": "Telegram topic ID",
+      "telegramDest": "Telegram назначение",
+      "telegramDestHint": "ID чата или канала"
     },
     "team": {
       "active": "Активен",
@@ -235,6 +266,32 @@
         "viewer": "Наблюдатель"
       },
       "you": "Вы"
+    },
+    "heading": "Настройки",
+    "desc": "Настройки аккаунта и компании",
+    "name": "Название",
+    "email": "Электронная почта",
+    "phone": "Телефон",
+    "legalAddress": "Юридический адрес",
+    "bankAccount": "Расчётный счёт",
+    "bankMfo": "МФО",
+    "defaultLocale": "Язык по умолчанию",
+    "note": "Примечание",
+    "reset": "Сбросить",
+    "variables": "Переменные",
+    "insert": "Вставить",
+    "smsProvider": "SMS-провайдер",
+    "eimzoSiteId": "E-IMZO SiteID",
+    "telegramChatId": "Telegram chat ID",
+    "telegramTopicId": "Telegram topic ID",
+    "tab": "Раздел",
+    "docTemplates": {
+      "heading": "Шаблоны документов",
+      "desc": "Редактируйте шаблоны претензий, исков и актов",
+      "insert": "Вставить",
+      "note": "Используйте переменные",
+      "reset": "Сбросить",
+      "variables": "Переменные"
     }
   },
   "audit": {
@@ -307,7 +364,8 @@
     "queued": "В очереди",
     "sent": "Отправлено",
     "delivered": "Доставлено",
-    "failed": "Ошибка"
+    "failed": "Ошибка",
+    "all": "Все"
   },
   "paymentStatus": {
     "expected": "Ожидается",
@@ -591,7 +649,11 @@
     "dueAt": "Срок оплаты",
     "creating": "Создание...",
     "create": "Создать договор",
-    "newBtn": "Новый договор"
+    "newBtn": "Новый договор",
+    "dueDate": "Срок оплаты",
+    "invNumber": "Номер счёта-фактуры",
+    "penaltyCapBps": "Лимит пени (%)",
+    "penaltyDailyBps": "Дневная пеня (bps)"
   },
   "chat": {
     "greeting": "Здравствуйте! Я AI-помощник Lex. Отвечу на вопросы по задолженностям, контрагентам и документам.",
@@ -636,7 +698,9 @@
       "court_claim": "Иск (суд)",
       "demand_letter": "Претензия",
       "write_off": "Списание"
-    }
+    },
+    "approveSigned": "Подписать и подтвердить",
+    "editable": "редактируется"
   },
   "agentPanel": {
     "title": "AI Agent",

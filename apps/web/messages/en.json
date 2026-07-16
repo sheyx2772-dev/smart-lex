@@ -23,7 +23,9 @@
     "contracts": "Contracts",
     "enforcement": "Enforcement",
     "studio": "Document studio",
-    "scoring": "Scoring"
+    "scoring": "Scoring",
+    "active": "Active",
+    "monitoring": "Monitoring"
   },
   "agent": {
     "status": "Agent status",
@@ -77,7 +79,30 @@
     "dueDate": "Due date",
     "overdueDays": "Days overdue",
     "risk": "Risk",
-    "empty": "No data"
+    "empty": "No data",
+    "goodMorning": "Good morning",
+    "goodDay": "Good afternoon",
+    "goodEvening": "Good evening",
+    "aiToday": "Today at a glance",
+    "allDone": "All caught up",
+    "wDocuments": "documents",
+    "wReminders": "reminders",
+    "wDemands": "demands",
+    "wApprovals": "approvals",
+    "totalReceivables": "Total receivables",
+    "recovered": "Recovered",
+    "collectionRate": "Collection rate",
+    "avgOverdue": "Avg. overdue",
+    "remindersSent": "Reminders sent",
+    "pendingApprovals": "Pending approvals",
+    "topDebtors": "Top debtors",
+    "viewAll": "View all",
+    "agentActivity": "Agent activity",
+    "noActivity": "No activity",
+    "funnel": "Collection funnel",
+    "funnelDesc": "By collection stage",
+    "reached": "reached",
+    "days": "days"
   },
   "status": {
     "pending": "Pending",
@@ -98,7 +123,9 @@
     "logout": "Log out",
     "search": "Search",
     "days": "days",
-    "language": "Language"
+    "language": "Language",
+    "next": "Next",
+    "prev": "Previous"
   },
   "settings": {
     "title": "Settings",
@@ -213,7 +240,11 @@
       "secretNote": "Secret keys are stored securely and not shown again. Re-enter to update.",
       "smsApiKey": "SMS API key",
       "smsProvider": "SMS provider",
-      "telegramBotToken": "Telegram bot token"
+      "telegramBotToken": "Telegram bot token",
+      "telegramChatId": "Telegram chat ID",
+      "telegramTopicId": "Telegram topic ID",
+      "telegramDest": "Telegram destination",
+      "telegramDestHint": "Chat or channel ID"
     },
     "team": {
       "active": "Active",
@@ -235,6 +266,32 @@
         "viewer": "Viewer"
       },
       "you": "You"
+    },
+    "heading": "Settings",
+    "desc": "Account and company settings",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "legalAddress": "Legal address",
+    "bankAccount": "Bank account",
+    "bankMfo": "Bank MFO",
+    "defaultLocale": "Default language",
+    "note": "Note",
+    "reset": "Reset",
+    "variables": "Variables",
+    "insert": "Insert",
+    "smsProvider": "SMS provider",
+    "eimzoSiteId": "E-IMZO SiteID",
+    "telegramChatId": "Telegram chat ID",
+    "telegramTopicId": "Telegram topic ID",
+    "tab": "Tab",
+    "docTemplates": {
+      "heading": "Document templates",
+      "desc": "Edit demand, claim and act templates",
+      "insert": "Insert",
+      "note": "Use the variables",
+      "reset": "Reset to default",
+      "variables": "Variables"
     }
   },
   "audit": {
@@ -307,7 +364,8 @@
     "queued": "Queued",
     "sent": "Sent",
     "delivered": "Delivered",
-    "failed": "Failed"
+    "failed": "Failed",
+    "all": "All"
   },
   "paymentStatus": {
     "expected": "Expected",
@@ -591,7 +649,11 @@
     "dueAt": "Due date",
     "creating": "Creating...",
     "create": "Create contract",
-    "newBtn": "New contract"
+    "newBtn": "New contract",
+    "dueDate": "Due date",
+    "invNumber": "Invoice number",
+    "penaltyCapBps": "Penalty cap (%)",
+    "penaltyDailyBps": "Daily penalty (bps)"
   },
   "chat": {
     "greeting": "Hello! I'm the Lex AI assistant. I can answer questions about receivables, counterparties and documents.",
@@ -636,7 +698,9 @@
       "court_claim": "Court claim",
       "demand_letter": "Demand letter",
       "write_off": "Write-off"
-    }
+    },
+    "approveSigned": "Approve signed",
+    "editable": "editable"
   },
   "agentPanel": {
     "title": "AI Agent",
