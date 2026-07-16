@@ -366,7 +366,16 @@
       "returned": "Возвращён",
       "correction": "На доработке",
       "completed": "Завершён"
-    }
+    },
+    "stages": {
+      "prepared": "Подготовлено",
+      "ready": "Готово к подаче",
+      "submitted": "Подано",
+      "accepted": "Принято",
+      "decided": "Решение"
+    },
+    "submitEsud": "Подать в E-SUD",
+    "eimzoHint": "Подпись и окончательную подачу вы выполняете сами на портале cabinet.sud.uz с помощью E-IMZO."
   },
   "overdue": {
     "title": "Просроченная задолженность",

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOut, CaretDown, CheckCircle, Copy, Gavel, Scales, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretDown, CheckCircle, Copy, FileText, Gavel, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { setCourtStatus } from "@/app/(app)/court/actions";
@@ -45,6 +45,74 @@ function fmtMinor(minor: string, currency = "UZS"): string {
   const major = (abs / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   const frac = (abs % 100n).toString().padStart(2, "0");
   return `${major},${frac} ${currency}`;
+}
+
+// E-SUD (cabinet.sud.uz) haqiqiy jarayoniga mos vizual bosqichlar.
+// Jonli o'rganilgan oqim: tayyorlash → topshirishga tayyor → E-SUD'ga topshirish
+// → qabul → qaror. E-IMZO imzoni foydalanuvchi E-SUD portalida qo'yadi.
+const STAGE_STEPS = [
+  { key: "prepared", icon: FileText },
+  { key: "ready", icon: Scales },
+  { key: "submitted", icon: UploadSimple },
+  { key: "accepted", icon: CheckCircle },
+  { key: "decided", icon: Gavel },
+] as const;
+
+function stageIndex(status: string): number {
+  switch (status) {
+    case "draft":
+      return 0;
+    case "ready":
+      return 1;
+    case "submitted":
+    case "returned":
+    case "correction":
+      return 2;
+    case "accepted":
+      return 3;
+    case "completed":
+      return 4;
+    default:
+      return 0;
+  }
+}
+
+function CourtStepper({ status, t }: { status: string; t: ReturnType<typeof useTranslations> }) {
+  const active = stageIndex(status);
+  const warn = status === "returned" || status === "correction";
+  return (
+    <div className="mt-4 flex items-center">
+      {STAGE_STEPS.map((s, i) => {
+        const done = i < active;
+        const current = i === active;
+        const Icon = s.icon;
+        return (
+          <div key={s.key} className="flex flex-1 items-center last:flex-none">
+            <div className="flex flex-col items-center gap-1">
+              <span
+                className={cn(
+                  "grid size-8 place-items-center rounded-full border-2 transition-colors",
+                  current && warn
+                    ? "border-warning bg-warning-soft text-warning"
+                    : current
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : done
+                        ? "border-primary bg-primary-soft text-primary"
+                        : "border-border bg-card text-muted-foreground",
+                )}
+              >
+                <Icon weight={done || current ? "fill" : "regular"} className="size-4" />
+              </span>
+              <span className={cn("max-w-[72px] text-center text-[10px] leading-tight", current ? "font-medium text-foreground" : "text-muted-foreground")}>
+                {t(`stages.${s.key}` as never)}
+              </span>
+            </div>
+            {i < STAGE_STEPS.length - 1 && <span className={cn("mx-1 h-0.5 flex-1 rounded", i < active ? "bg-primary" : "bg-border")} />}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function CourtClient({ initial }: { initial: CourtData }) {
@@ -121,6 +189,9 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
         </div>
       </div>
 
+      {/* E-SUD jarayoni — vizual bosqichlar (haqiqiy cabinet.sud.uz oqimiga mos) */}
+      <CourtStepper status={status} t={t} />
+
       {!approved && (
         <div className="mt-3 flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning">
           <Warning weight="fill" className="size-4 shrink-0" /> {t("notApproved")}
@@ -135,7 +206,7 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           <ArrowSquareOut weight="fill" className="size-4" />
-          {t("openPortal")}
+          {t("submitEsud")}
         </button>
         <button
           onClick={copy}
@@ -151,6 +222,12 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
           <CaretDown className={cn("size-4 transition-transform", open && "rotate-180")} /> {t("docText")}
         </button>
       </div>
+
+      {approved && (
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("eimzoHint")}
+        </p>
+      )}
 
       {open && (
         <div className="scroll-clean mt-3 max-h-72 overflow-y-auto">

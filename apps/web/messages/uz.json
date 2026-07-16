@@ -401,7 +401,16 @@
       "returned": "Qaytarilgan",
       "correction": "Tuzatishda",
       "completed": "Yakunlangan"
-    }
+    },
+    "stages": {
+      "prepared": "Tayyorlandi",
+      "ready": "Topshirishga tayyor",
+      "submitted": "Topshirildi",
+      "accepted": "Qabul qilindi",
+      "decided": "Qaror"
+    },
+    "submitEsud": "E-SUD'da topshirish",
+    "eimzoHint": "Imzo va yakuniy topshirishni cabinet.sud.uz portalida E-IMZO bilan o'zingiz bajarasiz."
   },
   "overdue": {
     "title": "Muddati o'tgan qarzdorlik",

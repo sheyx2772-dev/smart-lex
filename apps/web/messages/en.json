@@ -366,7 +366,16 @@
       "returned": "Returned",
       "correction": "In correction",
       "completed": "Completed"
-    }
+    },
+    "stages": {
+      "prepared": "Prepared",
+      "ready": "Ready to submit",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "decided": "Decision"
+    },
+    "submitEsud": "Submit via E-SUD",
+    "eimzoHint": "You complete signing and final submission yourself on cabinet.sud.uz using E-IMZO."
   },
   "overdue": {
     "title": "Overdue receivables",
