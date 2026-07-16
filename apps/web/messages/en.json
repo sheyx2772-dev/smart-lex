@@ -16,7 +16,8 @@
     "settings": "Settings",
     "companies": "Companies",
     "court": "Court",
-    "reports": "Reports"
+    "reports": "Reports",
+    "agent": "AI Agent"
   },
   "agent": {
     "status": "Agent status",
@@ -523,5 +524,36 @@
     "colRisk": "Risk",
     "days": "d",
     "empty": "No data"
+  },
+  "agentConsole": {
+    "title": "AI Agent Console",
+    "subtitle": "The agent analyzes each receivable, scores risk and recommends the next action. You just approve.",
+    "runAgent": "Run agent",
+    "running": "Analyzing…",
+    "ranSummary": "Agent analyzed {analyzed} receivables · {updated} risk scores updated · {actions} actions recommended",
+    "analyzed": "Analyzed",
+    "overdue": "Overdue",
+    "needsApproval": "Awaiting approval",
+    "highRisk": "High risk",
+    "empty": "No active receivables",
+    "risk": "Risk",
+    "band_low": "low",
+    "band_medium": "medium",
+    "band_high": "high",
+    "overdueDays": "Overdue",
+    "outstanding": "Outstanding",
+    "penalty": "Penalty",
+    "days": "d",
+    "reasoning": "AI analysis (why this risk)",
+    "factor_overdue_days": "Days overdue",
+    "factor_outstanding_ratio": "Debt ratio",
+    "factor_late_payment_history": "Payment history",
+    "factor_prior_demands": "Prior demands",
+    "agentPlan": "Agent plan",
+    "nothingYet": "No actions yet",
+    "now": "now",
+    "inDays": "in {days}d",
+    "reviewPending": "Review",
+    "willNeedApproval": "Needs approval"
   }
 }

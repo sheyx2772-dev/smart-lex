@@ -10,6 +10,7 @@ import {
   type Icon,
   PaperPlaneTilt,
   Pulse,
+  Robot,
   SealCheck,
   SignOut,
   Sparkle,
@@ -28,6 +29,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
   {
     label: "groupMain",
     items: [
+      { href: "/agent", key: "agent", icon: Robot },
       { href: "/", key: "dashboard", icon: SquaresFour },
       { href: "/companies", key: "companies", icon: Buildings },
       { href: "/receivables", key: "receivables", icon: Wallet },

@@ -16,7 +16,8 @@
     "settings": "Sozlamalar",
     "companies": "Kontragentlar",
     "court": "Sud",
-    "reports": "Hisobotlar"
+    "reports": "Hisobotlar",
+    "agent": "AI Agent"
   },
   "agent": {
     "status": "Agent holati",
@@ -601,5 +602,36 @@
     "colRisk": "Risk",
     "days": "kun",
     "empty": "Ma’lumot yo‘q"
+  },
+  "agentConsole": {
+    "title": "AI Agent Konsoli",
+    "subtitle": "Agent har bir debitorlikni tahlil qiladi, riskni baholaydi va keyingi harakatni tavsiya etadi. Siz faqat tasdiqlaysiz.",
+    "runAgent": "Agentni ishga tushirish",
+    "running": "Tahlil qilinmoqda…",
+    "ranSummary": "Agent {analyzed} ta debitorlikni tahlil qildi · {updated} ta risk yangilandi · {actions} ta harakat tavsiya etildi",
+    "analyzed": "Tahlil qilingan",
+    "overdue": "Muddati o‘tgan",
+    "needsApproval": "Tasdiq kutmoqda",
+    "highRisk": "Yuqori risk",
+    "empty": "Faol debitorlik yo‘q",
+    "risk": "Risk",
+    "band_low": "past",
+    "band_medium": "o‘rta",
+    "band_high": "yuqori",
+    "overdueDays": "Kechikish",
+    "outstanding": "Qoldiq",
+    "penalty": "Penya",
+    "days": "kun",
+    "reasoning": "AI tahlili (nega shu risk)",
+    "factor_overdue_days": "Muddatdan o‘tish",
+    "factor_outstanding_ratio": "Qarz ulushi",
+    "factor_late_payment_history": "To‘lov tarixi",
+    "factor_prior_demands": "Oldingi talabnomalar",
+    "agentPlan": "Agent rejasi",
+    "nothingYet": "Hozircha harakat yo‘q",
+    "now": "hozir",
+    "inDays": "{days} kundan keyin",
+    "reviewPending": "Tasdiqlash",
+    "willNeedApproval": "Tasdiq talab qiladi"
   }
 }

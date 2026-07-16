@@ -16,7 +16,8 @@
     "settings": "Настройки",
     "companies": "Контрагенты",
     "court": "Суд",
-    "reports": "Отчёты"
+    "reports": "Отчёты",
+    "agent": "AI Агент"
   },
   "agent": {
     "status": "Статус агента",
@@ -523,5 +524,36 @@
     "colRisk": "Риск",
     "days": "дн.",
     "empty": "Нет данных"
+  },
+  "agentConsole": {
+    "title": "Консоль AI Агента",
+    "subtitle": "Агент анализирует каждую задолженность, оценивает риск и рекомендует следующее действие. Вы только подтверждаете.",
+    "runAgent": "Запустить агента",
+    "running": "Анализирую…",
+    "ranSummary": "Агент проанализировал {analyzed} задолженностей · обновлено рисков: {updated} · рекомендовано действий: {actions}",
+    "analyzed": "Проанализировано",
+    "overdue": "Просрочено",
+    "needsApproval": "Ждёт подтверждения",
+    "highRisk": "Высокий риск",
+    "empty": "Нет активных задолженностей",
+    "risk": "Риск",
+    "band_low": "низкий",
+    "band_medium": "средний",
+    "band_high": "высокий",
+    "overdueDays": "Просрочка",
+    "outstanding": "Остаток",
+    "penalty": "Пеня",
+    "days": "дн.",
+    "reasoning": "Анализ AI (почему такой риск)",
+    "factor_overdue_days": "Просрочка",
+    "factor_outstanding_ratio": "Доля долга",
+    "factor_late_payment_history": "История платежей",
+    "factor_prior_demands": "Прошлые требования",
+    "agentPlan": "План агента",
+    "nothingYet": "Пока нет действий",
+    "now": "сейчас",
+    "inDays": "через {days} дн.",
+    "reviewPending": "Подтвердить",
+    "willNeedApproval": "Требует подтверждения"
   }
 }

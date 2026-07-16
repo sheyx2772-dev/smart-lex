@@ -16,6 +16,7 @@ import { documentRoutes } from "./routes/documents";
 import { miscRoutes } from "./routes/misc";
 import { overdueRoutes } from "./routes/overdue";
 import { receivableRoutes } from "./routes/receivables";
+import { agentConsoleRoutes } from "./routes/agent-console";
 import { reminderRoutes } from "./routes/reminders";
 import { reportRoutes } from "./routes/reports";
 import { syncRoutes } from "./routes/sync";
@@ -36,6 +37,7 @@ export function createApp() {
   const api = new Hono<{ Variables: Variables }>();
   api.use("*", authMiddleware);
   api.route("/", dashboardRoutes);
+  api.route("/", agentConsoleRoutes);
   api.route("/", companyRoutes);
   api.route("/", chatRoutes);
   api.route("/", contractRoutes);
