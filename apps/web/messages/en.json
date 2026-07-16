@@ -346,7 +346,31 @@
     "contract": "Contract",
     "didox": "Didox ID",
     "body": "Document body",
-    "noPreview": "No preview text available for this document"
+    "noPreview": "No preview text available for this document",
+    "ai": {
+      "heading": "AI recommendation",
+      "warnManager": "Manager notified — a response is required",
+      "sign": {
+        "title": "Contract — needs signing",
+        "desc": "Review the contract and sign it with E-IMZO.",
+        "action": "Go to signing"
+      },
+      "reply": {
+        "title": "Official letter — prepare a reply",
+        "desc": "Draft a reply letter in the document studio.",
+        "action": "Prepare a reply"
+      },
+      "monitor": {
+        "title": "Financial document — add to monitoring",
+        "desc": "Add the invoice/act to receivables monitoring.",
+        "action": "Add to monitoring"
+      },
+      "legal": {
+        "title": "Legal document",
+        "desc": "Review in the relevant section.",
+        "action": "Go"
+      }
+    }
   },
   "court": {
     "title": "Court stage",

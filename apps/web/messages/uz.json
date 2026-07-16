@@ -381,7 +381,31 @@
     "contract": "Shartnoma",
     "didox": "Didox ID",
     "body": "Hujjat matni",
-    "noPreview": "Bu hujjat uchun ko'rish mumkin bo'lgan matn yo'q"
+    "noPreview": "Bu hujjat uchun ko'rish mumkin bo'lgan matn yo'q",
+    "ai": {
+      "heading": "AI tavsiyasi",
+      "warnManager": "Rahbar ogohlantirildi — javob talab qilinadi",
+      "sign": {
+        "title": "Shartnoma — imzolash kerak",
+        "desc": "Shartnomani ko'rib chiqib, E-IMZO bilan imzolang.",
+        "action": "Imzolashga o'tish"
+      },
+      "reply": {
+        "title": "Rasmiy xat — javob tayyorlang",
+        "desc": "Hujjat tayyorlash studiyasida javob xatini yozing.",
+        "action": "Javob xati tayyorlash"
+      },
+      "monitor": {
+        "title": "Moliyaviy hujjat — nazoratga oling",
+        "desc": "Faktura/aktni debitorlik nazoratiga qo'shing.",
+        "action": "Nazoratga olish"
+      },
+      "legal": {
+        "title": "Huquqiy hujjat",
+        "desc": "Tegishli bo'limda ko'rib chiqing.",
+        "action": "O'tish"
+      }
+    }
   },
   "court": {
     "title": "Sud bosqichi",

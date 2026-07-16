@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   CircleNotch,
   ClipboardText,
   CloudArrowDown,
@@ -10,16 +11,21 @@ import {
   Gavel,
   IdentificationBadge,
   MagnifyingGlass,
+  NotePencil,
   Package,
   PenNib,
   Receipt,
   Scroll,
+  SealCheck,
   ShieldCheck,
+  Sparkle,
   Truck,
+  Wallet,
   Warning,
   type Icon,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { fetchDocuments, getDocumentDetail, signDocument, syncDidox } from "@/app/(app)/documents/actions";
@@ -88,6 +94,53 @@ const TYPE_ORDER = [
   "supplementary_agreement",
   "other",
 ];
+
+// Kelgan Didox hujjatini turi bo'yicha keyingi qadamga marshrutlaydi:
+// shartnoma → imzolash, rasmiy xat → javob (studio) + rahbarni ogohlantirish,
+// faktura/akt → qarzdorlik nazoratiga, huquqiy hujjat → tegishli bo'lim.
+const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; href: string; icon: Icon; warn?: boolean }> = {
+  contract: { cat: "sign", href: "/contracts", icon: PenNib },
+  supplementary_agreement: { cat: "sign", href: "/contracts", icon: PenNib },
+  letter: { cat: "reply", href: "/studio", icon: NotePencil, warn: true },
+  power_of_attorney: { cat: "reply", href: "/studio", icon: NotePencil },
+  invoice: { cat: "monitor", href: "/receivables", icon: Wallet },
+  act: { cat: "monitor", href: "/receivables", icon: Wallet },
+  reconciliation_act: { cat: "monitor", href: "/receivables", icon: Wallet },
+  ttn: { cat: "monitor", href: "/receivables", icon: Wallet },
+  demand_letter: { cat: "legal", href: "/approvals", icon: SealCheck },
+  court_claim: { cat: "legal", href: "/court", icon: Gavel },
+  other: { cat: "reply", href: "/studio", icon: NotePencil },
+};
+
+function DocAiAction({ type, t }: { type: string; t: ReturnType<typeof useTranslations> }) {
+  const a = AI_ACTION[type] ?? AI_ACTION.other;
+  const Icon = a.icon;
+  return (
+    <Card className="border-primary/25 bg-primary-soft/20 p-4">
+      <div className="flex items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
+          <Sparkle weight="fill" className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-primary/70">{t("ai.heading")}</p>
+          <p className="mt-0.5 text-sm font-semibold">{t(`ai.${a.cat}.title` as never)}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{t(`ai.${a.cat}.desc` as never)}</p>
+          {a.warn && (
+            <p className="mt-2 flex items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-xs text-warning">
+              <Warning weight="fill" className="size-3.5 shrink-0" /> {t("ai.warnManager")}
+            </p>
+          )}
+        </div>
+      </div>
+      <Link
+        href={a.href}
+        className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+      >
+        <Icon weight="fill" className="size-4" /> {t(`ai.${a.cat}.action` as never)} <ArrowRight className="size-3.5" />
+      </Link>
+    </Card>
+  );
+}
 
 export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   const t = useTranslations("documents");
@@ -383,6 +436,9 @@ function Preview({
           </div>
         )}
       </Card>
+
+      {/* AI marshrutlash — hujjat turi bo'yicha keyingi qadam */}
+      <DocAiAction type={item.type} t={t} />
 
       {loading ? (
         <Card className="flex items-center justify-center p-10 text-muted-foreground">
