@@ -569,7 +569,8 @@
     "needsYouEmpty": "Tasdiq kutayotgan ish yo'q",
     "newActivity": "Yangi faoliyat",
     "review": "Ko'rib chiqish",
-    "viewAll": "Barchasi"
+    "viewAll": "Barchasi",
+    "worked": "Agent bugun {count} ta ishni bajardi"
   },
   "reports": {
     "title": "Hisobotlar",

@@ -98,7 +98,9 @@
       "company": "Company",
       "collection": "Collection policy",
       "penalty": "Penalty & interest",
-      "channels": "Channels & templates"
+      "channels": "Channels & templates",
+      "integrations": "Integrations",
+      "team": "Team"
     },
     "profile": {
       "heading": "Personal profile",
@@ -127,7 +129,11 @@
       "bankMfo": "MFO",
       "phone": "Phone",
       "contactEmail": "Contact email",
-      "defaultLocale": "Document language (default)"
+      "defaultLocale": "Document language (default)",
+      "signatoryHeading": "Signatory",
+      "signatoryName": "Full name",
+      "signatoryPosition": "Position",
+      "signatoryPositionPh": "Director"
     },
     "collection": {
       "heading": "Collection policy",
@@ -157,7 +163,8 @@
       "capBps": "Upper cap",
       "capBpsHint": "Max percent of principal. Empty = no cap",
       "noCap": "No cap",
-      "example": "Example: 10,000,000 UZS, 30 days"
+      "example": "Example: 10,000,000 UZS, 30 days",
+      "perDay": "day"
     },
     "channels": {
       "heading": "Notification channels",
@@ -169,7 +176,52 @@
       "templatesHeading": "Message templates",
       "templatesDesc": "Edit in three languages. Variables: {debtor}, {amount}, {invoice}, {days}",
       "softTemplate": "Soft reminder",
-      "firmTemplate": "Firm reminder"
+      "firmTemplate": "Firm reminder",
+      "chars": "chars",
+      "preview": "Preview",
+      "reset": "Reset to default",
+      "variables": "Variables",
+      "vars": {
+        "amount": "Amount",
+        "days": "Days",
+        "debtor": "Debtor",
+        "invoice": "Invoice"
+      }
+    },
+    "integrations_ui": {
+      "bankApiKey": "Bank API key",
+      "configured": "Configured",
+      "desc": "Keys for external services (Didox, bank, E-IMZO, SMS, Telegram)",
+      "didoxToken": "Didox partner token",
+      "eimzoSiteId": "E-IMZO SiteID",
+      "heading": "Integrations",
+      "notConfigured": "Not configured",
+      "replaceHint": "Enter a new value to replace",
+      "secretNote": "Secret keys are stored securely and not shown again. Re-enter to update.",
+      "smsApiKey": "SMS API key",
+      "smsProvider": "SMS provider",
+      "telegramBotToken": "Telegram bot token"
+    },
+    "team": {
+      "active": "Active",
+      "addUser": "Add user",
+      "desc": "Add employees and manage their roles",
+      "email": "Email",
+      "emailExists": "This email already exists",
+      "fullName": "Full name",
+      "heading": "Team members",
+      "inactive": "Inactive",
+      "namePh": "First Last",
+      "password": "Password",
+      "role": "Role",
+      "roles": {
+        "admin": "Administrator",
+        "finance": "Finance",
+        "legal": "Legal",
+        "owner": "Owner",
+        "viewer": "Viewer"
+      },
+      "you": "You"
     }
   },
   "audit": {
@@ -477,7 +529,33 @@
     "realSigned": "Signed with E-IMZO",
     "signedBy": "Signed by",
     "demoNote": "Demo mode — sign via E-IMZO",
-    "signFailed": "Signing failed"
+    "signFailed": "Signing failed",
+    "approve": "Approve",
+    "approved": "Approved",
+    "approving": "Approving...",
+    "confirmTitle": "Confirm?",
+    "contractor": "Counterparty",
+    "created": "Created",
+    "days": "days",
+    "document": "Document text",
+    "empty": "No approvals in this section",
+    "invoice": "Invoice",
+    "overdue": "Overdue",
+    "penalty": "Penalty",
+    "pending": "Pending",
+    "principal": "Principal debt",
+    "reject": "Reject",
+    "rejected": "Rejected",
+    "rejecting": "Rejecting...",
+    "select": "Select to view",
+    "subtitle": "Review and approve legal documents prepared by AI",
+    "title": "Approvals",
+    "total": "Total",
+    "type": {
+      "court_claim": "Court claim",
+      "demand_letter": "Demand letter",
+      "write_off": "Write-off"
+    }
   },
   "agentPanel": {
     "title": "AI Agent",
@@ -491,7 +569,8 @@
     "needsYouEmpty": "Nothing awaiting approval",
     "newActivity": "New activity",
     "review": "Review",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "worked": "The agent completed {count} tasks today"
   },
   "reports": {
     "title": "Reports",

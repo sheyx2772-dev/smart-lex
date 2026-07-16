@@ -98,7 +98,9 @@
       "company": "Компания",
       "collection": "Политика взыскания",
       "penalty": "Пеня и проценты",
-      "channels": "Каналы и шаблоны"
+      "channels": "Каналы и шаблоны",
+      "integrations": "Интеграции",
+      "team": "Команда"
     },
     "profile": {
       "heading": "Личный профиль",
@@ -127,7 +129,11 @@
       "bankMfo": "МФО",
       "phone": "Телефон",
       "contactEmail": "Контактный email",
-      "defaultLocale": "Язык документов (по умолчанию)"
+      "defaultLocale": "Язык документов (по умолчанию)",
+      "signatoryHeading": "Подписант",
+      "signatoryName": "Ф.И.О.",
+      "signatoryPosition": "Должность",
+      "signatoryPositionPh": "Директор"
     },
     "collection": {
       "heading": "Политика взыскания",
@@ -157,7 +163,8 @@
       "capBps": "Верхний предел (cap)",
       "capBpsHint": "Максимальный процент от основного долга. Пусто = без предела",
       "noCap": "Без предела",
-      "example": "Пример: 10 000 000 сум, 30 дней"
+      "example": "Пример: 10 000 000 сум, 30 дней",
+      "perDay": "день"
     },
     "channels": {
       "heading": "Каналы уведомлений",
@@ -169,7 +176,52 @@
       "templatesHeading": "Шаблоны сообщений",
       "templatesDesc": "Редактируйте на трёх языках. Переменные: {debtor}, {amount}, {invoice}, {days}",
       "softTemplate": "Мягкое напоминание",
-      "firmTemplate": "Строгое напоминание"
+      "firmTemplate": "Строгое напоминание",
+      "chars": "симв.",
+      "preview": "Предпросмотр",
+      "reset": "Сбросить",
+      "variables": "Переменные",
+      "vars": {
+        "amount": "Сумма",
+        "days": "Дни",
+        "debtor": "Должник",
+        "invoice": "Счёт-фактура"
+      }
+    },
+    "integrations_ui": {
+      "bankApiKey": "API-ключ банка",
+      "configured": "Подключено",
+      "desc": "Ключи для внешних сервисов (Didox, банк, E-IMZO, SMS, Telegram)",
+      "didoxToken": "Didox partner token",
+      "eimzoSiteId": "E-IMZO SiteID",
+      "heading": "Интеграции",
+      "notConfigured": "Не подключено",
+      "replaceHint": "Введите новое значение для замены",
+      "secretNote": "Секретные ключи хранятся безопасно и не отображаются повторно. Для обновления введите заново.",
+      "smsApiKey": "API-ключ SMS",
+      "smsProvider": "SMS-провайдер",
+      "telegramBotToken": "Telegram bot token"
+    },
+    "team": {
+      "active": "Активен",
+      "addUser": "Добавить сотрудника",
+      "desc": "Добавляйте сотрудников и управляйте их ролями",
+      "email": "Email",
+      "emailExists": "Этот email уже существует",
+      "fullName": "Полное имя",
+      "heading": "Участники команды",
+      "inactive": "Неактивен",
+      "namePh": "Имя Фамилия",
+      "password": "Пароль",
+      "role": "Роль",
+      "roles": {
+        "admin": "Администратор",
+        "finance": "Финансист",
+        "legal": "Юрист",
+        "owner": "Владелец",
+        "viewer": "Наблюдатель"
+      },
+      "you": "Вы"
     }
   },
   "audit": {
@@ -477,7 +529,33 @@
     "realSigned": "Подписано через E-IMZO",
     "signedBy": "Подписал",
     "demoNote": "Демо-режим — подписание через E-IMZO",
-    "signFailed": "Ошибка при подписании"
+    "signFailed": "Ошибка при подписании",
+    "approve": "Подтвердить",
+    "approved": "Подтверждено",
+    "approving": "Подтверждается...",
+    "confirmTitle": "Подтвердить?",
+    "contractor": "Контрагент",
+    "created": "Создано",
+    "days": "дн.",
+    "document": "Текст документа",
+    "empty": "В этом разделе нет подтверждений",
+    "invoice": "Счёт-фактура",
+    "overdue": "Просрочено",
+    "penalty": "Пеня",
+    "pending": "Ожидается",
+    "principal": "Основной долг",
+    "reject": "Отклонить",
+    "rejected": "Отклонено",
+    "rejecting": "Отклоняется...",
+    "select": "Выберите для просмотра",
+    "subtitle": "Просматривайте и подтверждайте юридические документы, подготовленные ИИ",
+    "title": "Подтверждения",
+    "total": "Итого",
+    "type": {
+      "court_claim": "Иск (суд)",
+      "demand_letter": "Претензия",
+      "write_off": "Списание"
+    }
   },
   "agentPanel": {
     "title": "AI Agent",
@@ -491,7 +569,8 @@
     "needsYouEmpty": "Нет задач на подтверждение",
     "newActivity": "Новая активность",
     "review": "Просмотреть",
-    "viewAll": "Все"
+    "viewAll": "Все",
+    "worked": "Агент выполнил сегодня {count} задач"
   },
   "reports": {
     "title": "Отчёты",
