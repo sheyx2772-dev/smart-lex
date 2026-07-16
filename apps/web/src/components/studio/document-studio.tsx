@@ -20,6 +20,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { sendChat } from "@/app/(app)/chat/actions";
 import { RichEditor } from "@/components/ui/rich-editor";
@@ -124,9 +125,15 @@ function TemplateGallery({ t, onPick }: { t: ReturnType<typeof useTranslations>;
 
 export function DocumentStudio() {
   const t = useTranslations("studio");
-  const [title, setTitle] = useState("");
-  const [docHtml, setDocHtml] = useState("");
-  const [picker, setPicker] = useState(true);
+  const searchParams = useSearchParams();
+  // ?template=<key> bilan kirilsa — o'sha shablon darhol yuklanadi (bo'limlararo ulanish).
+  const initTpl = (() => {
+    const k = searchParams.get("template");
+    return k ? TEMPLATES.find((x) => x.key === k) : undefined;
+  })();
+  const [title, setTitle] = useState(initTpl && initTpl.key !== "blank" ? t(`tpl.${initTpl.key}` as never) : "");
+  const [docHtml, setDocHtml] = useState(initTpl?.html ?? "");
+  const [picker, setPicker] = useState(!initTpl);
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

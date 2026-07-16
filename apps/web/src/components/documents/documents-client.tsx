@@ -101,8 +101,8 @@ const TYPE_ORDER = [
 const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; href: string; icon: Icon; warn?: boolean }> = {
   contract: { cat: "sign", href: "/contracts", icon: PenNib },
   supplementary_agreement: { cat: "sign", href: "/contracts", icon: PenNib },
-  letter: { cat: "reply", href: "/studio", icon: NotePencil, warn: true },
-  power_of_attorney: { cat: "reply", href: "/studio", icon: NotePencil },
+  letter: { cat: "reply", href: "/studio?template=reply", icon: NotePencil, warn: true },
+  power_of_attorney: { cat: "reply", href: "/studio?template=reply", icon: NotePencil },
   invoice: { cat: "monitor", href: "/receivables", icon: Wallet },
   act: { cat: "monitor", href: "/receivables", icon: Wallet },
   reconciliation_act: { cat: "monitor", href: "/receivables", icon: Wallet },
