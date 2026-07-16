@@ -60,30 +60,62 @@ const TEMPLATES: Template[] = [
   {
     key: "demand",
     icon: Scroll,
-    html: `<h2>TALABNOMA</h2><p>Hurmatli [Qarzdor nomi]!</p><p>"[Kreditor nomi]" Siz bilan tuzilgan shartnoma bo'yicha muddati o'tgan qarzdorlik yuzaga kelganini ma'lum qiladi.</p><p><strong>Shartnoma:</strong> № [Shartnoma raqami]<br><strong>Hisob-fakturalar:</strong> [Faktura raqamlari]</p><p><strong>Asosiy qarz:</strong> [summa]<br><strong>Penya:</strong> [summa]<br><strong>Jami to'lanishi lozim:</strong> [summa]</p><p>Ushbu talabnoma olingan kundan boshlab [muddat] kalendar kun ichida qarzni to'liq to'lashingizni talab qilamiz. Aks holda kreditor O'zbekiston Respublikasi qonunchiligiga muvofiq iqtisodiy sudga da'vo arizasi bilan murojaat qilish huquqini o'zida saqlaydi.</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+    html: `<h2>TALABNOMA</h2><p>Hurmatli [Qarzdor nomi]!</p><p>"[Kreditor nomi]" Siz bilan tuzilgan shartnoma bo'yicha muddati o'tgan qarzdorlik yuzaga kelganini ma'lum qiladi.</p><p><strong>Shartnoma:</strong> № [Shartnoma raqami]<br><strong>Hisob-faktura:</strong> [Faktura raqami]</p><p><strong>Asosiy qarz:</strong> [Asosiy qarz]<br><strong>Penya ([Kechikish kunlari] kun):</strong> [Penya]<br><strong>Jami to'lanishi lozim:</strong> [Jami summa]</p><p>Ushbu talabnoma olingan kundan boshlab [Muddat] kalendar kun ichida qarzni to'liq to'lashingizni talab qilamiz. Aks holda kreditor O'zbekiston Respublikasi qonunchiligiga muvofiq iqtisodiy sudga da'vo arizasi bilan murojaat qilish huquqini o'zida saqlaydi.</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
   },
   {
     key: "lawsuit",
     icon: Gavel,
-    html: `<h2>IQTISODIY SUDGA DA'VO ARIZASI</h2><p><strong>Da'vogar:</strong> "[Da'vogar nomi]", STIR: [STIR]<br><strong>Javobgar:</strong> "[Javobgar nomi]", STIR: [STIR], manzil: [manzil]<br><strong>Da'vo narxi:</strong> [summa]<br><strong>To'langan davlat boji:</strong> [summa]</p><p>Da'vogar va javobgar o'rtasida [Shartnoma raqami] shartnoma tuzilgan. [Faktura raqamlari] hisob-fakturalar bo'yicha javobgar zimmasiga to'lov majburiyati yuklatilgan.</p><p>Javobgar to'lovni belgilangan muddatda bajarmagan. Asosiy qarz [summa] ni tashkil etadi. Muddat [kun] kun o'tgan, penya [summa] ni tashkil etadi.</p><p><strong>Huquqiy asos:</strong> O'zbekiston Respublikasi Fuqarolik kodeksi va Iqtisodiy protsessual kodeksi.</p><p><strong>SO'RAYMAN:</strong> Javobgardan da'vogar foydasiga jami [summa] (asosiy qarz va penya) undirilsin. To'langan davlat boji javobgar zimmasiga yuklatilsin.</p><p>Da'vogar nomidan: [Imzolovchi] _________________ (imzo, sana)</p>`,
+    html: `<h2>IQTISODIY SUDGA DA'VO ARIZASI</h2><p><strong>Da'vogar:</strong> "[Kreditor nomi]", STIR: [Da'vogar STIR]<br><strong>Javobgar:</strong> "[Qarzdor nomi]", STIR: [Qarzdor STIR]<br><strong>Da'vo narxi:</strong> [Jami summa]<br><strong>Davlat boji:</strong> [Davlat boji]</p><p>Da'vogar va javobgar o'rtasida [Shartnoma raqami] shartnoma tuzilgan. [Faktura raqami] hisob-faktura bo'yicha javobgar zimmasiga to'lov majburiyati yuklatilgan.</p><p>Javobgar to'lovni belgilangan muddatda bajarmagan. Asosiy qarz [Asosiy qarz], [Kechikish kunlari] kun kechikish uchun penya [Penya].</p><p><strong>Huquqiy asos:</strong> O'zbekiston Respublikasi Fuqarolik kodeksi va Iqtisodiy protsessual kodeksi.</p><p><strong>SO'RAYMAN:</strong> Javobgardan da'vogar foydasiga jami [Jami summa] undirilsin. Davlat boji javobgar zimmasiga yuklatilsin.</p><p>Da'vogar nomidan: [Imzolovchi] _________________ (imzo, sana)</p>`,
   },
   {
     key: "reconciliation",
     icon: ClipboardText,
-    html: `<h2>SOLISHTIRMA DALOLATNOMA (AKT-SVERKA)</h2><p>"[Kreditor nomi]" (STIR [STIR]) va "[Qarzdor nomi]" (STIR [STIR]) o'rtasida [sana] holatiga tuzildi.</p><p>[Bu yerga hisob-kitob jadvalini (debet/kredit) kiriting]</p><p><strong>Yakuniy qoldiq (saldo):</strong> [summa]</p><p>Kreditor nomidan: _________________ (imzo, sana)<br>Qarzdor nomidan: _________________ (imzo, sana)</p>`,
+    html: `<h2>SOLISHTIRMA DALOLATNOMA (AKT-SVERKA)</h2><p>"[Kreditor nomi]" va "[Qarzdor nomi]" (STIR [Qarzdor STIR]) o'rtasida [Sana] holatiga tuzildi.</p><p>Shartnoma: [Shartnoma raqami] · Hisob-faktura: [Faktura raqami]</p><p><strong>Asosiy qarz:</strong> [Asosiy qarz]<br><strong>Penya:</strong> [Penya]<br><strong>Yakuniy qoldiq (saldo):</strong> [Jami summa]</p><p>Kreditor nomidan: _________________ (imzo, sana)<br>Qarzdor nomidan: _________________ (imzo, sana)</p>`,
   },
   {
     key: "reply",
     icon: Envelope,
-    html: `<h2>JAVOB XATI</h2><p>[Sana], № [chiquvchi raqam]</p><p>Kimga: "[Tashkilot nomi]"</p><p>Hurmatli [F.I.Sh]!</p><p>Sizning [sana] dagi № [kiruvchi raqam] xatingizga javoban quyidagilarni ma'lum qilamiz:</p><p>[Javob matnini shu yerga yozing]</p><p>Hurmat bilan,<br>[Tashkilot nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+    html: `<h2>JAVOB XATI</h2><p>[Sana], № [Chiquvchi raqam]</p><p>Kimga: "[Qarzdor nomi]"</p><p>Hurmatli [F.I.Sh]!</p><p>Sizning [Sana] dagi № [Kiruvchi raqam] xatingizga javoban quyidagilarni ma'lum qilamiz:</p><p>[Javob matnini shu yerga yozing]</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
   },
   {
     key: "contract",
     icon: Handshake,
-    html: `<h2>SHARTNOMA № [raqam]</h2><p>[Shahar], [sana]</p><p>"[Sotuvchi nomi]" (bundan buyon "Sotuvchi"), bir tomondan, va "[Xaridor nomi]" (bundan buyon "Xaridor"), ikkinchi tomondan, quyidagilar haqida ushbu shartnomani tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni (xizmatni) topshirish, Xaridor esa uni qabul qilib, [summa] to'lash majburiyatini oladi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [muddat] ichida amalga oshiriladi.</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
+    html: `<h2>SHARTNOMA № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (bundan buyon "Sotuvchi"), bir tomondan, va "[Qarzdor nomi]" (STIR [Qarzdor STIR], bundan buyon "Xaridor"), ikkinchi tomondan, quyidagilar haqida ushbu shartnomani tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni (xizmatni) topshirish, Xaridor esa uni qabul qilib, [Jami summa] to'lash majburiyatini oladi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [Foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
   },
   { key: "blank", icon: FileDashed, html: "" },
 ];
+
+/** Studio avtomatik to'ldirish uchun qarzdor ma'lumoti (receivables'dan). */
+export interface StudioDebtor {
+  id: string;
+  name: string;
+  tin: string;
+  invoiceNumber: string;
+  contractNumber: string;
+  principal: string;
+  penalty: string;
+  total: string;
+  overdueDays: string;
+}
+
+/** Shablondagi [belgilangan joy]larni qarzdor qiymatlari bilan almashtiradi. */
+function applyDebtor(html: string, d: StudioDebtor): string {
+  const map: Record<string, string> = {
+    "[Qarzdor nomi]": d.name,
+    "[Qarzdor STIR]": d.tin,
+    "[Shartnoma raqami]": d.contractNumber,
+    "[Faktura raqami]": d.invoiceNumber,
+    "[Asosiy qarz]": d.principal,
+    "[Penya]": d.penalty,
+    "[Jami summa]": d.total,
+    "[Kechikish kunlari]": d.overdueDays,
+  };
+  let out = html;
+  for (const [needle, value] of Object.entries(map)) {
+    if (value) out = out.split(needle).join(value);
+  }
+  return out;
+}
 
 function TemplateGallery({ t, onPick }: { t: ReturnType<typeof useTranslations>; onPick: (tpl: Template) => void }) {
   return (
@@ -123,9 +155,10 @@ function TemplateGallery({ t, onPick }: { t: ReturnType<typeof useTranslations>;
   );
 }
 
-export function DocumentStudio() {
+export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const t = useTranslations("studio");
   const searchParams = useSearchParams();
+  const [debtorId, setDebtorId] = useState("");
   // ?template=<key> bilan kirilsa — o'sha shablon darhol yuklanadi (bo'limlararo ulanish).
   const initTpl = (() => {
     const k = searchParams.get("template");
@@ -173,9 +206,18 @@ export function DocumentStudio() {
   }
 
   function chooseTemplate(tpl: Template) {
-    setDocHtml(tpl.html);
+    const d = debtors.find((x) => x.id === debtorId);
+    setDocHtml(d ? applyDebtor(tpl.html, d) : tpl.html);
     if (!title.trim() && tpl.key !== "blank") setTitle(t(`tpl.${tpl.key}` as never));
     setPicker(false);
+  }
+
+  // Tanlangan qarzdor ma'lumotini joriy hujjatga to'ldiradi (RichEditor value orqali
+  // o'zini sinxronlaydi; qo'lda tahrir shundan keyin ham davom etadi).
+  function fillFromDebtor(id: string) {
+    setDebtorId(id);
+    const d = debtors.find((x) => x.id === id);
+    if (d) setDocHtml(applyDebtor(docHtml, d));
   }
 
   function download() {
@@ -207,6 +249,21 @@ export function DocumentStudio() {
             className="min-w-0 flex-1 border-0 bg-transparent font-display text-xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/50"
           />
           <span className="shrink-0 text-xs text-muted-foreground">{t("words", { n: words })}</span>
+          {debtors.length > 0 && (
+            <select
+              value={debtorId}
+              onChange={(e) => fillFromDebtor(e.target.value)}
+              title={t("autofillHint")}
+              className="max-w-[190px] shrink-0 rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm outline-none focus:border-primary/50"
+            >
+              <option value="">{t("autofill")}</option>
+              {debtors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} · {d.invoiceNumber}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             onClick={() => setPicker(true)}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30"

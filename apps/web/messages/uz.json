@@ -738,7 +738,9 @@
       "reply": "Rasmiy xatga javob",
       "contract": "Oldi-sotdi / xizmat shartnomasi",
       "blank": "Noldan yozish"
-    }
+    },
+    "autofill": "Qarzdordan to'ldirish",
+    "autofillHint": "Shablonni tanlangan qarzdor ma'lumoti bilan avtomatik to'ldiradi"
   },
   "contractsHub": {
     "title": "Shartnomalar",

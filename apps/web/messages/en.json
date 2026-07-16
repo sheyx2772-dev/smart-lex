@@ -738,7 +738,9 @@
       "reply": "Reply to an official letter",
       "contract": "Sale / service contract",
       "blank": "Start from scratch"
-    }
+    },
+    "autofill": "Fill from debtor",
+    "autofillHint": "Auto-fills the template with the selected debtor's data"
   },
   "contractsHub": {
     "title": "Contracts",
