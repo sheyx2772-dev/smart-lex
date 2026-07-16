@@ -423,7 +423,8 @@
     "awaitingApproval": "Ожидает подтверждения",
     "review": "Рассмотреть",
     "nextAction": "Следующее действие",
-    "completed": "Взыскание завершено"
+    "completed": "Взыскание завершено",
+    "execute": "Выполнить"
   },
   "receivables": {
     "title": "Дебиторка",

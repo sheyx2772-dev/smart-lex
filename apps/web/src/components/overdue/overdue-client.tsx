@@ -69,6 +69,13 @@ const STAGES = [
   { key: "demand_letter", icon: FileText },
   { key: "court", icon: Gavel },
 ] as const;
+// Kechikish eslatmalari zanjiri — har bosqichning amali tegishli bo'limga uzatiladi.
+const STAGE_HREF: Record<string, string> = {
+  soft_reminder: "/reminders",
+  firm_reminder: "/reminders",
+  demand_letter: "/studio?template=demand",
+  court: "/court",
+};
 const AGING_FILTERS = ["all", "1_30", "31_60", "61_90", "90_plus"] as const;
 
 function riskTone(score: number): BadgeProps["tone"] {
@@ -266,11 +273,19 @@ function OverdueCard({
               </span>
             </Link>
           ) : item.nextStage ? (
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-sm">
-              <NextIcon weight="fill" className="size-4 text-muted-foreground" />
-              <span className="text-muted-foreground">{t("nextAction")}:</span>
-              <span className="font-medium">{tStage(item.nextStage as never)}</span>
-            </div>
+            <Link
+              href={STAGE_HREF[item.nextStage] ?? "/reminders"}
+              className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-sm transition-colors hover:border-primary/40 hover:bg-primary-soft/30"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <NextIcon weight="fill" className="size-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{t("nextAction")}:</span>
+                <span className="font-medium">{tStage(item.nextStage as never)}</span>
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                {t("execute")} <ArrowRight className="size-3.5" />
+              </span>
+            </Link>
           ) : (
             <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success-soft px-3 py-1.5 text-sm font-medium text-success">
               <CheckCircle weight="fill" className="size-4" />

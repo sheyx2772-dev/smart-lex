@@ -458,7 +458,8 @@
     "awaitingApproval": "Tasdiqlash kutilmoqda",
     "review": "Ko'rib chiqish",
     "nextAction": "Keyingi harakat",
-    "completed": "Undirish yakunlandi"
+    "completed": "Undirish yakunlandi",
+    "execute": "Bajarish"
   },
   "receivables": {
     "title": "Debitorlik",

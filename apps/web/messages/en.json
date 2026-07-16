@@ -423,7 +423,8 @@
     "awaitingApproval": "Awaiting approval",
     "review": "Review",
     "nextAction": "Next action",
-    "completed": "Collection completed"
+    "completed": "Collection completed",
+    "execute": "Execute"
   },
   "receivables": {
     "title": "Receivables",
