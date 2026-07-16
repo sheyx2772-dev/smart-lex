@@ -20,7 +20,8 @@
     "agent": "AI Agent",
     "groupWork": "Work",
     "chat": "Chat",
-    "contracts": "Contracts"
+    "contracts": "Contracts",
+    "enforcement": "Enforcement"
   },
   "agent": {
     "status": "Agent status",
@@ -646,5 +647,22 @@
     "inDays": "in {days}d",
     "reviewPending": "Review",
     "willNeedApproval": "Needs approval"
+  },
+  "enforcement": {
+    "title": "Enforcement",
+    "subtitle": "Send the court decision to enforcement — deliver the writ to the Compulsory Enforcement Bureau via hybrid post",
+    "empty": "No cases ready for enforcement. Once a court decision takes effect (the 'Decision' stage in Court), the case appears here.",
+    "bureauFor": "Compulsory Enforcement Bureau",
+    "amount": "Amount to recover",
+    "sendViaPost": "Send via hybrid.pochta.uz",
+    "blankaNote": "Letter prepared on company letterhead",
+    "confirmHint": "You confirm the final sending and signature yourself in the postal service.",
+    "stages": {
+      "inForce": "Decision in force",
+      "letter": "Cover letter",
+      "bureau": "Bureau found",
+      "posted": "Sent by post",
+      "started": "Enforcement started"
+    }
   }
 }

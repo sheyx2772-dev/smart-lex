@@ -20,7 +20,8 @@
     "agent": "AI Agent",
     "groupWork": "Ish",
     "chat": "Suhbat",
-    "contracts": "Shartnomalar"
+    "contracts": "Shartnomalar",
+    "enforcement": "Ijro"
   },
   "agent": {
     "status": "Agent holati",
@@ -646,5 +647,22 @@
     "inDays": "{days} kundan keyin",
     "reviewPending": "Tasdiqlash",
     "willNeedApproval": "Tasdiq talab qiladi"
+  },
+  "enforcement": {
+    "title": "Ijro bosqichi",
+    "subtitle": "Sud qarorini ijroga yo'naltiring — ijro varaqasini Majburiy ijro byurosiga gibrid pochta orqali yuboring",
+    "empty": "Ijroga tayyor ish yo'q. Sud qarori kuchga kirgach (Sud bo'limida 'Qaror' bosqichi), ish shu yerda paydo bo'ladi.",
+    "bureauFor": "Majburiy ijro byurosi",
+    "amount": "Undirish summasi",
+    "sendViaPost": "hybrid.pochta.uz'da yuborish",
+    "blankaNote": "Xat firma blankasida tayyorlanadi",
+    "confirmHint": "Yakuniy yuborish va imzoni pochta xizmatida o'zingiz tasdiqlaysiz.",
+    "stages": {
+      "inForce": "Qaror kuchga kirdi",
+      "letter": "Ijro xati",
+      "bureau": "Byuro aniqlandi",
+      "posted": "Pochta orqali yuborildi",
+      "started": "Ijro boshlandi"
+    }
   }
 }

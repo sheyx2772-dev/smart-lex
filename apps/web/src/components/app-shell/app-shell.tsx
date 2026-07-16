@@ -18,6 +18,7 @@ import {
   Sparkle,
   SquaresFour,
   Timer,
+  Truck,
   Wallet,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
@@ -46,6 +47,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
       { href: "/receivables", key: "receivables", icon: Wallet },
       { href: "/overdue", key: "overdue", icon: Timer },
       { href: "/court", key: "court", icon: Gavel },
+      { href: "/enforcement", key: "enforcement", icon: Truck },
       { href: "/contracts/new", key: "contracts", icon: Handshake },
     ],
   },
