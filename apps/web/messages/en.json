@@ -167,5 +167,312 @@
       "softTemplate": "Soft reminder",
       "firmTemplate": "Firm reminder"
     }
+  },
+  "audit": {
+    "title": "Audit log",
+    "subtitle": "Chronology of all agent and user actions",
+    "total": "Total records",
+    "all": "All",
+    "searchPlaceholder": "Search by action or actor",
+    "empty": "No audit records found",
+    "actor": {
+      "ai_agent": "AI agent",
+      "user": "User",
+      "system": "System"
+    },
+    "action": {
+      "contract": {
+        "created": "Contract created"
+      },
+      "court": {
+        "status_changed": "Court case status changed",
+        "requested": "Court stage requested"
+      },
+      "demand": {
+        "sent": "Demand letter sent",
+        "generated": "Demand letter generated",
+        "approved": "Demand letter approved"
+      },
+      "didox": {
+        "synced": "Didox documents synced"
+      },
+      "document": {
+        "signed": "Document signed"
+      },
+      "reminder": {
+        "sent": "Reminder sent",
+        "queued": "Reminder queued"
+      },
+      "receivable": {
+        "paid": "Payment recorded"
+      },
+      "settings": {
+        "company_updated": "Company details updated",
+        "integrations_updated": "Integrations updated",
+        "templates_updated": "Templates updated",
+        "collection_updated": "Collection policy updated"
+      },
+      "user": {
+        "created": "Team member added",
+        "updated": "Team member updated"
+      },
+      "approval": {
+        "approved": "Document approved",
+        "rejected": "Document rejected"
+      }
+    }
+  },
+  "stage": {
+    "soft_reminder": "Soft reminder",
+    "firm_reminder": "Firm reminder",
+    "demand_letter": "Demand letter",
+    "court": "Court"
+  },
+  "channel": {
+    "sms": "SMS",
+    "email": "Email",
+    "telegram": "Telegram",
+    "hybrid_post": "Hybrid post"
+  },
+  "reminderStatus": {
+    "queued": "Queued",
+    "sent": "Sent",
+    "delivered": "Delivered",
+    "failed": "Failed"
+  },
+  "paymentStatus": {
+    "expected": "Expected",
+    "received": "Received",
+    "reversed": "Reversed"
+  },
+  "docType": {
+    "contract": "Contract",
+    "supplementary_agreement": "Supplementary agreement",
+    "invoice": "Invoice",
+    "act": "Work completion act",
+    "reconciliation_act": "Reconciliation act",
+    "ttn": "Waybill (TTN)",
+    "demand_letter": "Demand letter",
+    "court_claim": "Court claim",
+    "other": "Other"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "subtitle": "All reminders and demand letters sent to debtors",
+    "total": "Total",
+    "all": "All",
+    "searchPlaceholder": "Search by counterparty or invoice",
+    "empty": "No reminders found",
+    "select": "Select a reminder to view",
+    "recipient": "Recipient",
+    "sentAt": "Sent at",
+    "body": "Message body",
+    "paymentLink": "Payment link"
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Archive of contracts, invoices and legal documents",
+    "total": "Total",
+    "all": "All",
+    "searchPlaceholder": "Search by title or counterparty",
+    "empty": "No documents found",
+    "select": "Select a document to view",
+    "syncing": "Syncing...",
+    "syncDidox": "Sync with Didox",
+    "contractor": "Counterparty",
+    "contract": "Contract",
+    "didox": "Didox ID",
+    "body": "Document body",
+    "noPreview": "No preview text available for this document"
+  },
+  "court": {
+    "title": "Court stage",
+    "subtitle": "Submit approved court claims to the court",
+    "empty": "No cases at the court stage",
+    "defendant": "Defendant",
+    "court": "Court",
+    "total": "Claim amount",
+    "stateDuty": "State duty",
+    "notApproved": "The claim is not approved yet — get it approved first",
+    "openPortal": "Open court portal",
+    "copied": "Copied",
+    "copyText": "Copy text",
+    "docText": "Document text",
+    "changeStatus": "Change status",
+    "st": {
+      "draft": "Draft",
+      "ready": "Ready",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "correction": "In correction",
+      "completed": "Completed"
+    }
+  },
+  "overdue": {
+    "title": "Overdue receivables",
+    "subtitle": "Debts requiring collection, prioritized",
+    "totalOverdue": "Total overdue",
+    "penaltyAccrued": "Accrued penalty",
+    "needsApproval": "Needs approval",
+    "critical": "Critical",
+    "all": "All",
+    "empty": "No overdue receivables",
+    "dueDate": "Due date",
+    "lastReminder": "Last reminder",
+    "noReminder": "No reminder sent",
+    "reminders": "reminders",
+    "overdueDays": "days",
+    "awaitingApproval": "Awaiting approval",
+    "review": "Review",
+    "nextAction": "Next action",
+    "completed": "Collection completed"
+  },
+  "receivables": {
+    "title": "Receivables",
+    "subtitle": "A single workspace for all invoices and debts",
+    "totalCount": "Total",
+    "all": "All",
+    "sortOverdue": "By overdue",
+    "sortAmount": "By amount",
+    "sortRisk": "By risk",
+    "searchPlaceholder": "Search by counterparty, TIN or invoice",
+    "empty": "No receivables found",
+    "overdueDays": "days",
+    "onTime": "On time",
+    "risk": "Risk",
+    "select": "Select to view details",
+    "riskHigh": "High risk",
+    "riskMedium": "Medium risk",
+    "riskLow": "Low risk",
+    "tin": "TIN",
+    "reminders": "reminders",
+    "amountsHeading": "Amounts",
+    "invoiceAmount": "Invoice amount",
+    "paid": "Paid",
+    "outstanding": "Outstanding",
+    "penalty": "Penalty",
+    "total": "Total",
+    "paymentAmount": "Payment amount",
+    "saving": "Saving...",
+    "savePayment": "Save payment",
+    "cancel": "Cancel",
+    "recordPayment": "Record payment",
+    "contractorHeading": "Counterparty details",
+    "legalAddress": "Legal address",
+    "bankAccount": "Bank account",
+    "bankMfo": "MFO",
+    "phone": "Phone",
+    "email": "Email",
+    "telegram": "Telegram",
+    "contractHeading": "Contract & invoice",
+    "contractNumber": "Contract number",
+    "signedAt": "Signed at",
+    "penaltyRate": "Penalty rate",
+    "penaltyCap": "Penalty cap",
+    "noCap": "No cap",
+    "invoiceHeading": "Invoice",
+    "dueDate": "Due date",
+    "noContract": "No contract linked",
+    "collectionHeading": "Collection stages",
+    "reminderHeading": "Reminder history",
+    "noReminders": "No reminders sent yet",
+    "paymentHeading": "Payment history"
+  },
+  "companies": {
+    "title": "Counterparties",
+    "subtitle": "Full case management for clients and debtors",
+    "searchPlaceholder": "Search by name or TIN",
+    "empty": "No counterparties found",
+    "tin": "TIN",
+    "totalDebt": "Total debt",
+    "overdue": "overdue",
+    "noOverdue": "No overdue debt",
+    "docs": "docs",
+    "contracts": "contracts",
+    "openCase": "Open case",
+    "generating": "Generating...",
+    "generateRecon": "Reconciliation act",
+    "preparingLawsuit": "Preparing claim...",
+    "generateLawsuit": "Prepare court claim",
+    "back": "Back to counterparties",
+    "risk": "Risk",
+    "legalAddress": "Legal address",
+    "bankAccount": "Bank account",
+    "bankMfo": "MFO",
+    "phone": "Phone",
+    "email": "Email",
+    "telegram": "Telegram",
+    "paid": "Paid",
+    "penalty": "Penalty",
+    "overdueCount": "Overdue",
+    "aiHeading": "AI recommendation",
+    "recommend": "Recommendation",
+    "recNothing": "All debts under control — no action needed for now",
+    "recApprove": "A ready document awaits approval — please review",
+    "recRemind": "There is overdue debt — start with a reminder",
+    "recDemand": "Reminders didn't work — time to send a demand letter",
+    "invoices": "Invoices",
+    "invoiceNo": "Invoice No.",
+    "amount": "Amount",
+    "due": "Due",
+    "status": "Status",
+    "noData": "No data",
+    "documents": "Documents",
+    "contractsSection": "Contracts",
+    "timeline": "Timeline",
+    "ev": {
+      "contract": "Contract signed",
+      "invoice": "Invoice issued",
+      "payment": "Payment received",
+      "reminder": "Reminder sent",
+      "document": "Document added",
+      "approval_demand_letter": "Demand letter sent for approval",
+      "approval_court_claim": "Court claim sent for approval",
+      "approval_write_off": "Write-off sent for approval"
+    }
+  },
+  "newContract": {
+    "title": "New contract",
+    "subtitle": "Enter the counterparty, contract and invoice in one form",
+    "required": "Fill in all required fields",
+    "contractorHeading": "Counterparty",
+    "name": "Name",
+    "namePh": "LLC / firm name",
+    "tin": "TIN",
+    "tinHint": "9-digit taxpayer identification number",
+    "phone": "Phone",
+    "contractHeading": "Contract",
+    "number": "Contract number",
+    "signedAt": "Signed at",
+    "penaltyDaily": "Daily penalty (bps)",
+    "penaltyCap": "Penalty cap (bps)",
+    "invoiceHeading": "Invoice",
+    "invoiceNumber": "Invoice number",
+    "amount": "Amount",
+    "issuedAt": "Issued at",
+    "dueAt": "Due date",
+    "creating": "Creating...",
+    "create": "Create contract",
+    "newBtn": "New contract"
+  },
+  "chat": {
+    "greeting": "Hello! I'm the Lex AI assistant. I can answer questions about receivables, counterparties and documents.",
+    "title": "AI assistant",
+    "subtitle": "Smart assistant for receivables and documents",
+    "thinking": "Thinking...",
+    "placeholder": "Type your question...",
+    "s1": "Who are the biggest debtors?",
+    "s2": "How much overdue debt is there?",
+    "s3": "What documents were prepared today?"
+  },
+  "approvals": {
+    "sign": "Sign",
+    "signing": "Signing...",
+    "signed": "Signed",
+    "realSigned": "Signed with E-IMZO",
+    "signedBy": "Signed by",
+    "demoNote": "Demo mode — sign via E-IMZO",
+    "signFailed": "Signing failed"
   }
 }
