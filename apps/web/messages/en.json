@@ -690,7 +690,13 @@
       "bureau": "Bureau found",
       "posted": "Sent by post",
       "started": "Enforcement started"
-    }
+    },
+    "prepareLetter": "Prepare letter",
+    "letterTitle": "Enforcement letter (letterhead)",
+    "copy": "Copy",
+    "copied": "Copied",
+    "downloadLetter": "Download",
+    "letterHint": "Place it on your letterhead and send together with the writ of execution."
   },
   "studio": {
     "titlePlaceholder": "Document title...",

@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowSquareOut, Buildings, CheckCircle, FileText, Gavel, PaperPlaneTilt, Scales, Truck, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, Buildings, CheckCircle, Copy, DownloadSimple, FileText, Gavel, PaperPlaneTilt, Scales, Truck, Warning } from "@phosphor-icons/react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CourtData } from "@/components/court/court-client";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,30 @@ function fmtMinor(minor: string, currency = "UZS"): string {
   const major = (abs / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   const frac = (abs % 100n).toString().padStart(2, "0");
   return `${major},${frac} ${currency}`;
+}
+
+// Firma blankasida "ijroni ta'minlash to'g'risida ariza" — case ma'lumotidan
+// to'ldiriladi (LLM shart emas). [...] joylarini foydalanuvchi to'ldiradi.
+function buildIjroLetter(item: Case): string {
+  const name = item.contractorName ?? "[Qarzdor nomi]";
+  const tin = item.contractorTin ?? "[STIR]";
+  const amount = fmtMinor(item.total, item.currency);
+  return [
+    "MAJBURIY IJRO BYUROSIGA",
+    "",
+    '"[Firma nomi]" (undiruvchi, STIR [STIR])',
+    "",
+    "IJRONI TA'MINLASH TO'G'RISIDA ARIZA",
+    "",
+    `[Sud nomi]ning [sana] dagi qarori (ish № [ish raqami]) bilan "${name}" (STIR ${tin}) dan bizning foydamizga ${amount} undirilishi belgilangan. Qaror qonuniy kuchga kirgan.`,
+    "",
+    'Yuqoridagilarga asosan, O\'zbekiston Respublikasining "Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to\'g\'risida"gi qonuniga muvofiq, ijro ish yurituvini qo\'zg\'atishingizni va qarzni majburiy undirishni ta\'minlashingizni SO\'RAYMAN.',
+    "",
+    "Ilova: ijro varaqasi; sud qarori nusxasi.",
+    "",
+    "[Firma nomi] nomidan: [Imzolovchi F.I.Sh, lavozim]",
+    "_________________ (imzo, sana)",
+  ].join("\n");
 }
 
 export function EnforcementClient({ cases }: { cases: Case[] }) {
@@ -55,8 +80,26 @@ export function EnforcementClient({ cases }: { cases: Case[] }) {
 }
 
 function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTranslations> }) {
+  const [letter, setLetter] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
   function openHybridPost() {
     window.open(HYBRID_POST_URL, "pochta", "noopener,noreferrer");
+  }
+  async function copyLetter() {
+    if (!letter) return;
+    await navigator.clipboard.writeText(letter);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+  function downloadLetter() {
+    if (!letter) return;
+    const url = URL.createObjectURL(new Blob([letter], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ijro-xati-${(item.contractorName ?? "hujjat").replace(/[^\p{L}\p{N}]+/gu, "_")}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -108,20 +151,51 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
       {/* Actions */}
       <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
         <button
+          onClick={() => setLetter(buildIjroLetter(item))}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
+        >
+          <FileText weight="fill" className="size-4" />
+          {t("prepareLetter")}
+        </button>
+        <button
           onClick={openHybridPost}
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
         >
           <ArrowSquareOut weight="fill" className="size-4" />
           {t("sendViaPost")}
         </button>
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-          <CheckCircle className="size-4 text-success" /> {t("blankaNote")}
-        </span>
       </div>
 
       <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
         <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("confirmHint")}
       </p>
+
+      {letter && (
+        <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <FileText className="size-4" /> {t("letterTitle")}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={copyLetter}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium transition-colors hover:border-muted-foreground/30"
+              >
+                {copied ? <CheckCircle weight="fill" className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
+                {copied ? t("copied") : t("copy")}
+              </button>
+              <button
+                onClick={downloadLetter}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium transition-colors hover:border-muted-foreground/30"
+              >
+                <DownloadSimple className="size-3.5" /> {t("downloadLetter")}
+              </button>
+            </div>
+          </div>
+          <pre className="scroll-clean max-h-72 overflow-y-auto whitespace-pre-wrap font-sans text-[13px] leading-relaxed text-foreground">{letter}</pre>
+          <p className="mt-2 text-[11px] text-muted-foreground">{t("letterHint")}</p>
+        </div>
+      )}
     </Card>
   );
 }

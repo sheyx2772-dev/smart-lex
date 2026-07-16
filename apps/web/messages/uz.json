@@ -690,7 +690,13 @@
       "bureau": "Byuro aniqlandi",
       "posted": "Pochta orqali yuborildi",
       "started": "Ijro boshlandi"
-    }
+    },
+    "prepareLetter": "Ijro xatini tayyorlash",
+    "letterTitle": "Ijro xati (firma blankasi)",
+    "copy": "Nusxa",
+    "copied": "Nusxa olindi",
+    "downloadLetter": "Yuklab olish",
+    "letterHint": "Firma blankasiga joylashtiring, ijro varaqasi bilan birga yuboring."
   },
   "studio": {
     "titlePlaceholder": "Hujjat nomi...",
