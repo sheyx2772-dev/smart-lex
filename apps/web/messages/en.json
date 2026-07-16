@@ -22,7 +22,8 @@
     "chat": "Chat",
     "contracts": "Contracts",
     "enforcement": "Enforcement",
-    "studio": "Document studio"
+    "studio": "Document studio",
+    "scoring": "Scoring"
   },
   "agent": {
     "status": "Agent status",
@@ -808,5 +809,31 @@
     "copy": "Copy",
     "copied": "Copied",
     "download": "Download"
+  },
+  "scoring": {
+    "title": "Client scoring",
+    "subtitle": "Debtor credit score — by payment discipline, debt burden and collection history",
+    "empty": "No data for scoring",
+    "tin": "TIN",
+    "factors": "Scoring factors",
+    "recommendation": "Recommendation",
+    "externalNote": "Connecting external sources (KATM, MyID, INPS, tax) will make the score more accurate.",
+    "rating": {
+      "A": "High (A)",
+      "B": "Good (B)",
+      "C": "Low (C)",
+      "D": "Very low (D)"
+    },
+    "factor": {
+      "punctuality": "Payment discipline",
+      "burden": "Debt burden",
+      "history": "Collection history"
+    },
+    "advice": {
+      "A": "Installment can be offered — high limit.",
+      "B": "Installment possible — limited limit.",
+      "C": "Caution — require a guarantee or collateral.",
+      "D": "Installment is not recommended."
+    }
   }
 }

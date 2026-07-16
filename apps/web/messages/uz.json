@@ -22,7 +22,8 @@
     "chat": "Suhbat",
     "contracts": "Shartnomalar",
     "enforcement": "Ijro",
-    "studio": "Hujjat tayyorlash"
+    "studio": "Hujjat tayyorlash",
+    "scoring": "Skoring"
   },
   "agent": {
     "status": "Agent holati",
@@ -808,5 +809,31 @@
     "copy": "Nusxa",
     "copied": "Nusxa olindi",
     "download": "Yuklab olish"
+  },
+  "scoring": {
+    "title": "Mijoz skoringi",
+    "subtitle": "Qarzdorlarning kredit balli — to'lov intizomi, qarz yuki va undiruv tarixi bo'yicha",
+    "empty": "Skoring uchun ma'lumot yo'q",
+    "tin": "STIR",
+    "factors": "Baholash omillari",
+    "recommendation": "Tavsiya",
+    "externalNote": "Tashqi manbalar (KATM, MyID, INPS, soliq) ulanganda ball aniqroq bo'ladi.",
+    "rating": {
+      "A": "Yuqori (A)",
+      "B": "Yaxshi (B)",
+      "C": "Past (C)",
+      "D": "Juda past (D)"
+    },
+    "factor": {
+      "punctuality": "To'lov intizomi",
+      "burden": "Qarz yuki",
+      "history": "Undiruv tarixi"
+    },
+    "advice": {
+      "A": "Nasiya berish mumkin — yuqori limit.",
+      "B": "Nasiya mumkin — cheklangan limit.",
+      "C": "Ehtiyotkorlik — kafolat yoki garov talab qiling.",
+      "D": "Nasiya berish tavsiya etilmaydi."
+    }
   }
 }
