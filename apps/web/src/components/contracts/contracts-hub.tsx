@@ -69,7 +69,7 @@ export function ContractsHub() {
             return (
               <Link
                 key={tpl.key}
-                href="/studio?template=contract"
+                href={`/studio?template=${tpl.key}&title=${encodeURIComponent(t(`tpl.${tpl.key}.name` as never))}`}
                 className="group flex flex-col gap-2 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40 hover:bg-primary-soft/20"
               >
                 <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">

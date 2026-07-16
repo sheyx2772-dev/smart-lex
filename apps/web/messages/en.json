@@ -675,7 +675,9 @@
     "now": "now",
     "inDays": "in {days}d",
     "reviewPending": "Review",
-    "willNeedApproval": "Needs approval"
+    "willNeedApproval": "Needs approval",
+    "cmdPlaceholder": "Give the agent a command — e.g. draft a demand letter for GLOBAL SNAB...",
+    "cmdError": "Sorry, an error occurred."
   },
   "enforcement": {
     "title": "Enforcement",

@@ -85,6 +85,17 @@ const TEMPLATES: Template[] = [
   { key: "blank", icon: FileDashed, html: "" },
 ];
 
+// Shartnoma sub-turlari — galereyada emas, lekin ?template=<key> bilan
+// to'g'ridan-to'g'ri ochiladi (Shartnomalar hub kartalaridan).
+const EXTRA_TEMPLATES: Record<string, string> = {
+  nasiya: `<h2>NASIYA (BO'LIB TO'LASH) OLDI-SOTDI SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Sotuvchi), bir tomondan, va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Xaridor), ikkinchi tomondan, quyidagilar haqida shartnoma tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni bo'lib-bo'lib to'lash sharti bilan Xaridorga sotadi. Umumiy narx: [Jami summa].</p><h3>2. To'lov jadvali</h3><p>2.1. Boshlang'ich to'lov: [Boshlang'ich to'lov]. Qolgan summa [Muddat] oy davomida teng ulushlarda to'lanadi (to'lov jadvali ilova qilinadi).</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [Foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
+  supply: `<h2>YETKAZIB BERISH SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Yetkazib beruvchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Xaridor) o'rtasida tuzildi.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Yetkazib beruvchi tovarni kelishilgan muddatda va assortimentda yetkazib beradi. Umumiy qiymat: [Jami summa].</p><h3>2. Yetkazib berish va to'lov</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Yetkazib beruvchi: _________________  Xaridor: _________________</p>`,
+  service: `<h2>XIZMAT KO'RSATISH SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ijrochi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Buyurtmachi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Ijrochi xizmatni ko'rsatadi, Buyurtmachi esa [Jami summa] to'laydi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Ijrochi: _________________  Buyurtmachi: _________________</p>`,
+  rent: `<h2>IJARA SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ijaraga beruvchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Ijarachi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Ijaraga beruvchi mol-mulkni vaqtinchalik foydalanishga beradi. Oylik ijara haqi: [Jami summa].</p><h3>2. Muddat va to'lov</h3><p>2.1. Ijara muddati: [Muddat] oy. To'lov har oy amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Ijaraga beruvchi: _________________  Ijarachi: _________________</p>`,
+  employment: `<h2>MEHNAT SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ish beruvchi) va [Qarzdor nomi] (Xodim) o'rtasida.</p><h3>1. Lavozim</h3><p>1.1. Xodim [Lavozim] lavozimiga qabul qilinadi.</p><h3>2. Mehnat haqi</h3><p>2.1. Oylik ish haqi: [Jami summa]. To'lov oyiga bir marta.</p><h3>3. Ish vaqti</h3><p>3.1. Ish vaqti qonunchilikka muvofiq belgilanadi.</p><p>Ish beruvchi: _________________  Xodim: _________________</p>`,
+  multiparty: `<h2>KO'P TOMONLAMA SHARTNOMA № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>Quyidagi tomonlar o'rtasida tuzildi:<br>Tomon 1: "[Kreditor nomi]"<br>Tomon 2: "[Qarzdor nomi]" (STIR [Qarzdor STIR])<br>Tomon 3: [Uchinchi tomon]</p><h3>1. Shartnoma predmeti</h3><p>1.1. Tomonlar quyidagi majburiyatlar bo'yicha kelishdilar. Umumiy qiymat: [Jami summa].</p><h3>2. Har tomon majburiyati</h3><p>2.1. [Majburiyatlarni shu yerga yozing]</p><p>Tomon 1: _________  Tomon 2: _________  Tomon 3: _________</p>`,
+};
+
 /** Studio avtomatik to'ldirish uchun qarzdor ma'lumoti (receivables'dan). */
 export interface StudioDebtor {
   id: string;
@@ -158,15 +169,22 @@ function TemplateGallery({ t, onPick }: { t: ReturnType<typeof useTranslations>;
 export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const t = useTranslations("studio");
   const searchParams = useSearchParams();
-  const [debtorId, setDebtorId] = useState("");
-  // ?template=<key> bilan kirilsa — o'sha shablon darhol yuklanadi (bo'limlararo ulanish).
-  const initTpl = (() => {
-    const k = searchParams.get("template");
-    return k ? TEMPLATES.find((x) => x.key === k) : undefined;
+
+  // ?template=<key> — galereya shabloni yoki shartnoma sub-turi (EXTRA_TEMPLATES).
+  const initTplKey = searchParams.get("template");
+  const initHtml = (() => {
+    if (!initTplKey) return undefined;
+    const g = TEMPLATES.find((x) => x.key === initTplKey);
+    return g ? g.html : EXTRA_TEMPLATES[initTplKey];
   })();
-  const [title, setTitle] = useState(initTpl && initTpl.key !== "blank" ? t(`tpl.${initTpl.key}` as never) : "");
-  const [docHtml, setDocHtml] = useState(initTpl?.html ?? "");
-  const [picker, setPicker] = useState(!initTpl);
+  const isGalleryTpl = TEMPLATES.some((x) => x.key === initTplKey && x.key !== "blank");
+  // ?debtor=<id> — ochilishda o'sha qarzdor bilan avtomatik to'ldirish (akt-sverka, talabnoma...).
+  const initDebtor = debtors.find((x) => x.id === searchParams.get("debtor"));
+
+  const [debtorId, setDebtorId] = useState(initDebtor?.id ?? "");
+  const [title, setTitle] = useState(searchParams.get("title") ?? (isGalleryTpl ? t(`tpl.${initTplKey}` as never) : ""));
+  const [docHtml, setDocHtml] = useState(initHtml !== undefined ? (initDebtor ? applyDebtor(initHtml, initDebtor) : initHtml) : "");
+  const [picker, setPicker] = useState(initHtml === undefined);
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);

@@ -675,7 +675,9 @@
     "now": "сейчас",
     "inDays": "через {days} дн.",
     "reviewPending": "Подтвердить",
-    "willNeedApproval": "Требует подтверждения"
+    "willNeedApproval": "Требует подтверждения",
+    "cmdPlaceholder": "Дайте команду агенту — например: подготовь претензию по GLOBAL SNAB...",
+    "cmdError": "Извините, произошла ошибка."
   },
   "enforcement": {
     "title": "Этап исполнения",

@@ -675,7 +675,9 @@
     "now": "hozir",
     "inDays": "{days} kundan keyin",
     "reviewPending": "Tasdiqlash",
-    "willNeedApproval": "Tasdiq talab qiladi"
+    "willNeedApproval": "Tasdiq talab qiladi",
+    "cmdPlaceholder": "Agentga buyruq bering — masalan: GLOBAL SNAB bo'yicha talabnoma tayyorla...",
+    "cmdError": "Kechirasiz, xato yuz berdi."
   },
   "enforcement": {
     "title": "Ijro bosqichi",

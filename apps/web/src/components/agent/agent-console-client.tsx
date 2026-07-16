@@ -6,14 +6,17 @@ import {
   CheckCircle,
   ClockCountdown,
   Lightning,
+  PaperPlaneRight,
   Robot,
   SealCheck,
   ShieldWarning,
+  Sparkle,
   Spinner,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
+import { sendChat } from "@/app/(app)/chat/actions";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -68,6 +71,24 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
   const [data, setData] = useState<ConsoleData>(initial);
   const [running, setRunning] = useState(false);
   const [flash, setFlash] = useState<string | null>(null);
+  const [cmd, setCmd] = useState("");
+  const [cmdReply, setCmdReply] = useState<string | null>(null);
+  const [cmdLoading, setCmdLoading] = useState(false);
+
+  async function runCommand() {
+    const q = cmd.trim();
+    if (!q || cmdLoading) return;
+    setCmdLoading(true);
+    setCmdReply(null);
+    try {
+      const res = await sendChat(q);
+      setCmdReply(res.reply);
+    } catch {
+      setCmdReply(t("cmdError"));
+    } finally {
+      setCmdLoading(false);
+    }
+  }
 
   async function runAgent() {
     setRunning(true);
@@ -106,6 +127,40 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
           {running ? t("running") : t("runAgent")}
         </button>
       </div>
+
+      {/* Chat-buyruq qatori — agentga to'g'ridan-to'g'ri buyruq beriladi */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          runCommand();
+        }}
+      >
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 shadow-sm focus-within:border-primary/40">
+          <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
+            <Sparkle weight="fill" className="size-4" />
+          </span>
+          <input
+            value={cmd}
+            onChange={(e) => setCmd(e.target.value)}
+            placeholder={t("cmdPlaceholder")}
+            className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
+          />
+          <button
+            type="submit"
+            disabled={!cmd.trim() || cmdLoading}
+            className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            {cmdLoading ? <Spinner className="size-4 animate-spin" /> : <PaperPlaneRight weight="fill" className="size-4" />}
+          </button>
+        </div>
+      </form>
+
+      {cmdReply && (
+        <div className="flex gap-2.5 rounded-lg border border-border bg-muted/40 p-3">
+          <Robot weight="fill" className="mt-0.5 size-4 shrink-0 text-primary" />
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">{cmdReply}</p>
+        </div>
+      )}
 
       {flash && (
         <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success-soft px-4 py-2.5 text-sm text-success">
