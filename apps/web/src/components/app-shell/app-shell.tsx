@@ -50,7 +50,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
       { href: "/overdue", key: "overdue", icon: Timer },
       { href: "/court", key: "court", icon: Gavel },
       { href: "/enforcement", key: "enforcement", icon: Truck },
-      { href: "/contracts/new", key: "contracts", icon: Handshake },
+      { href: "/contracts", key: "contracts", icon: Handshake },
     ],
   },
   {

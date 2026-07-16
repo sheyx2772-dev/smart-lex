@@ -688,5 +688,53 @@
       "risks": "Risks",
       "simplify": "Simplify"
     }
+  },
+  "contractsHub": {
+    "title": "Contracts",
+    "subtitle": "Draft a contract from a template and sign remotely with your partner",
+    "newContract": "New contract",
+    "templates": "Templates",
+    "remoteSign": "Remote signing",
+    "remoteSignDesc": "Prepare a signing request for the counterparty. They sign via SMS code, E-IMZO or Telegram.",
+    "partyName": "Counterparty name",
+    "partyNamePh": "Full name or organization",
+    "partyPhone": "Phone",
+    "signMethod": "Signing method",
+    "buildInvite": "Prepare signing request",
+    "copyInvite": "Copy",
+    "copied": "Copied",
+    "sendHint": "Send via SMS or Telegram",
+    "inviteMsg": "Hello, {name}!\n\nA contract is being sent to you for signing. Signing method: {method}.\nVia the link you can review the document and confirm.\n\nBest regards, MC LEGAL",
+    "methods": {
+      "sms": "SMS code",
+      "eimzo": "E-IMZO",
+      "telegram": "Telegram"
+    },
+    "tpl": {
+      "nasiya": {
+        "name": "Installment sale",
+        "desc": "Sale contract with installment payment"
+      },
+      "supply": {
+        "name": "Supply",
+        "desc": "Goods supply contract"
+      },
+      "service": {
+        "name": "Services",
+        "desc": "Service provision contract"
+      },
+      "rent": {
+        "name": "Lease",
+        "desc": "Property lease contract"
+      },
+      "employment": {
+        "name": "Employment",
+        "desc": "Employment contract"
+      },
+      "multiparty": {
+        "name": "Multi-party",
+        "desc": "Contract signed by several parties"
+      }
+    }
   }
 }

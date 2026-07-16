@@ -688,5 +688,53 @@
       "risks": "Risklar",
       "simplify": "Soddalashtir"
     }
+  },
+  "contractsHub": {
+    "title": "Shartnomalar",
+    "subtitle": "Shablondan shartnoma tuzing va hamkor bilan masofadan imzolang",
+    "newContract": "Yangi shartnoma",
+    "templates": "Namunalar",
+    "remoteSign": "Masofadan imzolash",
+    "remoteSignDesc": "Kontragentga imzo so'rovi tayyorlang. U SMS-kod, E-IMZO yoki Telegram orqali imzolaydi.",
+    "partyName": "Kontragent nomi",
+    "partyNamePh": "F.I.Sh yoki tashkilot",
+    "partyPhone": "Telefon",
+    "signMethod": "Imzo usuli",
+    "buildInvite": "Imzo so'rovini tayyorlash",
+    "copyInvite": "Nusxa olish",
+    "copied": "Nusxa olindi",
+    "sendHint": "SMS yoki Telegram orqali yuboring",
+    "inviteMsg": "Assalomu alaykum, {name}!\n\nSizga imzolash uchun shartnoma yuborilmoqda. Imzo usuli: {method}.\nHavola orqali hujjatni o'qib, tasdiqlashingiz mumkin.\n\nHurmat bilan, MC LEGAL",
+    "methods": {
+      "sms": "SMS-kod",
+      "eimzo": "E-IMZO",
+      "telegram": "Telegram"
+    },
+    "tpl": {
+      "nasiya": {
+        "name": "Nasiya oldi-sotdi",
+        "desc": "Bo'lib to'lash shartli oldi-sotdi shartnomasi"
+      },
+      "supply": {
+        "name": "Yetkazib berish",
+        "desc": "Tovar yetkazib berish shartnomasi"
+      },
+      "service": {
+        "name": "Xizmat ko’rsatish",
+        "desc": "Xizmat ko’rsatish shartnomasi"
+      },
+      "rent": {
+        "name": "Ijara",
+        "desc": "Mol-mulk ijarasi shartnomasi"
+      },
+      "employment": {
+        "name": "Mehnat",
+        "desc": "Mehnat shartnomasi"
+      },
+      "multiparty": {
+        "name": "Ko’p tomonlama",
+        "desc": "Bir necha tomon imzolaydigan shartnoma"
+      }
+    }
   }
 }
