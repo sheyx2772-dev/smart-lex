@@ -397,6 +397,19 @@
       "contractor": "Counterparty",
       "docNo": "Document №",
       "contractNo": "Contract №"
+    },
+    "connect": {
+      "button": "Connect Didox",
+      "title": "Didox integration",
+      "subtitle": "Sign in with E-IMZO and exchange documents",
+      "step1": "Sign in to didox.uz with E-IMZO (in a separate window)",
+      "openDidox": "Open didox.uz",
+      "opened": "Window opened — sign in with E-IMZO",
+      "step2": "Fetch documents",
+      "fetch": "Fetch documents",
+      "step3": "Send a document to Didox",
+      "send": "Prepare a document",
+      "note": "The separate window is for E-IMZO sign-in. Real document exchange runs via the Didox API (DIDOX_PARTNER_TOKEN) — with the token set, real documents flow in."
     }
   },
   "court": {

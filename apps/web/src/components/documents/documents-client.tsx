@@ -2,6 +2,8 @@
 
 import {
   ArrowRight,
+  ArrowSquareOut,
+  CheckCircle,
   ClipboardText,
   CloudArrowDown,
   Envelope,
@@ -12,6 +14,7 @@ import {
   IdentificationBadge,
   MagnifyingGlass,
   NotePencil,
+  Plugs,
   Plus,
   Receipt,
   Scroll,
@@ -21,6 +24,7 @@ import {
   Tray,
   TrayArrowUp,
   Truck,
+  UploadSimple,
   Wallet,
   Warning,
   X,
@@ -122,6 +126,8 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [connect, setConnect] = useState(false);
+  const [didoxOpened, setDidoxOpened] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<DocDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -162,6 +168,11 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
     setSyncing(false);
   }
 
+  function openDidox() {
+    window.open("https://didox.uz/documents/new?tab=all&page=1&limit=20", "didox", "noopener,noreferrer,width=1240,height=840");
+    setDidoxOpened(true);
+  }
+
   const tabs = ["all", ...TYPE_ORDER.filter((ty) => data.byType[ty])];
   const isIncoming = folder === "incoming";
   const rows = isIncoming ? data.items : [];
@@ -175,6 +186,12 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setConnect(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/30 transition-opacity hover:opacity-90"
+          >
+            <Plugs weight="fill" className="size-4" /> {t("connect.button")}
+          </button>
           <button
             onClick={sync}
             disabled={syncing}
@@ -343,6 +360,71 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
             </div>
             {detail && <DetailBody detail={detail} t={t} tType={tType} locale={locale} onSigned={() => openDoc(detail.id)} />}
             {detailLoading && <p className="text-sm text-muted-foreground">…</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Didox integratsiyasi — alohida oyna (E-IMZO) + API sinxronlash */}
+      {connect && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setConnect(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
+                  <Plugs weight="fill" className="size-5" />
+                </span>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">{t("connect.title")}</h2>
+                  <p className="text-xs text-muted-foreground">{t("connect.subtitle")}</p>
+                </div>
+              </div>
+              <button onClick={() => setConnect(false)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <ol className="mt-5 space-y-2.5">
+              <li className="rounded-xl border border-border p-3">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">1</span> {t("connect.step1")}
+                </p>
+                <button onClick={openDidox} className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
+                  <ArrowSquareOut weight="fill" className="size-4" /> {t("connect.openDidox")}
+                </button>
+                {didoxOpened && (
+                  <p className="mt-1.5 flex items-center gap-1 text-xs text-success">
+                    <CheckCircle weight="fill" className="size-3.5" /> {t("connect.opened")}
+                  </p>
+                )}
+              </li>
+              <li className="rounded-xl border border-border p-3">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">2</span> {t("connect.step2")}
+                </p>
+                <button
+                  onClick={() => {
+                    setConnect(false);
+                    sync();
+                  }}
+                  disabled={syncing}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40 disabled:opacity-60"
+                >
+                  <CloudArrowDown className="size-4" /> {t("connect.fetch")}
+                </button>
+              </li>
+              <li className="rounded-xl border border-border p-3">
+                <p className="flex items-center gap-2 text-sm font-medium">
+                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">3</span> {t("connect.step3")}
+                </p>
+                <Link href="/studio" className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40">
+                  <UploadSimple className="size-4" /> {t("connect.send")}
+                </Link>
+              </li>
+            </ol>
+
+            <p className="mt-4 flex items-start gap-1.5 text-xs text-muted-foreground">
+              <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("connect.note")}
+            </p>
           </div>
         </div>
       )}
