@@ -51,7 +51,14 @@
     "heroLine1": "Debitorlik va qarzdorlik",
     "heroLine2": "avtomatik nazoratda.",
     "heroDesc": "Avtonom huquqiy va kredit AI agenti. Hujjatlar, eslatmalar, talabnoma va sud — barchasi bitta markazda.",
-    "trust": "Multi-tenant · RLS · Audit · O'zbekiston qonunchiligi"
+    "trust": "Multi-tenant · RLS · Audit · O'zbekiston qonunchiligi",
+    "feat": {
+      "agent": "AI Agent",
+      "didox": "Didox",
+      "court": "E-SUD",
+      "scoring": "Skoring",
+      "eimzo": "E-IMZO"
+    }
   },
   "dashboard": {
     "title": "Boshqaruv paneli",

@@ -51,7 +51,14 @@
     "heroLine1": "Receivables and debts",
     "heroLine2": "under automatic control.",
     "heroDesc": "Autonomous legal & credit AI agent. Documents, reminders, demand letters and court — all in one center.",
-    "trust": "Multi-tenant · RLS · Audit · Uzbek legislation"
+    "trust": "Multi-tenant · RLS · Audit · Uzbek legislation",
+    "feat": {
+      "agent": "AI agent",
+      "didox": "Didox",
+      "court": "E-SUD",
+      "scoring": "Scoring",
+      "eimzo": "E-IMZO"
+    }
   },
   "dashboard": {
     "title": "Dashboard",
