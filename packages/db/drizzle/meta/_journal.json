@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783869835591,
+      "tag": "0000_acoustic_photon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783873212436,
+      "tag": "0001_wandering_shockwave",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@lex/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'lint: api ok'"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@lex/core": "workspace:*",
+    "@lex/db": "workspace:*",
+    "@lex/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3",
+    "hono": "^4.6.14",
+    "zod": "^3.24.1",
+    "@lex/agents": "workspace:*",
+    "@lex/integrations": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

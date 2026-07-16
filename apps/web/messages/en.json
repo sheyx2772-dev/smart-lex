@@ -1,0 +1,171 @@
+{
+  "app": {
+    "name": "Debitor AI",
+    "tagline": "Autonomous legal & credit AI agent"
+  },
+  "nav": {
+    "groupMain": "Operations",
+    "groupSystem": "System",
+    "dashboard": "Dashboard",
+    "receivables": "Receivables",
+    "overdue": "Overdue",
+    "approvals": "Approvals",
+    "documents": "Documents",
+    "reminders": "Reminders",
+    "audit": "Audit log",
+    "settings": "Settings"
+  },
+  "agent": {
+    "status": "Agent status",
+    "active": "Active",
+    "lastRun": "Last run",
+    "monitoring": "Monitoring"
+  },
+  "login": {
+    "title": "Sign in",
+    "subtitle": "Access your account and control the agent",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in...",
+    "error": "Invalid login or password",
+    "emailPlaceholder": "you@email.uz",
+    "passwordPlaceholder": "Enter your password",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password is required",
+    "passwordShort": "Password must be at least 6 characters",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "badge": "Autonomous agent · monitoring",
+    "heroLine1": "Receivables and debts",
+    "heroLine2": "under automatic control.",
+    "heroDesc": "Autonomous legal & credit AI agent. Documents, reminders, demand letters and court — all in one center.",
+    "trust": "Multi-tenant · RLS · Audit · Uzbek legislation"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Real-time control over receivables and debts",
+    "totalOutstanding": "Total outstanding",
+    "totalPenalty": "Accrued penalty",
+    "overdueCount": "Overdue",
+    "highRisk": "High risk",
+    "byStatus": "By status",
+    "aging": "Aging distribution",
+    "recentReceivables": "Recent receivables",
+    "contractor": "Counterparty",
+    "invoice": "Invoice",
+    "amount": "Amount",
+    "penalty": "Penalty",
+    "dueDate": "Due date",
+    "overdueDays": "Days overdue",
+    "risk": "Risk",
+    "empty": "No data"
+  },
+  "status": {
+    "pending": "Pending",
+    "partial": "Partially paid",
+    "paid": "Paid",
+    "overdue": "Overdue",
+    "written_off": "Written off"
+  },
+  "aging": {
+    "current": "Current",
+    "1_30": "1–30 days",
+    "31_60": "31–60 days",
+    "61_90": "61–90 days",
+    "90_plus": "90+ days"
+  },
+  "common": {
+    "loading": "Loading...",
+    "logout": "Log out",
+    "search": "Search",
+    "days": "days",
+    "language": "Language"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Full control over your account, company and agent policy",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "tabs": {
+      "profile": "Profile",
+      "company": "Company",
+      "collection": "Collection policy",
+      "penalty": "Penalty & interest",
+      "channels": "Channels & templates"
+    },
+    "profile": {
+      "heading": "Personal profile",
+      "desc": "Change your name and interface language",
+      "fullName": "Full name",
+      "fullNamePh": "First Last",
+      "email": "Email",
+      "language": "Interface language",
+      "passwordHeading": "Change password",
+      "passwordDesc": "Choose a strong password for security",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "updatePassword": "Update password",
+      "wrongCurrent": "Current password is incorrect"
+    },
+    "company": {
+      "heading": "Company details",
+      "desc": "Creditor requisites used in documents",
+      "name": "Company name",
+      "namePh": "LLC / firm name",
+      "tin": "TIN (STIR)",
+      "type": "Type",
+      "legalAddress": "Legal address",
+      "addressPh": "City, district, street, building",
+      "bankAccount": "Bank account",
+      "bankMfo": "MFO",
+      "phone": "Phone",
+      "contactEmail": "Contact email",
+      "defaultLocale": "Document language (default)"
+    },
+    "collection": {
+      "heading": "Collection policy",
+      "desc": "Define when the agent performs each stage relative to the due date",
+      "stage": "Stage",
+      "timing": "Timing (relative to due date)",
+      "offsetDays": "Days",
+      "before": "before due",
+      "after": "after due",
+      "onDue": "on due date",
+      "requiresApproval": "Requires approval",
+      "auto": "Automatic",
+      "addStep": "Add stage",
+      "remove": "Remove",
+      "stages": {
+        "soft_reminder": "Soft reminder",
+        "firm_reminder": "Firm reminder",
+        "demand_letter": "Demand letter",
+        "court": "Court"
+      }
+    },
+    "penalty": {
+      "heading": "Penalty & interest (defaults)",
+      "desc": "Standard penalty values for new contracts",
+      "dailyBps": "Daily penalty rate",
+      "dailyBpsHint": "Basis points (100 bps = 1%). E.g. 5 = 0.05%/day",
+      "capBps": "Upper cap",
+      "capBpsHint": "Max percent of principal. Empty = no cap",
+      "noCap": "No cap",
+      "example": "Example: 10,000,000 UZS, 30 days"
+    },
+    "channels": {
+      "heading": "Notification channels",
+      "desc": "Enable/disable the channels the agent uses to send reminders",
+      "sms": "SMS",
+      "email": "Email",
+      "telegram": "Telegram",
+      "hybridPost": "Hybrid post",
+      "templatesHeading": "Message templates",
+      "templatesDesc": "Edit in three languages. Variables: {debtor}, {amount}, {invoice}, {days}",
+      "softTemplate": "Soft reminder",
+      "firmTemplate": "Firm reminder"
+    }
+  }
+}

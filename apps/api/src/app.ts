@@ -1,0 +1,62 @@
+import { ERROR_CODE, fail } from "@lex/shared";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { type Variables } from "./lib/context";
+import { env } from "./lib/env";
+import { authMiddleware, localeMiddleware } from "./middleware";
+import { approvalRoutes } from "./routes/approvals";
+import { auditRoutes } from "./routes/audit";
+import { authRoutes } from "./routes/auth";
+import { chatRoutes } from "./routes/chat";
+import { companyRoutes } from "./routes/companies";
+import { contractRoutes } from "./routes/contracts";
+import { courtRoutes } from "./routes/court";
+import { dashboardRoutes } from "./routes/dashboard";
+import { documentRoutes } from "./routes/documents";
+import { miscRoutes } from "./routes/misc";
+import { overdueRoutes } from "./routes/overdue";
+import { receivableRoutes } from "./routes/receivables";
+import { reminderRoutes } from "./routes/reminders";
+import { syncRoutes } from "./routes/sync";
+import { settingsRoutes } from "./routes/settings";
+
+export function createApp() {
+  const app = new Hono<{ Variables: Variables }>();
+
+  app.use("*", cors({ origin: [env.webUrl], credentials: true, allowHeaders: ["Content-Type", "Authorization", "X-Lang"] }));
+  app.use("*", localeMiddleware);
+
+  app.get("/health", (c) => c.json({ status: "ok", service: "lex-api" }));
+
+  // Ochiq (auth talab qilmaydigan) yo'llar.
+  app.route("/api/auth", authRoutes);
+
+  // Himoyalangan yo'llar.
+  const api = new Hono<{ Variables: Variables }>();
+  api.use("*", authMiddleware);
+  api.route("/", dashboardRoutes);
+  api.route("/", companyRoutes);
+  api.route("/", chatRoutes);
+  api.route("/", contractRoutes);
+  api.route("/", courtRoutes);
+  api.route("/", receivableRoutes);
+  api.route("/", overdueRoutes);
+  api.route("/", documentRoutes);
+  api.route("/", reminderRoutes);
+  api.route("/", syncRoutes);
+  api.route("/", auditRoutes);
+  api.route("/approvals", approvalRoutes);
+  api.route("/settings", settingsRoutes);
+  api.route("/", miscRoutes);
+  app.route("/api", api);
+
+  // Global xato ishlovchi — hamma javob envelope formatida.
+  app.onError((err, c) => {
+    console.error("[api:error]", err);
+    return c.json(fail(ERROR_CODE.INTERNAL, "common.internal_error", c.get("locale") ?? "uz"), 500);
+  });
+
+  app.notFound((c) => c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", c.get("locale") ?? "uz"), 404));
+
+  return app;
+}

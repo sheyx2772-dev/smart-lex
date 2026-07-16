@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Design tokens ──────────────────────────────────────────
+   Identity: chuqur ishonchli ko'k (primary), binafsha (secondary),
+   sovuq slate neytrallar. Moliyaviy-huquqiy "mission control". */
+:root {
+  --background: #f6f8fc;
+  --foreground: #0d1526;
+  --card: #ffffff;
+  --card-foreground: #0d1526;
+  --popover: #ffffff;
+  --popover-foreground: #0d1526;
+  --muted: #eef2f8;
+  --muted-foreground: #5b6b85;
+  --border: #e2e8f2;
+  --input: #dfe6f1;
+  --ring: #2563eb;
+
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e8effe;
+
+  --secondary: #7c3aed;
+  --secondary-foreground: #ffffff;
+  --secondary-soft: #f0e9fe;
+
+  --success: #15a34a;
+  --success-soft: #e3f6ea;
+  --warning: #ea580c;
+  --warning-soft: #fdecdf;
+  --danger: #dc2626;
+  --danger-foreground: #ffffff;
+  --danger-soft: #fce9e9;
+
+  --radius: 0.7rem;
+}
+
+.dark {
+  --background: #070b16;
+  --foreground: #e6ebf5;
+  --card: #0e1524;
+  --card-foreground: #e6ebf5;
+  --popover: #0e1524;
+  --popover-foreground: #e6ebf5;
+  --muted: #161f33;
+  --muted-foreground: #8b9bb8;
+  --border: #1e293f;
+  --input: #223049;
+  --ring: #3b82f6;
+
+  --primary: #3b82f6;
+  --primary-foreground: #06122b;
+  --primary-soft: #132441;
+
+  --secondary: #8b5cf6;
+  --secondary-foreground: #0a0620;
+  --secondary-soft: #211a3d;
+
+  --success: #22c55e;
+  --success-soft: #10251a;
+  --warning: #fb923c;
+  --warning-soft: #2a1a0f;
+  --danger: #ef4444;
+  --danger-foreground: #1a0808;
+  --danger-soft: #2a1213;
+}
+
+/* ── Tailwind theme mapping ─────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-soft: var(--secondary-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 0.2rem);
+  --radius-sm: calc(var(--radius) - 0.35rem);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  /* Pul/raqamlar uchun tabular mono. */
+  .tabular {
+    font-family: var(--font-mono);
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 22%, transparent);
+  }
+  /* Hujjat matni (rich text) — editor va ko'rinish uchun umumiy stil. */
+  .prose-doc p {
+    margin: 0 0 0.5rem;
+  }
+  .prose-doc p:empty {
+    margin: 0 0 0.4rem;
+  }
+  .prose-doc strong {
+    font-weight: 600;
+  }
+  .prose-doc h2 {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0.75rem 0 0.35rem;
+  }
+  .prose-doc h3 {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0.6rem 0 0.3rem;
+  }
+  .prose-doc ul,
+  .prose-doc ol {
+    margin: 0 0 0.5rem;
+    padding-left: 1.4rem;
+  }
+  .prose-doc ul {
+    list-style: disc;
+  }
+  .prose-doc ol {
+    list-style: decimal;
+  }
+  /* Ko'rinmas, lekin ishlaydigan scroll (premium ko'rinish uchun). */
+  .scroll-clean {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+  }
+  .scroll-clean::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
