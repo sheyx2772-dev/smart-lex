@@ -4,7 +4,7 @@
     "tagline": "Автономный юридический и кредитный AI-агент"
   },
   "nav": {
-    "groupMain": "Операционные",
+    "groupMain": "AI",
     "groupSystem": "Система",
     "dashboard": "Панель управления",
     "receivables": "Дебиторка",
@@ -17,7 +17,10 @@
     "companies": "Контрагенты",
     "court": "Суд",
     "reports": "Отчёты",
-    "agent": "AI Агент"
+    "agent": "AI Агент",
+    "groupWork": "Работа",
+    "chat": "Чат",
+    "contracts": "Договоры"
   },
   "agent": {
     "status": "Статус агента",

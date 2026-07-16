@@ -4,9 +4,11 @@ import {
   Bell,
   Buildings,
   ChartBar,
+  ChatCircleDots,
   FileText,
   Gavel,
   GearSix,
+  Handshake,
   type Icon,
   PaperPlaneTilt,
   Pulse,
@@ -25,17 +27,26 @@ import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
+// AI-birinchi tartib: yuqorida Agent + Chat + Tasdiqlar (asosiy sirt).
+// CRM modullari (dashboard, kontragentlar, sud ...) pastga — "Ish" guruhiga.
 const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
   {
     label: "groupMain",
     items: [
       { href: "/agent", key: "agent", icon: Robot },
+      { href: "/chat", key: "chat", icon: ChatCircleDots },
+      { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
+    ],
+  },
+  {
+    label: "groupWork",
+    items: [
       { href: "/", key: "dashboard", icon: SquaresFour },
       { href: "/companies", key: "companies", icon: Buildings },
       { href: "/receivables", key: "receivables", icon: Wallet },
       { href: "/overdue", key: "overdue", icon: Timer },
-      { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
       { href: "/court", key: "court", icon: Gavel },
+      { href: "/contracts/new", key: "contracts", icon: Handshake },
     ],
   },
   {

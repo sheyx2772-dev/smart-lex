@@ -4,7 +4,7 @@
     "tagline": "Autonomous legal & credit AI agent"
   },
   "nav": {
-    "groupMain": "Operations",
+    "groupMain": "AI",
     "groupSystem": "System",
     "dashboard": "Dashboard",
     "receivables": "Receivables",
@@ -17,7 +17,10 @@
     "companies": "Companies",
     "court": "Court",
     "reports": "Reports",
-    "agent": "AI Agent"
+    "agent": "AI Agent",
+    "groupWork": "Work",
+    "chat": "Chat",
+    "contracts": "Contracts"
   },
   "agent": {
     "status": "Agent status",

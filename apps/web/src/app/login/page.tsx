@@ -46,7 +46,8 @@ export default function LoginPage() {
     });
     const data = await res.json();
     if (data.success) {
-      router.push("/");
+      // AI-birinchi: kirgach Boshqaruv paneli emas, AI Agent konsoli ochiladi.
+      router.push("/agent");
       router.refresh();
     } else {
       setError(data.message ?? t("error"));

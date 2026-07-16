@@ -4,7 +4,7 @@
     "tagline": "Avtonom huquqiy va kredit AI agenti"
   },
   "nav": {
-    "groupMain": "Operatsion",
+    "groupMain": "AI",
     "groupSystem": "Tizim",
     "dashboard": "Boshqaruv paneli",
     "receivables": "Debitorlik",
@@ -17,7 +17,10 @@
     "companies": "Kontragentlar",
     "court": "Sud",
     "reports": "Hisobotlar",
-    "agent": "AI Agent"
+    "agent": "AI Agent",
+    "groupWork": "Ish",
+    "chat": "Suhbat",
+    "contracts": "Shartnomalar"
   },
   "agent": {
     "status": "Agent holati",
