@@ -21,7 +21,8 @@
     "groupWork": "Ish",
     "chat": "Suhbat",
     "contracts": "Shartnomalar",
-    "enforcement": "Ijro"
+    "enforcement": "Ijro",
+    "studio": "Hujjat tayyorlash"
   },
   "agent": {
     "status": "Agent holati",
@@ -663,6 +664,29 @@
       "bureau": "Byuro aniqlandi",
       "posted": "Pochta orqali yuborildi",
       "started": "Ijro boshlandi"
+    }
+  },
+  "studio": {
+    "titlePlaceholder": "Hujjat nomi...",
+    "words": "{n} so'z",
+    "export": "Yuklab olish",
+    "untitled": "Nomsiz hujjat",
+    "assistant": "AI Yordamchi",
+    "assistantSub": "Tahlil qiling, risk toping, so'rov yozing",
+    "welcome": "Hujjat tayyorlashni boshlaymiz",
+    "welcomeSub": "Masalan: \"GLOBAL SNAB MCHJ ga talabnoma tayyorla\"",
+    "insert": "Hujjatga qo'shish",
+    "thinking": "O'ylayapti...",
+    "inputPlaceholder": "Hujjat haqida so’rang yoki yangi hujjat tayyorlang...",
+    "disclaimer": "AI xato qilishi mumkin — hujjatni tekshiring.",
+    "aiError": "Kechirasiz, xato yuz berdi.",
+    "qAnalyze": "Ushbu hujjatni tahlil qil va asosiy jihatlarni ko'rsat.",
+    "qRisks": "Ushbu hujjatdagi yuridik risklar va kamchiliklarni top.",
+    "qSimplify": "Ushbu hujjatni oddiy tilda tushuntir.",
+    "quick": {
+      "analyze": "Tahlil",
+      "risks": "Risklar",
+      "simplify": "Soddalashtir"
     }
   }
 }

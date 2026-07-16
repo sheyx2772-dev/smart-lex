@@ -21,7 +21,8 @@
     "groupWork": "Work",
     "chat": "Chat",
     "contracts": "Contracts",
-    "enforcement": "Enforcement"
+    "enforcement": "Enforcement",
+    "studio": "Document studio"
   },
   "agent": {
     "status": "Agent status",
@@ -663,6 +664,29 @@
       "bureau": "Bureau found",
       "posted": "Sent by post",
       "started": "Enforcement started"
+    }
+  },
+  "studio": {
+    "titlePlaceholder": "Document title...",
+    "words": "{n} words",
+    "export": "Export",
+    "untitled": "Untitled",
+    "assistant": "AI assistant",
+    "assistantSub": "Analyze, find risks, ask",
+    "welcome": "Let's prepare a document",
+    "welcomeSub": "e.g. \"Draft a demand letter for GLOBAL SNAB\"",
+    "insert": "Insert into document",
+    "thinking": "Thinking...",
+    "inputPlaceholder": "Ask about the document or draft a new one...",
+    "disclaimer": "AI can make mistakes — review the document.",
+    "aiError": "Sorry, an error occurred.",
+    "qAnalyze": "Analyze this document and highlight the key points.",
+    "qRisks": "Find legal risks and gaps in this document.",
+    "qSimplify": "Explain this document in plain language.",
+    "quick": {
+      "analyze": "Analyze",
+      "risks": "Risks",
+      "simplify": "Simplify"
     }
   }
 }

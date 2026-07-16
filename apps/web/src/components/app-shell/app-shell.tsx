@@ -10,6 +10,7 @@ import {
   GearSix,
   Handshake,
   type Icon,
+  NotePencil,
   PaperPlaneTilt,
   Pulse,
   Robot,
@@ -36,6 +37,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     items: [
       { href: "/agent", key: "agent", icon: Robot },
       { href: "/chat", key: "chat", icon: ChatCircleDots },
+      { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
     ],
   },
