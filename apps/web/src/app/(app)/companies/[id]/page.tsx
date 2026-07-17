@@ -22,6 +22,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LawsuitButton } from "@/components/companies/lawsuit-button";
+import { PaymentReminderButton } from "@/components/companies/payment-reminder-button";
 import { ReconciliationButton } from "@/components/companies/reconciliation-button";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { Badge, STATUS_TONE } from "@/components/ui/badge";
@@ -142,6 +143,7 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <PaymentReminderButton name={d.contractor.name} amount={d.summary.totalOutstanding.formatted} />
             <ReconciliationButton contractorId={d.contractor.id} />
             <LawsuitButton contractorId={d.contractor.id} />
             <Badge tone={riskTone(s.riskScore)}>

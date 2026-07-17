@@ -634,7 +634,13 @@
       "approval_demand_letter": "Demand letter sent for approval",
       "approval_court_claim": "Court claim sent for approval",
       "approval_write_off": "Write-off sent for approval"
-    }
+    },
+    "paymentReminder": "Payment reminder",
+    "prTitle": "Message to debtor",
+    "prMsg": "Dear {name}! You have an overdue debt of {amount}. Please pay within 5 days, otherwise legal action will be taken.",
+    "prCopy": "Copy",
+    "prCopied": "Copied",
+    "prHint": "Send via SMS or Telegram"
   },
   "newContract": {
     "title": "New debt case",

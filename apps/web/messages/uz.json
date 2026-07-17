@@ -671,7 +671,13 @@
       "approval_demand_letter": "Talabnoma tasdiqqa yuborildi",
       "approval_court_claim": "Da'vo arizasi tasdiqqa yuborildi",
       "approval_write_off": "Hisobdan chiqarish tasdiqqa yuborildi"
-    }
+    },
+    "paymentReminder": "Toʼlov eslatmasi",
+    "prTitle": "Qarzdorga xabar",
+    "prMsg": "Hurmatli {name}! Sizda {amount} miqdorda muddati oʻtgan qarzdorlik mavjud. Iltimos, 5 kun ichida toʻlovni amalga oshiring. Aks holda qonuniy chora koʻriladi.",
+    "prCopy": "Nusxalash",
+    "prCopied": "Nusxalandi",
+    "prHint": "SMS yoki Telegram orqali yuboring"
   },
   "newContract": {
     "title": "Yangi qarzdorlik ishi",
