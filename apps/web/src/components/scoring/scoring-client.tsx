@@ -1,7 +1,8 @@
 "use client";
 
-import { CheckCircle, Gauge, Info, ShieldCheck, Warning, XCircle } from "@phosphor-icons/react";
+import { CheckCircle, Gauge, Gavel, Info, ShieldCheck, Warning, XCircle } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -138,6 +139,7 @@ function ScoreRing({ score, rating, size }: { score: number; rating: Rating; siz
 }
 
 function ScoreDetail({ s, t }: { s: Scored; t: ReturnType<typeof useTranslations> }) {
+  const tc = useTranslations("court");
   const RATING_ICON = { A: ShieldCheck, B: CheckCircle, C: Warning, D: XCircle } as const;
   const Ic = RATING_ICON[s.rating];
   return (
@@ -183,6 +185,16 @@ function ScoreDetail({ s, t }: { s: Scored; t: ReturnType<typeof useTranslations
         </p>
         <p className="mt-1 text-sm">{t(`advice.${s.rating}` as never)}</p>
       </div>
+
+      {/* Yuqori risk (C/D) — to'g'ridan-to'g'ri sudga da'vo tayyorlashga o'tish */}
+      {(s.rating === "C" || s.rating === "D") && (
+        <Link
+          href={`/studio?template=lawsuit&debtor=${s.id}&title=${encodeURIComponent(tc("prepareClaim"))}`}
+          className="mt-4 inline-flex items-center justify-center gap-1.5 rounded-lg bg-danger px-3.5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+        >
+          <Gavel weight="fill" className="size-4" /> {tc("prepareClaim")}
+        </Link>
+      )}
 
       <p className="mt-4 flex items-start gap-1.5 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-3.5 shrink-0" /> {t("externalNote")}
