@@ -3,15 +3,15 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-150 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-sm",
-        outline: "border border-border bg-card hover:bg-muted text-foreground",
-        ghost: "hover:bg-muted text-foreground",
-        danger: "bg-danger text-danger-foreground hover:bg-danger/90 shadow-sm",
+        primary: "bg-gradient-to-br from-primary to-secondary text-white shadow-[0_2px_8px_-2px_rgba(37,99,235,0.5)] hover:brightness-[1.06]",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:brightness-105",
+        outline: "border border-border/80 bg-card text-foreground shadow-sm hover:border-primary/40 hover:bg-primary-soft/40",
+        ghost: "text-foreground hover:bg-muted",
+        danger: "bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-[0_2px_8px_-2px_rgba(220,38,38,0.5)] hover:brightness-105",
       },
       size: {
         sm: "h-8 px-3 text-xs",
