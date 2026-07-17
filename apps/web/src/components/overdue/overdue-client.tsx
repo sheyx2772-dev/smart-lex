@@ -184,6 +184,7 @@ function OverdueCard({
   tAging: ReturnType<typeof useTranslations>;
   fmtDate: (d: string | null) => string;
 }) {
+  const tc = useTranslations("court");
   const NextIcon = STAGES.find((x) => x.key === item.nextStage)?.icon ?? CheckCircle;
 
   return (
@@ -292,6 +293,17 @@ function OverdueCard({
               {t("completed")}
             </div>
           )}
+
+          {/* AI da'vo tayyorlash — qarzdor ma'lumotidan Hujjat tayyorlash studiyasini ochadi */}
+          <Link
+            href={`/studio?template=lawsuit&debtor=${item.id}&title=${encodeURIComponent(tc("prepareClaim"))}`}
+            className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-danger/30 bg-danger-soft/60 px-3 py-1.5 text-sm font-medium text-danger transition-colors hover:bg-danger-soft"
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Gavel weight="fill" className="size-4" /> {tc("prepareClaim")}
+            </span>
+            <ArrowRight className="size-3.5" />
+          </Link>
         </div>
       </div>
     </div>
