@@ -242,14 +242,24 @@ export default function LoginPage() {
 
       {/* ── Jarayon (01–04) ────────────────────── */}
       <section id="jarayon" className="relative z-10 bg-white py-24 text-black lg:py-32">
-        <div className="mx-auto w-[min(1240px,92%)]">
-          <SectionHead index="01" kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} tone="light" />
-          <div className="mt-14 border-t border-black/10">
+        <div className="mx-auto grid w-[min(1240px,92%)] gap-10 lg:grid-cols-[0.85fr_1.25fr] lg:gap-16">
+          <div data-reveal className="lg:sticky lg:top-28 lg:self-start">
+            <div className="flex items-center gap-4">
+              <span className="lx-cond font-display text-2xl font-extrabold text-black/25">01</span>
+              <span className="h-px w-10 bg-black/40" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-black/60">{l("howKicker")}</span>
+            </div>
+            <h2 className="lx-cond mt-6 font-display font-extrabold uppercase leading-[0.92] tracking-tight" style={{ fontSize: "clamp(2rem,5vw,3.75rem)" }}>{l("howTitle")}</h2>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-black/55">{l("howDesc")}</p>
+          </div>
+          <div className="border-t border-black/10">
             {STEPS.map((s, i) => (
-              <div key={s} data-reveal={i % 2 === 0 ? "left" : "right"} style={{ transitionDelay: `${i * 80}ms` }} className="group grid grid-cols-1 items-start gap-4 border-b border-black/10 py-8 transition-colors hover:bg-black/[0.03] md:grid-cols-[120px_1fr_1.2fr] md:gap-10 md:py-10">
-                <span className="lx-cond font-display text-5xl font-extrabold text-black/20 transition-colors group-hover:text-black md:text-6xl">0{i + 1}</span>
-                <h3 className="font-display text-2xl font-bold uppercase tracking-tight md:text-3xl">{l(`${s}t` as never)}</h3>
-                <p className="max-w-lg text-sm leading-relaxed text-black/55 md:pt-2">{l(`${s}d` as never)}</p>
+              <div key={s} data-reveal style={{ transitionDelay: `${i * 80}ms` }} className="group flex items-start gap-5 border-b border-black/10 py-8 transition-colors hover:bg-black/[0.03] md:gap-8 md:py-9">
+                <span className="lx-cond font-display text-4xl font-extrabold text-black/15 transition-colors group-hover:text-black md:text-5xl">0{i + 1}</span>
+                <div>
+                  <h3 className="font-display text-xl font-bold uppercase tracking-tight md:text-2xl">{l(`${s}t` as never)}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-black/55">{l(`${s}d` as never)}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -260,18 +270,31 @@ export default function LoginPage() {
       <section id="imkoniyatlar" className="relative z-10 border-t border-white/10 bg-black py-24 lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="02" kicker={l("featKicker")} title={l("featTitle")} desc={l("featDesc")} />
-          <div className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid auto-rows-[210px] gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {CARDS.map((c, i) => {
               const Ic = c.icon;
+              const wide = i === 0;
+              const tall = i === 3;
               return (
-                <div key={c.key} data-reveal style={{ transitionDelay: `${(i % 3) * 90}ms` }} className="group relative flex flex-col bg-black p-8 transition-colors hover:bg-white hover:text-black">
+                <div
+                  key={c.key}
+                  data-reveal
+                  style={{ transitionDelay: `${(i % 3) * 80}ms` }}
+                  className={cn(
+                    "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/12 bg-black p-7 transition-colors hover:bg-white hover:text-black",
+                    wide && "sm:col-span-2",
+                    tall && "lg:row-span-2",
+                  )}
+                >
                   <div className="flex items-center justify-between">
-                    <Ic weight="light" className="size-8 transition-transform group-hover:scale-110" />
+                    <Ic weight="light" className={cn("transition-transform group-hover:scale-110", tall ? "size-10" : "size-8")} />
                     <span className="lx-cond font-display text-2xl font-extrabold text-white/15 transition-colors group-hover:text-black/20">0{i + 1}</span>
                   </div>
-                  <h3 className="mt-8 font-display text-xl font-bold uppercase tracking-tight">{l(`card.${c.key}.t` as never)}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-white/50 transition-colors group-hover:text-black/60">{l(`card.${c.key}.d` as never)}</p>
-                  <ArrowUpRight weight="bold" className="mt-6 size-5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                  <div>
+                    <h3 className={cn("font-display font-bold uppercase tracking-tight", tall ? "text-2xl" : "text-xl")}>{l(`card.${c.key}.t` as never)}</h3>
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-white/50 transition-colors group-hover:text-black/60">{l(`card.${c.key}.d` as never)}</p>
+                    <ArrowUpRight weight="bold" className="mt-4 size-5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+                  </div>
                 </div>
               );
             })}
@@ -295,23 +318,38 @@ export default function LoginPage() {
       <section className="relative z-10 border-t border-white/10 bg-black py-24 lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="03" kicker={l("revKicker")} title={l("revTitle")} desc={l("revDesc")} />
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {REVIEWS.map((r, i) => (
-              <div key={r} data-reveal={i === 0 ? "left" : i === 2 ? "right" : undefined} style={{ transitionDelay: `${i * 90}ms` }} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 transition-colors hover:border-white/30">
-                <div>
-                  <Quotes weight="fill" className="size-8 text-white/25" />
-                  <p className="mt-5 text-[15px] leading-relaxed text-white/80">{l(`${r}text` as never)}</p>
-                </div>
-                <div className="mt-8 flex items-center gap-3 border-t border-white/10 pt-6">
-                  <span className="grid size-11 place-items-center rounded-full bg-white font-display font-extrabold text-black">{l(`${r}name` as never).slice(0, 1)}</span>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-bold uppercase tracking-wide">{l(`${r}name` as never)}</p>
-                    <p className="truncate text-xs text-white/45">{l(`${r}role` as never)}</p>
-                  </div>
-                  <div className="ml-auto flex gap-0.5">{[0, 1, 2, 3, 4].map((s) => <Star key={s} weight="fill" className="size-3 text-white/80" />)}</div>
-                </div>
+          <div className="mt-14 grid gap-6 lg:grid-cols-2">
+            {/* Katta featured sharh */}
+            <div data-reveal="left" className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 lg:p-10">
+              <div>
+                <Quotes weight="fill" className="size-10 text-white/25" />
+                <p className="mt-6 font-display text-2xl font-semibold leading-snug lg:text-[28px]">{l("r1text")}</p>
               </div>
-            ))}
+              <div className="mt-8 flex items-center gap-3 border-t border-white/10 pt-6">
+                <span className="grid size-12 place-items-center rounded-full bg-white font-display font-extrabold text-black">{l("r1name").slice(0, 1)}</span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold uppercase tracking-wide">{l("r1name")}</p>
+                  <p className="truncate text-xs text-white/45">{l("r1role")}</p>
+                </div>
+                <div className="ml-auto flex gap-0.5">{[0, 1, 2, 3, 4].map((s) => <Star key={s} weight="fill" className="size-3.5 text-white/80" />)}</div>
+              </div>
+            </div>
+            {/* Ikkita kichik sharh */}
+            <div className="grid gap-6">
+              {(["r2", "r3"] as const).map((r, i) => (
+                <div key={r} data-reveal="right" style={{ transitionDelay: `${i * 110}ms` }} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 transition-colors hover:border-white/30">
+                  <p className="text-[15px] leading-relaxed text-white/80">{l(`${r}text` as never)}</p>
+                  <div className="mt-6 flex items-center gap-3 border-t border-white/10 pt-5">
+                    <span className="grid size-10 place-items-center rounded-full bg-white font-display font-extrabold text-black">{l(`${r}name` as never).slice(0, 1)}</span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold uppercase tracking-wide">{l(`${r}name` as never)}</p>
+                      <p className="truncate text-xs text-white/45">{l(`${r}role` as never)}</p>
+                    </div>
+                    <div className="ml-auto flex gap-0.5">{[0, 1, 2, 3, 4].map((s) => <Star key={s} weight="fill" className="size-3 text-white/80" />)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
