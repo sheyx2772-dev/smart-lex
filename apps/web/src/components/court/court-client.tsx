@@ -1,7 +1,8 @@
 "use client";
 
-import { CaretDown, CheckCircle, Copy, FileText, Gavel, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
+import { CaretDown, CheckCircle, Copy, FileText, Gavel, PencilSimpleLine, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setCourtStatus } from "@/app/(app)/court/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
@@ -148,7 +149,24 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
   const ti = useTranslations("integration");
+  const router = useRouter();
   const approved = item.approvalStatus === "approved";
+
+  // Da'voni to'liq muharrirда (Hujjat tayyorlash) ochib tahrirlash.
+  function editInStudio() {
+    const html = item.body
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((l) => `<p>${l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`)
+      .join("");
+    try {
+      sessionStorage.setItem("lex:studio-doc", JSON.stringify({ title: item.title, html }));
+    } catch {
+      /* sessionStorage yo'q — e'tiborsiz */
+    }
+    router.push("/studio?handoff=1");
+  }
 
   async function copy() {
     await navigator.clipboard.writeText(item.body);
@@ -199,6 +217,13 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
 
       {/* Actions */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
+        <button
+          onClick={editInStudio}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+        >
+          <PencilSimpleLine weight="fill" className="size-4" />
+          {t("editInStudio")}
+        </button>
         <button
           onClick={copy}
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium transition-colors hover:border-muted-foreground/30"

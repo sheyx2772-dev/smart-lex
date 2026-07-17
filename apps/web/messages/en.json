@@ -505,7 +505,9 @@
       "decided": "Decision"
     },
     "submitEsud": "Submit via E-SUD",
-    "eimzoHint": "You complete signing and final submission yourself on cabinet.sud.uz using E-IMZO."
+    "eimzoHint": "You complete signing and final submission yourself on cabinet.sud.uz using E-IMZO.",
+    "editInStudio": "Edit the claim",
+    "prepareClaim": "Prepare a court claim"
   },
   "overdue": {
     "title": "Overdue receivables",

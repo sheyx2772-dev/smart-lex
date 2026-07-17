@@ -542,7 +542,9 @@
       "decided": "Qaror"
     },
     "submitEsud": "E-SUD'da topshirish",
-    "eimzoHint": "Imzo va yakuniy topshirishni cabinet.sud.uz portalida E-IMZO bilan o'zingiz bajarasiz."
+    "eimzoHint": "Imzo va yakuniy topshirishni cabinet.sud.uz portalida E-IMZO bilan o'zingiz bajarasiz.",
+    "editInStudio": "Da’voni tahrirlash",
+    "prepareClaim": "Sudga da’vo tayyorlash"
   },
   "overdue": {
     "title": "Muddati o'tgan qarzdorlik",

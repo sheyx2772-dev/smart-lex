@@ -21,7 +21,7 @@ import {
 import type { Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendChat } from "@/app/(app)/chat/actions";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { cn } from "@/lib/utils";
@@ -190,6 +190,22 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const [loading, setLoading] = useState(false);
   const editorRef = useRef<Editor | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Sud (yoki boshqa bo'lim) "Da'voni tahrirlash" bilan yuborgan hujjatni ochish.
+  useEffect(() => {
+    if (searchParams.get("handoff") !== "1") return;
+    try {
+      const raw = sessionStorage.getItem("lex:studio-doc");
+      if (!raw) return;
+      const { title: ht, html } = JSON.parse(raw) as { title?: string; html?: string };
+      if (ht) setTitle(ht);
+      if (typeof html === "string") setDocHtml(html);
+      setPicker(false);
+      sessionStorage.removeItem("lex:studio-doc");
+    } catch {
+      /* noto'g'ri handoff — e'tiborsiz */
+    }
+  }, [searchParams]);
 
   const text = plainText(docHtml);
   const words = text ? text.split(" ").length : 0;
