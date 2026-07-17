@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CourtData } from "@/components/court/court-client";
 import { Card } from "@/components/ui/card";
+import { openSiteWindow } from "@/lib/open-window";
 import { cn } from "@/lib/utils";
 
 type Case = CourtData["items"][number];
@@ -84,7 +85,7 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
   const [copied, setCopied] = useState(false);
 
   function openHybridPost() {
-    window.open(HYBRID_POST_URL, "pochta", "noopener,noreferrer");
+    openSiteWindow(HYBRID_POST_URL, "pochta");
   }
   async function copyLetter() {
     if (!letter) return;

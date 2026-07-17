@@ -7,6 +7,7 @@ import { setCourtStatus } from "@/app/(app)/court/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
+import { openSiteWindow } from "@/lib/open-window";
 import { cn } from "@/lib/utils";
 
 interface CourtItem {
@@ -149,7 +150,7 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
   const approved = item.approvalStatus === "approved";
 
   function openPortal() {
-    window.open("https://cabinet.sud.uz", "sud", "width=1200,height=820,noopener,noreferrer");
+    openSiteWindow("https://cabinet.sud.uz/sign-in", "sud");
   }
   async function copy() {
     await navigator.clipboard.writeText(item.body);

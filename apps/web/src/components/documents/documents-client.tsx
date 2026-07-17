@@ -35,6 +35,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { fetchDocuments, getDocumentDetail, signDocument, syncDidox } from "@/app/(app)/documents/actions";
 import { signWithEimzo } from "@/lib/eimzo";
+import { openSiteWindow } from "@/lib/open-window";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DocumentView } from "@/components/ui/document-view";
@@ -169,7 +170,7 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   }
 
   function openDidox() {
-    window.open("https://didox.uz/documents/new?tab=all&page=1&limit=20", "didox", "noopener,noreferrer,width=1240,height=840");
+    openSiteWindow("https://didox.uz/documents/new?tab=all&page=1&limit=20", "didox");
     setDidoxOpened(true);
   }
 
