@@ -106,7 +106,8 @@
     "funnel": "Collection funnel",
     "funnelDesc": "By collection stage",
     "reached": "reached",
-    "days": "days"
+    "days": "days",
+    "quickActions": "Quick actions"
   },
   "status": {
     "pending": "Pending",

@@ -7,11 +7,13 @@ import {
   CurrencyCircleDollar,
   FileText,
   Gavel,
+  PencilSimpleLine,
   Robot,
   SealCheck,
   ShieldWarning,
   Timer,
   TrendUp,
+  Truck,
   Warning,
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
@@ -87,6 +89,16 @@ export default async function DashboardPage() {
   const tStage = await getTranslations("stage");
   const tAudit = await getTranslations("audit");
   const tCommon = await getTranslations("common");
+  const tNav = await getTranslations("nav");
+
+  const quickActions = [
+    { href: "/overdue", label: tNav("overdue"), icon: Timer },
+    { href: "/scoring", label: tNav("scoring"), icon: ChartLineUp },
+    { href: "/studio", label: tNav("studio"), icon: PencilSimpleLine },
+    { href: "/contracts", label: tNav("contracts"), icon: FileText },
+    { href: "/court", label: tNav("court"), icon: Gavel },
+    { href: "/enforcement", label: tNav("enforcement"), icon: Truck },
+  ];
 
   const res = await apiServer<Dashboard>("/api/dashboard");
   const d = res.data;
@@ -158,6 +170,28 @@ export default async function DashboardPage() {
               <ArrowRight className="size-4" />
             </Link>
           )}
+        </div>
+      </div>
+
+      {/* Tezkor amallar — workflow'ga o'tish */}
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("quickActions")}</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          {quickActions.map((a) => {
+            const Ic = a.icon;
+            return (
+              <Link
+                key={a.href}
+                href={a.href}
+                className="group flex items-center gap-2.5 rounded-xl border border-border bg-card p-3.5 transition-colors hover:border-primary/40 hover:bg-primary-soft/25"
+              >
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <Ic weight="fill" className="size-5" />
+                </span>
+                <span className="min-w-0 truncate text-sm font-medium">{a.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
 

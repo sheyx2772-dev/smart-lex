@@ -106,7 +106,8 @@
     "funnel": "Undirish varonkasi",
     "funnelDesc": "Qarzdorlik bosqichlari bo'yicha",
     "reached": "yetdi",
-    "days": "kun"
+    "days": "kun",
+    "quickActions": "Tezkor amallar"
   },
   "status": {
     "pending": "Kutilmoqda",
