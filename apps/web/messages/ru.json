@@ -1151,5 +1151,25 @@
     "stDone": "Выполнено",
     "empty": "Задач нет — поручите первую",
     "resultLabel": "Результат"
+  },
+  "interactions": {
+    "title": "Журнал контактов",
+    "add": "Записать",
+    "adding": "Сохраняется…",
+    "note": "Комментарий",
+    "notePh": "Содержание разговора…",
+    "kind": "Тип",
+    "outcome": "Результат",
+    "empty": "Контактов пока нет",
+    "kCall": "Звонок",
+    "kVisit": "Встреча",
+    "kSms": "SMS",
+    "kTelegram": "Telegram",
+    "kEmail": "Email",
+    "oPromised": "Обещал оплату",
+    "oRefused": "Отказался",
+    "oNoAnswer": "Не ответил",
+    "oPartial": "Оплатил частично",
+    "oOther": "Другое"
   }
 }

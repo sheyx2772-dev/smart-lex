@@ -209,3 +209,45 @@ companyRoutes.get("/companies/:id", async (c) => {
 
   return c.json(ok(data, "common.ok", c.get("locale")));
 });
+
+// ─── Interaktsiya jurnali — undiruvchi qarzdor bilan aloqani yozadi ──────────
+const CAN_LOG = new Set(["owner", "admin", "finance", "legal"]);
+
+companyRoutes.get("/companies/:id/interactions", async (c) => {
+  const { tenantId } = c.get("auth");
+  const id = c.req.param("id");
+  const rows = await withTenant(tenantId, (tx) =>
+    tx
+      .select({ id: auditLogs.id, detail: auditLogs.detail, createdAt: auditLogs.createdAt })
+      .from(auditLogs)
+      .where(and(eq(auditLogs.action, "interaction"), eq(auditLogs.entityId, id)))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(50),
+  );
+  const items = rows.map((r) => {
+    const dl = (r.detail ?? {}) as Record<string, unknown>;
+    return { id: r.id, kind: String(dl.kind ?? "call"), outcome: String(dl.outcome ?? ""), note: String(dl.note ?? ""), at: r.createdAt };
+  });
+  return c.json(ok({ items }, "common.ok", c.get("locale")));
+});
+
+companyRoutes.post("/companies/:id/interaction", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_LOG.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { kind?: string; outcome?: string; note?: string };
+  if (!body.note?.trim() && !body.outcome) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  await withTenant(tenantId, (tx) =>
+    tx.insert(auditLogs).values({
+      tenantId,
+      actorType: "user",
+      actorId: userId,
+      action: "interaction",
+      entityType: "contractor",
+      entityId: id,
+      detail: { kind: body.kind ?? "call", outcome: body.outcome ?? "", note: (body.note ?? "").trim() },
+    }),
+  );
+  return c.json(ok({ ok: true }, "common.created", locale));
+});

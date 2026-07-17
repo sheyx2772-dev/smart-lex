@@ -1151,5 +1151,25 @@
     "stDone": "Done",
     "empty": "No tasks — assign the first",
     "resultLabel": "Result"
+  },
+  "interactions": {
+    "title": "Contact log",
+    "add": "Log it",
+    "adding": "Saving…",
+    "note": "Note",
+    "notePh": "Conversation details…",
+    "kind": "Type",
+    "outcome": "Outcome",
+    "empty": "No contacts yet",
+    "kCall": "Call",
+    "kVisit": "Visit",
+    "kSms": "SMS",
+    "kTelegram": "Telegram",
+    "kEmail": "Email",
+    "oPromised": "Promised to pay",
+    "oRefused": "Refused",
+    "oNoAnswer": "No answer",
+    "oPartial": "Paid partially",
+    "oOther": "Other"
   }
 }

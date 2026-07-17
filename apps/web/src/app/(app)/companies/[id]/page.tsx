@@ -21,6 +21,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { InteractionLog, type Interaction } from "@/components/companies/interaction-log";
 import { LawsuitButton } from "@/components/companies/lawsuit-button";
 import { PaymentReminderButton } from "@/components/companies/payment-reminder-button";
 import { ReconciliationButton } from "@/components/companies/reconciliation-button";
@@ -98,9 +99,13 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
   const tStage = await getTranslations("stage");
   const tDocType = await getTranslations("docType");
 
-  const res = await apiServer<CaseData>(`/api/companies/${id}`);
+  const [res, intRes] = await Promise.all([
+    apiServer<CaseData>(`/api/companies/${id}`),
+    apiServer<{ items: Interaction[] }>(`/api/companies/${id}/interactions`),
+  ]);
   const d = res.data;
   if (!d) notFound();
+  const interactions = intRes.data?.items ?? [];
 
   const s = d.summary;
   const fmtDate = (x: string | null) => (x ? new Date(x).toLocaleDateString() : "—");
@@ -279,6 +284,8 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
               ))}
             </CardContent>
           </Card>
+
+          <InteractionLog contractorId={id} initial={interactions} />
         </div>
 
         {/* Right: Timeline */}

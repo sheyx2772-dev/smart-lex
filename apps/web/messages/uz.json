@@ -1151,5 +1151,25 @@
     "stDone": "Bajarildi",
     "empty": "Topshiriq yo'q — birinchisini biriktiring",
     "resultLabel": "Natija"
+  },
+  "interactions": {
+    "title": "Aloqa jurnali",
+    "add": "Yozib qo'yish",
+    "adding": "Saqlanmoqda…",
+    "note": "Izoh",
+    "notePh": "Suhbat mazmuni…",
+    "kind": "Turi",
+    "outcome": "Natija",
+    "empty": "Hali aloqa yozilmagan",
+    "kCall": "Qo'ng'iroq",
+    "kVisit": "Uchrashuv",
+    "kSms": "SMS",
+    "kTelegram": "Telegram",
+    "kEmail": "Email",
+    "oPromised": "To'lash va'dasi",
+    "oRefused": "Rad etdi",
+    "oNoAnswer": "Javob bermadi",
+    "oPartial": "Qisman to'ladi",
+    "oOther": "Boshqa"
   }
 }
