@@ -20,6 +20,10 @@ export async function writeOffReceivable(id: string) {
   return apiServer(`/api/receivables/${id}/write-off`, { method: "POST" });
 }
 
+export async function sendReminder(id: string) {
+  return apiServer<{ channel: string; address: string }>(`/api/receivables/${id}/reminder`, { method: "POST" });
+}
+
 export async function fetchReceivables(params: {
   page: number;
   status: string;

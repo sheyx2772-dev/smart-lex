@@ -22,7 +22,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { fetchReceivables, getReceivableDetail, recordPayment, writeOffReceivable } from "@/app/(app)/receivables/actions";
+import { fetchReceivables, getReceivableDetail, recordPayment, sendReminder, writeOffReceivable } from "@/app/(app)/receivables/actions";
 import { formatMoneyInput, unformatMoney } from "@/lib/format";
 import { Badge, STATUS_TONE, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -341,6 +341,15 @@ function DetailPanel({
     if (res.success) onPaid();
   }
 
+  const [reminding, setReminding] = useState(false);
+  async function doSendReminder() {
+    if (reminding) return;
+    setReminding(true);
+    const res = await sendReminder(row.id);
+    setReminding(false);
+    if (res.success) onPaid();
+  }
+
   async function submitPayment() {
     const minor = unformatMoney(payAmount);
     if (!minor || minor === "0" || paying) return;
@@ -449,13 +458,19 @@ function DetailPanel({
               </Button>
             )}
             {!payOpen && (
-              <button
-                onClick={doWriteOff}
-                disabled={writingOff}
-                className="mt-2 w-full text-center text-xs font-medium text-muted-foreground transition-colors hover:text-danger disabled:opacity-50"
-              >
-                {writingOff ? "…" : t("writeOff")}
-              </button>
+              <>
+                <Button variant="outline" onClick={doSendReminder} disabled={reminding} className="mt-2 w-full">
+                  <PaperPlaneTilt weight="fill" className="size-4 text-primary" />
+                  {reminding ? t("saving") : t("sendReminder")}
+                </Button>
+                <button
+                  onClick={doWriteOff}
+                  disabled={writingOff}
+                  className="mt-2 w-full text-center text-xs font-medium text-muted-foreground transition-colors hover:text-danger disabled:opacity-50"
+                >
+                  {writingOff ? "…" : t("writeOff")}
+                </button>
+              </>
             )}
           </div>
         )}

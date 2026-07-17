@@ -620,7 +620,9 @@
     "noReminders": "Hali eslatma yuborilmagan",
     "paymentHeading": "To'lovlar tarixi",
     "writeOff": "Hisobdan chiqarish",
-    "writeOffConfirm": "Bu qarzni undirib boʼlmaydigan deb belgilaysizmi? (hisobdan chiqariladi)"
+    "writeOffConfirm": "Bu qarzni undirib boʼlmaydigan deb belgilaysizmi? (hisobdan chiqariladi)",
+    "sendReminder": "Eslatma yuborish",
+    "reminderSent": "Eslatma yuborildi"
   },
   "companies": {
     "title": "Kontragentlar",

@@ -461,3 +461,44 @@ receivableRoutes.post("/receivables/:id/write-off", async (c) => {
   if (!done) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
   return c.json(ok({ status: "written_off" }, "common.updated", locale));
 });
+
+/** Qo'lda eslatma yuborish — qarzdorga to'lov eslatmasini yozadi/yuboradi
+ * (USE_MOCKS'da log qilinadi; real kanal Eskiz/Telegram token bilan ulanadi). */
+receivableRoutes.post("/receivables/:id/reminder", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_PAY.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+
+  const result = await withTenant(tenantId, async (tx) => {
+    const [rec] = await tx
+      .select({
+        recId: receivables.id,
+        outstandingMinor: receivables.outstandingMinor,
+        currency: receivables.currency,
+        name: contractors.name,
+        phone: contractors.phone,
+        email: contractors.email,
+        telegramId: contractors.telegramId,
+      })
+      .from(receivables)
+      .innerJoin(contractors, eq(receivables.contractorId, contractors.id))
+      .where(eq(receivables.id, id))
+      .limit(1);
+    if (!rec) return null;
+
+    const channel = rec.phone ? "sms" : rec.email ? "email" : "telegram";
+    const address = rec.phone ?? rec.email ?? rec.telegramId ?? "—";
+    const body = `Hurmatli ${rec.name}! Sizda ${format(money(rec.outstandingMinor, rec.currency))} miqdorida muddati o'tgan qarzdorlik mavjud. Iltimos, 5 kun ichida to'lovni amalga oshiring.`;
+
+    const [rem] = await tx
+      .insert(reminders)
+      .values({ tenantId, receivableId: rec.recId, stage: "firm_reminder", channel, status: "sent", address, body, sentAt: new Date() })
+      .returning({ id: reminders.id });
+    await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "reminder.sent", entityType: "receivable", entityId: id, detail: { channel, manual: true } });
+    return { id: rem?.id, channel, address };
+  });
+
+  if (!result) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  return c.json(ok(result, "common.updated", locale));
+});
