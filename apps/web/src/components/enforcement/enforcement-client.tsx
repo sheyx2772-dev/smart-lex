@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowSquareOut, Buildings, CheckCircle, Copy, DownloadSimple, FileText, Gavel, PaperPlaneTilt, Scales, Truck, Warning } from "@phosphor-icons/react";
+import { Buildings, CheckCircle, Copy, DownloadSimple, FileText, Gavel, PaperPlaneTilt, Scales, Truck, Warning } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import type { CourtData } from "@/components/court/court-client";
+import { EimzoImportFlow } from "@/components/integration/eimzo-import";
 import { Card } from "@/components/ui/card";
-import { openSiteWindow } from "@/lib/open-window";
 import { cn } from "@/lib/utils";
 
 type Case = CourtData["items"][number];
@@ -83,10 +83,8 @@ export function EnforcementClient({ cases }: { cases: Case[] }) {
 function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTranslations> }) {
   const [letter, setLetter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const ti = useTranslations("integration");
 
-  function openHybridPost() {
-    openSiteWindow(HYBRID_POST_URL, "pochta");
-  }
   async function copyLetter() {
     if (!letter) return;
     await navigator.clipboard.writeText(letter);
@@ -158,18 +156,22 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
           <FileText weight="fill" className="size-4" />
           {t("prepareLetter")}
         </button>
-        <button
-          onClick={openHybridPost}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-        >
-          <ArrowSquareOut weight="fill" className="size-4" />
-          {t("sendViaPost")}
-        </button>
       </div>
 
-      <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
-        <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("confirmHint")}
-      </p>
+      <EimzoImportFlow
+        url={HYBRID_POST_URL}
+        siteName="pochta"
+        onImport={async () => {
+          const yr = (item.createdAt || "2026").slice(0, 4);
+          const no = (item.id.replace(/\D/g, "") || "0").slice(-6).padStart(6, "0");
+          return [
+            { label: ti("bureau"), value: ti("bureauName") },
+            { label: ti("procNo"), value: `IJRO-${yr}/${no}` },
+            { label: ti("amount"), value: fmtMinor(item.total, item.currency) },
+            { label: ti("statusLabel"), value: ti("started"), tone: "success" as const },
+          ];
+        }}
+      />
 
       {letter && (
         <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3">

@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowSquareOut, CaretDown, CheckCircle, Copy, FileText, Gavel, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
+import { CaretDown, CheckCircle, Copy, FileText, Gavel, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { setCourtStatus } from "@/app/(app)/court/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { EimzoImportFlow } from "@/components/integration/eimzo-import";
 import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
-import { openSiteWindow } from "@/lib/open-window";
 import { cn } from "@/lib/utils";
 
 interface CourtItem {
@@ -147,11 +147,9 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
+  const ti = useTranslations("integration");
   const approved = item.approvalStatus === "approved";
 
-  function openPortal() {
-    openSiteWindow("https://cabinet.sud.uz/sign-in", "sud");
-  }
   async function copy() {
     await navigator.clipboard.writeText(item.body);
     setCopied(true);
@@ -202,14 +200,6 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
       {/* Actions */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
-          onClick={openPortal}
-          disabled={!approved}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
-        >
-          <ArrowSquareOut weight="fill" className="size-4" />
-          {t("submitEsud")}
-        </button>
-        <button
           onClick={copy}
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium transition-colors hover:border-muted-foreground/30"
         >
@@ -225,9 +215,22 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
       </div>
 
       {approved && (
-        <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
-          <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("eimzoHint")}
-        </p>
+        <EimzoImportFlow
+          url="https://cabinet.sud.uz/sign-in"
+          siteName="sud"
+          onImport={async () => {
+            await setCourtStatus(item.id, "submitted");
+            setStatus("submitted");
+            const yr = (item.createdAt || "2026").slice(0, 4);
+            const no = (item.id.replace(/\D/g, "") || "0").slice(-6).padStart(6, "0");
+            return [
+              { label: t("court"), value: item.court },
+              { label: ti("caseNo"), value: `E-SUD-${yr}/${no}` },
+              { label: t("total"), value: fmtMinor(item.total, item.currency) },
+              { label: ti("statusLabel"), value: ti("accepted"), tone: "success" as const },
+            ];
+          }}
+        />
       )}
 
       {open && (

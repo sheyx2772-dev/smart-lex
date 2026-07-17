@@ -1047,5 +1047,28 @@
         "f3": "Cheksiz jamoa"
       }
     }
+  },
+  "integration": {
+    "title": "Jonli integratsiya",
+    "step1": "Saytni oching",
+    "step1desc": "Tashqi tizim ekran o‘rtasida oynada ochiladi",
+    "step2": "E-IMZO bilan kiring",
+    "step2desc": "Ochilgan saytda E-IMZO bilan kirib, jarayonni yakunlang",
+    "confirm": "Kirdim — tasdiqlash",
+    "confirmed": "Tasdiqlandi",
+    "step3": "Ma’lumotlarni import qilish",
+    "importing": "Import qilinmoqda…",
+    "imported": "Ma’lumotlar import qilindi",
+    "openSite": "Saytni ochish",
+    "reopen": "Qayta ochish",
+    "note": "Ma’lumotlar tizimdagi ish asosida avtomatik to‘ldirildi. Rasmiy API (partner token) ulanganda real ma’lumotlar keladi.",
+    "caseNo": "Ish raqami",
+    "statusLabel": "Holat",
+    "accepted": "Qabul qilindi",
+    "bureau": "Ijro byurosi",
+    "bureauName": "Majburiy ijro byurosi",
+    "procNo": "Ijro raqami",
+    "started": "Ijro boshlandi",
+    "amount": "Summa"
   }
 }

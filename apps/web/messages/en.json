@@ -1047,5 +1047,28 @@
         "f3": "Whole team"
       }
     }
+  },
+  "integration": {
+    "title": "Live integration",
+    "step1": "Open the site",
+    "step1desc": "The external system opens in a centered window",
+    "step2": "Sign in with E-IMZO",
+    "step2desc": "On the opened site, sign in with E-IMZO and finish the process",
+    "confirm": "I signed in — confirm",
+    "confirmed": "Confirmed",
+    "step3": "Import data",
+    "importing": "Importing…",
+    "imported": "Data imported",
+    "openSite": "Open site",
+    "reopen": "Reopen",
+    "note": "Data was auto-filled from the case in the system. Real data arrives once the official API (partner token) is connected.",
+    "caseNo": "Case number",
+    "statusLabel": "Status",
+    "accepted": "Accepted",
+    "bureau": "Enforcement bureau",
+    "bureauName": "Compulsory Enforcement Bureau",
+    "procNo": "Proceeding no.",
+    "started": "Enforcement started",
+    "amount": "Amount"
   }
 }
