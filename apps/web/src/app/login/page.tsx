@@ -117,8 +117,8 @@ export default function LoginPage() {
       {/* Scroll progress chizig'i */}
       <div className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-white" style={{ transform: `scaleX(${progress})` }} />
 
-      {/* Jonli fon: zarrachalar tarmog'i + suzuvchi nur + panjara */}
-      <ParticleField />
+      {/* Jonli fon: oqadigan to'lqin lentalari + suzuvchi nur + panjara */}
+      <FlowField />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="lx-drift absolute -left-40 top-0 size-[540px] rounded-full bg-white/[0.06] blur-[130px]" />
         <div className="lx-drift absolute right-0 top-1/3 size-[460px] rounded-full bg-white/[0.05] blur-[130px]" style={{ animationDelay: "-8s" }} />
@@ -377,8 +377,8 @@ export default function LoginPage() {
   );
 }
 
-/** Jonli zarrachalar tarmog'i — original canvas effekti (oq/qora). */
-function ParticleField() {
+/** Oqadigan to'lqin lentalari — original canvas "flow" effekti (oq/qora). */
+function FlowField() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -387,10 +387,10 @@ function ParticleField() {
     if (!ctx) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const DPR = Math.min(2, window.devicePixelRatio || 1);
+    const LINES = 40;
     let raf = 0;
     let w = 0;
     let h = 0;
-    const pts: { x: number; y: number; vx: number; vy: number }[] = [];
 
     function resize() {
       w = canvas!.clientWidth;
@@ -398,56 +398,44 @@ function ParticleField() {
       canvas!.width = Math.max(1, Math.floor(w * DPR));
       canvas!.height = Math.max(1, Math.floor(h * DPR));
       ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
-      const count = Math.max(24, Math.min(80, Math.floor((w * h) / 17000)));
-      pts.length = 0;
-      for (let i = 0; i < count; i++) {
-        pts.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35 });
-      }
     }
 
-    function draw(moving: boolean) {
+    function render(now: number) {
+      const t = now * 0.00028;
       ctx!.clearRect(0, 0, w, h);
-      for (const p of pts) {
-        if (moving) {
-          p.x += p.vx;
-          p.y += p.vy;
-          if (p.x < 0 || p.x > w) p.vx *= -1;
-          if (p.y < 0 || p.y > h) p.vy *= -1;
-        }
-      }
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const a = pts[i];
-          const b = pts[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const d = Math.hypot(dx, dy);
-          if (d < 130) {
-            ctx!.strokeStyle = `rgba(255,255,255,${(1 - d / 130) * 0.12})`;
-            ctx!.lineWidth = 1;
-            ctx!.beginPath();
-            ctx!.moveTo(a.x, a.y);
-            ctx!.lineTo(b.x, b.y);
-            ctx!.stroke();
-          }
-        }
-      }
-      ctx!.fillStyle = "rgba(255,255,255,0.5)";
-      for (const p of pts) {
+      const bandY = h * 0.4;
+      const spread = Math.min(320, h * 0.36);
+      ctx!.lineWidth = 1;
+      for (let i = 0; i < LINES; i++) {
+        const f = LINES > 1 ? i / (LINES - 1) : 0.5;
+        const off = (f - 0.5) * 2; // -1..1 (band markazidan uzoqlik)
+        const centered = 1 - Math.abs(off);
+        const y0 = bandY + off * spread + Math.sin(t * 0.6 + i) * 22;
+        const amp = 26 + 78 * centered;
+        const freq = 1.3 + f * 1.1;
+        const phase = t * (0.8 + f * 0.9) + i * 0.42;
+        const alpha = centered * 0.16 + 0.015;
         ctx!.beginPath();
-        ctx!.arc(p.x, p.y, 1.3, 0, Math.PI * 2);
-        ctx!.fill();
+        for (let x = 0; x <= w; x += 12) {
+          const nx = x / w;
+          const env = Math.sin(nx * Math.PI); // uchlarda lentaga yig'iladi
+          const y = y0 + Math.sin(nx * Math.PI * freq + phase) * amp * env;
+          if (x === 0) ctx!.moveTo(x, y);
+          else ctx!.lineTo(x, y);
+        }
+        const g = ctx!.createLinearGradient(0, 0, w, 0);
+        g.addColorStop(0, "rgba(255,255,255,0)");
+        g.addColorStop(0.5, `rgba(255,255,255,${alpha})`);
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx!.strokeStyle = g;
+        ctx!.stroke();
       }
-    }
-
-    function tick() {
-      draw(true);
-      raf = requestAnimationFrame(tick);
+      raf = requestAnimationFrame(render);
     }
 
     resize();
-    if (reduce) draw(false);
-    else tick();
+    if (reduce) render(0);
+    else raf = requestAnimationFrame(render);
     window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
@@ -455,7 +443,7 @@ function ParticleField() {
     };
   }, []);
 
-  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-60" aria-hidden />;
+  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-70" aria-hidden />;
 }
 
 /** Reveal'da 0 dan qiymatgacha sanaydi (masalan "50 000+"). */
