@@ -101,18 +101,18 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
       {/* ── Sidebar — yumshoq "command rail" ───────────────────── */}
       <aside
         className="relative flex h-screen flex-col overflow-hidden text-white"
-        style={{ background: "linear-gradient(178deg, #232a44 0%, #1b2136 55%, #171c2e 100%)" }}
+        style={{ background: "linear-gradient(178deg, #1b1b1f 0%, #141417 55%, #0e0e10 100%)" }}
       >
-        {/* Ambient glow — yumshoq */}
+        {/* Ambient glow — yumshoq, neytral */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-60"
-          style={{ background: "radial-gradient(120% 80% at 25% 0%, rgba(99,102,241,0.20), transparent 72%)" }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-70"
+          style={{ background: "radial-gradient(120% 80% at 25% 0%, rgba(255,255,255,0.06), transparent 72%)" }}
         />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/12 via-white/6 to-transparent" />
 
         {/* Logo */}
         <div className="relative flex items-center gap-2.5 px-5 pb-4 pt-5">
-          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/30 ring-1 ring-white/10">
+          <div className="grid size-9 place-items-center rounded-xl bg-white text-zinc-900 shadow-lg ring-1 ring-white/20">
             <Sparkle weight="fill" className="size-[18px]" />
           </div>
           <div className="leading-tight">
@@ -161,15 +161,15 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
                     >
                       {active && (
                         <span
-                          className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary"
-                          style={{ boxShadow: "0 0 10px 0 rgba(99,102,241,0.5)" }}
+                          className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white"
+                          style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }}
                         />
                       )}
                       <span
                         className={cn(
                           "grid size-7 shrink-0 place-items-center rounded-lg transition-all",
                           active
-                            ? "bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/40"
+                            ? "bg-white text-zinc-900 shadow-sm"
                             : "bg-white/[0.06] text-white/60 group-hover:text-white",
                         )}
                       >
@@ -192,7 +192,7 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
         {/* User footer */}
         <div className="relative border-t border-white/10 p-3">
           <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-secondary to-primary font-display text-xs font-semibold text-white ring-1 ring-white/15">
+            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-white/[0.10] font-display text-xs font-semibold text-white ring-1 ring-white/20">
               {user.fullName.slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
