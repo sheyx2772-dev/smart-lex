@@ -100,6 +100,8 @@ export default function LoginPage() {
         @keyframes lxScan {0%{transform:translateY(-120%)}100%{transform:translateY(520px)}}
         @keyframes lxSpin {to{transform:rotate(360deg)}}
         [data-reveal]{opacity:0;transform:translateY(46px) scale(.965);transition:opacity .85s cubic-bezier(.2,.7,.2,1),transform .85s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
+        [data-reveal="left"]{transform:translateX(-64px)}
+        [data-reveal="right"]{transform:translateX(64px)}
         [data-reveal].in{opacity:1;transform:none}
         .lx-marquee{animation:lxMarquee 30s linear infinite}
         .lx-marquee-r{animation:lxMarqueeR 46s linear infinite}
@@ -242,15 +244,15 @@ export default function LoginPage() {
       </section>
 
       {/* ── Jarayon (01–04) ────────────────────── */}
-      <section id="jarayon" className="relative z-10 py-24 lg:py-32">
+      <section id="jarayon" className="relative z-10 bg-white py-24 text-black lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
-          <SectionHead index="01" kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} />
-          <div className="mt-14 border-t border-white/10">
+          <SectionHead index="01" kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} tone="light" />
+          <div className="mt-14 border-t border-black/10">
             {STEPS.map((s, i) => (
-              <div key={s} data-reveal style={{ transitionDelay: `${i * 80}ms` }} className="group grid grid-cols-1 items-start gap-4 border-b border-white/10 py-8 transition-colors hover:bg-white/[0.03] md:grid-cols-[120px_1fr_1.2fr] md:gap-10 md:py-10">
-                <span className="lx-cond font-display text-5xl font-extrabold text-white/20 transition-colors group-hover:text-white md:text-6xl">0{i + 1}</span>
+              <div key={s} data-reveal={i % 2 === 0 ? "left" : "right"} style={{ transitionDelay: `${i * 80}ms` }} className="group grid grid-cols-1 items-start gap-4 border-b border-black/10 py-8 transition-colors hover:bg-black/[0.03] md:grid-cols-[120px_1fr_1.2fr] md:gap-10 md:py-10">
+                <span className="lx-cond font-display text-5xl font-extrabold text-black/20 transition-colors group-hover:text-black md:text-6xl">0{i + 1}</span>
                 <h3 className="font-display text-2xl font-bold uppercase tracking-tight md:text-3xl">{l(`${s}t` as never)}</h3>
-                <p className="max-w-lg text-sm leading-relaxed text-white/50 md:pt-2">{l(`${s}d` as never)}</p>
+                <p className="max-w-lg text-sm leading-relaxed text-black/55 md:pt-2">{l(`${s}d` as never)}</p>
               </div>
             ))}
           </div>
@@ -258,7 +260,7 @@ export default function LoginPage() {
       </section>
 
       {/* ── Imkoniyatlar ───────────────────────── */}
-      <section id="imkoniyatlar" className="relative z-10 border-t border-white/10 bg-white/[0.02] py-24 lg:py-32">
+      <section id="imkoniyatlar" className="relative z-10 border-t border-white/10 bg-black py-24 lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="02" kicker={l("featKicker")} title={l("featTitle")} desc={l("featDesc")} />
           <div className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:grid-cols-2 lg:grid-cols-3">
@@ -281,24 +283,24 @@ export default function LoginPage() {
       </section>
 
       {/* ── Statistika (sanab chiqadi) ─────────── */}
-      <section className="relative z-10 border-t border-white/10 py-20">
+      <section className="relative z-10 bg-white py-20 text-black">
         <div className="mx-auto grid w-[min(1240px,92%)] grid-cols-2 gap-y-12 lg:grid-cols-4">
           {(["stat1", "stat2", "stat3", "stat4"] as const).map((k, i) => (
-            <div key={k} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="border-l border-white/15 pl-6">
+            <div key={k} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="border-l border-black/15 pl-6">
               <CountUp value={l(`${k}v` as never)} className="lx-cond block font-display text-5xl font-extrabold tracking-tight lg:text-6xl" />
-              <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/45">{l(`${k}l` as never)}</p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-black/50">{l(`${k}l` as never)}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Sharhlar ───────────────────────────── */}
-      <section className="relative z-10 border-t border-white/10 bg-white/[0.02] py-24 lg:py-32">
+      <section className="relative z-10 border-t border-white/10 bg-black py-24 lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="03" kicker={l("revKicker")} title={l("revTitle")} desc={l("revDesc")} />
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             {REVIEWS.map((r, i) => (
-              <div key={r} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 transition-colors hover:border-white/30">
+              <div key={r} data-reveal={i === 0 ? "left" : i === 2 ? "right" : undefined} style={{ transitionDelay: `${i * 90}ms` }} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 transition-colors hover:border-white/30">
                 <div>
                   <Quotes weight="fill" className="size-8 text-white/25" />
                   <p className="mt-5 text-[15px] leading-relaxed text-white/80">{l(`${r}text` as never)}</p>
@@ -318,27 +320,27 @@ export default function LoginPage() {
       </section>
 
       {/* ── Narxlar ────────────────────────────── */}
-      <section id="narxlar" className="relative z-10 border-t border-white/10 py-24 lg:py-32">
+      <section id="narxlar" className="relative z-10 bg-white py-24 text-black lg:py-32">
         <div className="mx-auto w-[min(1240px,92%)]">
-          <SectionHead index="04" kicker={l("priceKicker")} title={l("priceTitle")} desc={l("priceDesc")} />
+          <SectionHead index="04" kicker={l("priceKicker")} title={l("priceTitle")} desc={l("priceDesc")} tone="light" />
           <div className="mt-14 grid gap-6 md:grid-cols-3">
             {PLANS.map((p, i) => {
               const featured = p === "standard";
               return (
-                <div key={p} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className={cn("relative flex flex-col rounded-2xl border p-8 transition-transform hover:-translate-y-1", featured ? "border-white bg-white text-black" : "border-white/12 bg-black")}>
-                  {featured && <span className="absolute right-6 top-6 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">{l("popular")}</span>}
-                  <p className={cn("text-xs font-bold uppercase tracking-widest", featured ? "text-black/60" : "text-white/50")}>{l(`plan.${p}.name` as never)}</p>
+                <div key={p} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className={cn("relative flex flex-col rounded-2xl border p-8 transition-transform hover:-translate-y-1", featured ? "border-black bg-black text-white md:-translate-y-3" : "border-black/12 bg-white")}>
+                  {featured && <span className="absolute right-6 top-6 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">{l("popular")}</span>}
+                  <p className={cn("text-xs font-bold uppercase tracking-widest", featured ? "text-white/60" : "text-black/50")}>{l(`plan.${p}.name` as never)}</p>
                   <p className="lx-cond mt-5 font-display text-5xl font-extrabold tracking-tight">{l(`plan.${p}.price` as never)}</p>
-                  <p className={cn("mt-1 text-xs", featured ? "text-black/50" : "text-white/40")}>{l(`plan.${p}.per` as never)}</p>
+                  <p className={cn("mt-1 text-xs", featured ? "text-white/50" : "text-black/40")}>{l(`plan.${p}.per` as never)}</p>
                   <ul className="mt-8 flex-1 space-y-3.5 text-sm">
                     {[0, 1, 2, 3].map((k) => (
                       <li key={k} className="flex items-start gap-3">
-                        <CheckCircle weight="fill" className={cn("mt-0.5 size-4 shrink-0", featured ? "text-black" : "text-white/70")} />
-                        <span className={featured ? "text-black/80" : "text-white/70"}>{l(`plan.${p}.f${k}` as never)}</span>
+                        <CheckCircle weight="fill" className={cn("mt-0.5 size-4 shrink-0", featured ? "text-white" : "text-black")} />
+                        <span className={featured ? "text-white/80" : "text-black/70"}>{l(`plan.${p}.f${k}` as never)}</span>
                       </li>
                     ))}
                   </ul>
-                  <button onClick={openLogin} className={cn("mt-8 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-transform hover:scale-[1.03]", featured ? "bg-black text-white" : "bg-white text-black")}>
+                  <button onClick={openLogin} className={cn("mt-8 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-widest transition-transform hover:scale-[1.03]", featured ? "bg-white text-black" : "bg-black text-white")}>
                     {l("choose")} <ArrowRight weight="bold" className="size-3.5" />
                   </button>
                 </div>
@@ -349,8 +351,9 @@ export default function LoginPage() {
       </section>
 
       {/* ── Yakuniy CTA ────────────────────────── */}
-      <section className="relative z-10 overflow-hidden border-t border-white/10 py-28 lg:py-40">
-        <div data-reveal className="mx-auto w-[min(1240px,92%)] text-center">
+      <section className="relative z-10 overflow-hidden border-t border-white/10 bg-black py-28 lg:py-40">
+        <div className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ backgroundImage: "radial-gradient(#fff 1px,transparent 1px)", backgroundSize: "26px 26px" }} />
+        <div data-reveal className="relative mx-auto w-[min(1240px,92%)] text-center">
           <Lightning weight="fill" className="lx-floaty mx-auto size-9 text-white/70" />
           <h2 className="lx-cond mx-auto mt-6 max-w-4xl font-display font-extrabold uppercase leading-[0.9] tracking-tight" style={{ fontSize: "clamp(2.25rem,7vw,5.5rem)" }}>
             {l("ctaTitle")}
@@ -363,7 +366,7 @@ export default function LoginPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────── */}
-      <footer className="relative z-10 border-t border-white/10 py-12">
+      <footer className="relative z-10 border-t border-white/10 bg-black py-12">
         <div className="mx-auto flex w-[min(1240px,92%)] flex-col items-center justify-between gap-5 sm:flex-row">
           <a href="#" className="font-display text-xl font-extrabold tracking-tight">{tApp("name").toUpperCase()}<span className="text-white/40">.</span></a>
           <p className="text-xs uppercase tracking-widest text-white/35">{l("footer")}</p>
@@ -533,16 +536,17 @@ function CountUp({ value, className }: { value: string; className?: string }) {
   );
 }
 
-function SectionHead({ index, kicker, title, desc }: { index: string; kicker: string; title: string; desc: string }) {
+function SectionHead({ index, kicker, title, desc, tone = "dark" }: { index: string; kicker: string; title: string; desc: string; tone?: "dark" | "light" }) {
+  const light = tone === "light";
   return (
     <div data-reveal className="max-w-3xl">
       <div className="flex items-center gap-4">
-        <span className="lx-cond font-display text-2xl font-extrabold text-white/25">{index}</span>
-        <span className="h-px w-10 bg-white/40" />
-        <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-white/60">{kicker}</span>
+        <span className={cn("lx-cond font-display text-2xl font-extrabold", light ? "text-black/25" : "text-white/25")}>{index}</span>
+        <span className={cn("h-px w-10", light ? "bg-black/40" : "bg-white/40")} />
+        <span className={cn("text-[11px] font-bold uppercase tracking-[0.32em]", light ? "text-black/60" : "text-white/60")}>{kicker}</span>
       </div>
       <h2 className="lx-cond mt-6 font-display font-extrabold uppercase leading-[0.92] tracking-tight" style={{ fontSize: "clamp(2rem,5vw,3.75rem)" }}>{title}</h2>
-      <p className="mt-4 text-base leading-relaxed text-white/50">{desc}</p>
+      <p className={cn("mt-4 text-base leading-relaxed", light ? "text-black/55" : "text-white/50")}>{desc}</p>
     </div>
   );
 }
