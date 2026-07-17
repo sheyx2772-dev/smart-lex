@@ -900,7 +900,23 @@
         "desc": "Contract signed by several parties"
       }
     },
-    "scheduleSection": "Payment schedule (installment)"
+    "scheduleSection": "Payment schedule (installment)",
+    "registry": "Contract registry",
+    "registryDesc": "All contracts — search and filter by status",
+    "searchPh": "Search by contract no. or party",
+    "fAll": "All",
+    "fActive": "Active",
+    "fOverdue": "Overdue",
+    "colNumber": "Contract no.",
+    "colParty": "Party",
+    "colTin": "TIN",
+    "colAmount": "Amount",
+    "colStatus": "Status",
+    "stActive": "Active",
+    "stOverdue": "Overdue",
+    "regEmpty": "No contracts found",
+    "regCount": "{n} contracts",
+    "prepareDoc": "Prepare document"
   },
   "schedule": {
     "desc": "Auto-calculate an installment schedule from total, down payment, term and markup.",

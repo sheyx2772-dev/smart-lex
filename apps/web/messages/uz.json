@@ -900,7 +900,23 @@
         "desc": "Bir necha tomon imzolaydigan shartnoma"
       }
     },
-    "scheduleSection": "To'lov jadvali (nasiya)"
+    "scheduleSection": "To'lov jadvali (nasiya)",
+    "registry": "Shartnomalar registri",
+    "registryDesc": "Barcha shartnomalar — qidirish va holat bo‘yicha filtr",
+    "searchPh": "Shartnoma № yoki kontragent bo‘yicha qidirish",
+    "fAll": "Barchasi",
+    "fActive": "Faol",
+    "fOverdue": "Muddati o‘tgan",
+    "colNumber": "Shartnoma №",
+    "colParty": "Kontragent",
+    "colTin": "STIR",
+    "colAmount": "Summa",
+    "colStatus": "Holat",
+    "stActive": "Faol",
+    "stOverdue": "Muddati o‘tgan",
+    "regEmpty": "Shartnoma topilmadi",
+    "regCount": "{n} ta shartnoma",
+    "prepareDoc": "Hujjat tayyorlash"
   },
   "schedule": {
     "desc": "Nasiya to'lov jadvalini avtomatik hisoblang — summa, boshlang'ich to'lov, muddat va ustama bo'yicha.",
