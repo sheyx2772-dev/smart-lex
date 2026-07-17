@@ -97,7 +97,6 @@ export default function LoginPage() {
         @keyframes lxDot {0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
         @keyframes lxDrift {0%,100%{transform:translate(0,0)}33%{transform:translate(5vw,-4vh)}66%{transform:translate(-4vw,4vh)}}
         @keyframes lxFloatY {0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-        @keyframes lxScan {0%{transform:translateY(-120%)}100%{transform:translateY(520px)}}
         @keyframes lxSpin {to{transform:rotate(360deg)}}
         [data-reveal]{opacity:0;transform:translateY(46px) scale(.965);transition:opacity .85s cubic-bezier(.2,.7,.2,1),transform .85s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
         [data-reveal="left"]{transform:translateX(-64px)}
@@ -176,8 +175,6 @@ export default function LoginPage() {
             <path key={i} fill="none" stroke="url(#lxg)" strokeWidth="1" d={`M0,${200 + o} C360,${120 + o} 720,${300 + o} 1080,${180 + o} S1440,${240 + o} 1440,${240 + o}`} opacity={1 - i * 0.14} />
           ))}
         </svg>
-        {/* "Flow" nur sweep */}
-        <div className="lx-floaty pointer-events-none absolute inset-x-0 top-24 -z-10 mx-auto h-px w-[80%] bg-gradient-to-r from-transparent via-white/40 to-transparent" style={{ animation: "lxScan 6s ease-in-out infinite" }} />
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-white/[0.06] to-transparent" />
         {/* Suzuvchi dekor ikonlar */}
         <Sparkle weight="fill" className="lx-floaty pointer-events-none absolute right-[8%] top-40 -z-10 size-6 text-white/20" />
