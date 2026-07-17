@@ -854,7 +854,10 @@
       "blank": "Написать с нуля"
     },
     "autofill": "Заполнить из должника",
-    "autofillHint": "Автозаполнение шаблона данными выбранного должника"
+    "autofillHint": "Автозаполнение шаблона данными выбранного должника",
+    "exportWord": "Word (.doc)",
+    "exportPdf": "PDF / Печать",
+    "exportHtml": "HTML файл"
   },
   "contractsHub": {
     "title": "Договоры",

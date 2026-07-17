@@ -854,7 +854,10 @@
       "blank": "Noldan yozish"
     },
     "autofill": "Qarzdordan to'ldirish",
-    "autofillHint": "Shablonni tanlangan qarzdor ma'lumoti bilan avtomatik to'ldiradi"
+    "autofillHint": "Shablonni tanlangan qarzdor ma'lumoti bilan avtomatik to'ldiradi",
+    "exportWord": "Word (.doc)",
+    "exportPdf": "PDF / Chop etish",
+    "exportHtml": "HTML fayl"
   },
   "contractsHub": {
     "title": "Shartnomalar",

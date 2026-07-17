@@ -2,10 +2,14 @@
 
 import {
   ArrowRight,
+  CaretDown,
   CircleNotch,
   ClipboardText,
   DownloadSimple,
   Envelope,
+  FileDoc,
+  FileHtml,
+  FilePdf,
   FileDashed,
   Gavel,
   Handshake,
@@ -254,15 +258,40 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
     if (d) setDocHtml(applyDebtor(docHtml, d));
   }
 
-  function download() {
-    const name = (title.trim() || t("untitled")).replace(/[^\p{L}\p{N} _-]/gu, "");
-    const html = `<!doctype html><meta charset="utf-8"><title>${escapeHtml(name)}</title><body>${docHtml || `<p>${escapeHtml(text)}</p>`}</body>`;
-    const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const [exportOpen, setExportOpen] = useState(false);
+
+  const docName = () => (title.trim() || t("untitled")).replace(/[^\p{L}\p{N} _-]/gu, "");
+  const bodyHtml = () => docHtml || `<p>${escapeHtml(text)}</p>`;
+
+  function saveBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${name}.html`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+    setExportOpen(false);
+  }
+  function exportHtml() {
+    const name = docName();
+    saveBlob(new Blob([`<!doctype html><meta charset="utf-8"><title>${escapeHtml(name)}</title><body>${bodyHtml()}</body>`], { type: "text/html" }), `${name}.html`);
+  }
+  function exportWord() {
+    const name = docName();
+    const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${escapeHtml(name)}</title></head><body style="font-family:'Times New Roman',serif;font-size:14px">${bodyHtml()}</body></html>`;
+    saveBlob(new Blob(["﻿", html], { type: "application/msword" }), `${name}.doc`);
+  }
+  function exportPdf() {
+    const name = docName();
+    const win = window.open("", "_blank", "width=820,height=1040");
+    if (!win) return;
+    win.document.write(
+      `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(name)}</title><style>@page{margin:2cm}body{font-family:'Times New Roman',Georgia,serif;font-size:14px;line-height:1.65;color:#111;max-width:720px;margin:0 auto;padding:1cm}h2{font-size:18px;text-align:center}h3{font-size:15px}p{margin:.5em 0}</style></head><body>${bodyHtml()}</body></html>`,
+    );
+    win.document.close();
+    win.focus();
+    setExportOpen(false);
+    setTimeout(() => win.print(), 350);
   }
 
   const QUICK = [
@@ -304,13 +333,32 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
           >
             <SquaresFour className="size-4" /> {t("templates")}
           </button>
-          <button
-            onClick={download}
-            disabled={!hasDoc}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30 disabled:opacity-40"
-          >
-            <DownloadSimple className="size-4" /> {t("export")}
-          </button>
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setExportOpen((o) => !o)}
+              disabled={!hasDoc}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30 disabled:opacity-40"
+            >
+              <DownloadSimple className="size-4" /> {t("export")}
+              <CaretDown className={cn("size-3.5 transition-transform", exportOpen && "rotate-180")} />
+            </button>
+            {exportOpen && (
+              <>
+                <button type="button" aria-label="close" className="fixed inset-0 z-10 cursor-default" onClick={() => setExportOpen(false)} />
+                <div className="absolute right-0 z-20 mt-1 w-48 overflow-hidden rounded-lg border border-border bg-card py-1 shadow-lg">
+                  <button onClick={exportWord} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
+                    <FileDoc weight="fill" className="size-4 text-blue-600" /> {t("exportWord")}
+                  </button>
+                  <button onClick={exportPdf} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
+                    <FilePdf weight="fill" className="size-4 text-red-500" /> {t("exportPdf")}
+                  </button>
+                  <button onClick={exportHtml} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
+                    <FileHtml weight="fill" className="size-4 text-orange-500" /> {t("exportHtml")}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
         {picker ? (
           <TemplateGallery t={t} onPick={chooseTemplate} />

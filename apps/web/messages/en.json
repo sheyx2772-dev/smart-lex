@@ -854,7 +854,10 @@
       "blank": "Start from scratch"
     },
     "autofill": "Fill from debtor",
-    "autofillHint": "Auto-fills the template with the selected debtor's data"
+    "autofillHint": "Auto-fills the template with the selected debtor's data",
+    "exportWord": "Word (.doc)",
+    "exportPdf": "PDF / Print",
+    "exportHtml": "HTML file"
   },
   "contractsHub": {
     "title": "Contracts",

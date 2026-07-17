@@ -1,6 +1,6 @@
 "use client";
 
-import { ListBullets, ListNumbers, TextB, TextHOne, TextHTwo, TextItalic } from "@phosphor-icons/react";
+import { ArrowUUpLeft, ArrowUUpRight, ListBullets, ListNumbers, Quotes, TextB, TextHOne, TextHTwo, TextItalic } from "@phosphor-icons/react";
 import { type Editor, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect } from "react";
@@ -79,6 +79,16 @@ export function RichEditor({
         </Btn>
         <Btn title="Raqamli ro'yxat" active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
           <ListNumbers className="size-4" />
+        </Btn>
+        <Btn title="Iqtibos" active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+          <Quotes className="size-4" />
+        </Btn>
+        <span className="mx-1 h-5 w-px bg-border" />
+        <Btn title="Orqaga" onClick={() => editor.chain().focus().undo().run()}>
+          <ArrowUUpLeft className="size-4" />
+        </Btn>
+        <Btn title="Oldinga" onClick={() => editor.chain().focus().redo().run()}>
+          <ArrowUUpRight className="size-4" />
         </Btn>
       </div>
       <EditorContent editor={editor} className="scroll-clean min-h-0 flex-1 overflow-y-auto" />
