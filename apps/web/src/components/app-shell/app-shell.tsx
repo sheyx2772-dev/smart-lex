@@ -101,7 +101,7 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
       {/* ── Sidebar — yumshoq "command rail" ───────────────────── */}
       <aside
         className="relative flex h-screen flex-col overflow-hidden text-white"
-        style={{ background: "linear-gradient(178deg, #1b1b1f 0%, #141417 55%, #0e0e10 100%)" }}
+        style={{ background: "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
       >
         {/* Ambient glow — yumshoq, neytral */}
         <div
