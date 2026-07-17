@@ -35,10 +35,16 @@
     }
     body.innerHTML = `<b>${esc(claim.debtor)}</b><br>STIR: ${esc(claim.tin)}<br>Summa: ${esc(claim.amount)}`;
     btn.disabled = false;
-    btn.onclick = () => {
+    const run = () => {
       const n = fillForm(claim);
       note.textContent = n > 0 ? `${n} ta maydon to'ldirildi. E-IMZO'ni o'zingiz tasdiqlang.` : "Mos maydon topilmadi — qo'lda kiriting.";
     };
+    btn.onclick = run;
+
+    // "Avtomatik to'ldirish" yoqilgan bo'lsa — panel ochilishida darhol.
+    chrome.storage.local.get("autofill", (s) => {
+      if (s && s.autofill) run();
+    });
   });
 
   // Umumiy heuristika — profil topilmaganда yoki qoldiq maydonlar uchun.

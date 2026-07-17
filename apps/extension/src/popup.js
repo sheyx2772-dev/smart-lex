@@ -29,3 +29,10 @@ chrome.runtime.sendMessage({ type: "lex:get" }, (r) => render(r && r.claim));
 document.getElementById("clear").addEventListener("click", () => {
   chrome.runtime.sendMessage({ type: "lex:clear" }, () => render(null));
 });
+
+// "Avtomatik to'ldirish" sozlamasi
+const auto = document.getElementById("autofill");
+chrome.storage.local.get("autofill", (r) => {
+  auto.checked = !!r.autofill;
+});
+auto.addEventListener("change", () => chrome.storage.local.set({ autofill: auto.checked }));
