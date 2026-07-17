@@ -416,7 +416,7 @@ function FlowField() {
     if (!ctx) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const DPR = Math.min(2, window.devicePixelRatio || 1);
-    const LINES = 40;
+    const LINES = 52;
     let raf = 0;
     let w = 0;
     let h = 0;
@@ -430,25 +430,38 @@ function FlowField() {
     }
 
     function render(now: number) {
-      const t = now * 0.00028;
+      const t = now * 0.00024;
       ctx!.clearRect(0, 0, w, h);
-      const bandY = h * 0.4;
-      const spread = Math.min(320, h * 0.36);
-      ctx!.lineWidth = 1;
+      const bandY = h * 0.4 + Math.sin(t * 0.5) * (h * 0.03);
+      const spread = Math.min(340, h * 0.36);
+
+      // Markaziy yumshoq porlash (ribbon ortida)
+      const glow = ctx!.createRadialGradient(w * 0.5, bandY, 0, w * 0.5, bandY, Math.max(w, h) * 0.5);
+      glow.addColorStop(0, "rgba(255,255,255,0.05)");
+      glow.addColorStop(0.4, "rgba(255,255,255,0.015)");
+      glow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx!.fillStyle = glow;
+      ctx!.fillRect(0, 0, w, h);
+
+      // Additiv oqim — chiziqlar bir-birining ustiga yorug'lik qo'shadi
+      ctx!.globalCompositeOperation = "lighter";
+      ctx!.lineWidth = 1.1;
       for (let i = 0; i < LINES; i++) {
         const f = LINES > 1 ? i / (LINES - 1) : 0.5;
         const off = (f - 0.5) * 2; // -1..1 (band markazidan uzoqlik)
         const centered = 1 - Math.abs(off);
-        const y0 = bandY + off * spread + Math.sin(t * 0.6 + i) * 22;
-        const amp = 26 + 78 * centered;
-        const freq = 1.3 + f * 1.1;
-        const phase = t * (0.8 + f * 0.9) + i * 0.42;
-        const alpha = centered * 0.16 + 0.015;
+        const y0 = bandY + off * spread + Math.sin(t * 0.7 + i * 0.6) * 26;
+        const amp = 30 + 90 * centered;
+        const freq = 1.2 + f * 1.3;
+        const freq2 = 2.6 + f * 1.1;
+        const phase = t * (0.7 + f * 0.8) + i * 0.4;
+        const alpha = centered * centered * 0.2 + 0.012;
         ctx!.beginPath();
-        for (let x = 0; x <= w; x += 12) {
+        for (let x = 0; x <= w; x += 8) {
           const nx = x / w;
-          const env = Math.sin(nx * Math.PI); // uchlarda lentaga yig'iladi
-          const y = y0 + Math.sin(nx * Math.PI * freq + phase) * amp * env;
+          const env = 0.4 + 0.6 * Math.sin(nx * Math.PI); // to'liqroq, uchlarda yumshoq so'nadi
+          const wave = Math.sin(nx * Math.PI * freq + phase) * 0.7 + Math.sin(nx * Math.PI * freq2 - phase * 0.6) * 0.3;
+          const y = y0 + wave * amp * env;
           if (x === 0) ctx!.moveTo(x, y);
           else ctx!.lineTo(x, y);
         }
@@ -459,6 +472,7 @@ function FlowField() {
         ctx!.strokeStyle = g;
         ctx!.stroke();
       }
+      ctx!.globalCompositeOperation = "source-over";
       raf = requestAnimationFrame(render);
     }
 
