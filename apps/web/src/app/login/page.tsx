@@ -20,6 +20,7 @@ import {
   Sparkle,
   Star,
   Truck,
+  User,
   X,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
@@ -130,8 +131,8 @@ export default function LoginPage() {
       {/* ── Navbar ─────────────────────────────── */}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-xl">
         <div className="mx-auto flex w-[min(1240px,92%)] items-center justify-between py-4">
-          <a href="#" className="font-display text-2xl font-extrabold tracking-tight">
-            {tApp("name").toUpperCase()}<span className="lx-dot inline-block text-white/50">.</span>
+          <a href="#" aria-label={tApp("name")}>
+            <BrandMark name={tApp("name")} className="font-display text-2xl font-extrabold tracking-tight" />
           </a>
           <nav className="hidden items-center gap-9 text-xs font-semibold uppercase tracking-widest text-white/60 lg:flex">
             <a href="#jarayon" className="transition-colors hover:text-white">{l("navHow")}</a>
@@ -139,9 +140,15 @@ export default function LoginPage() {
             <a href="#narxlar" className="transition-colors hover:text-white">{l("navPricing")}</a>
           </nav>
           <div className="flex items-center gap-3">
-            <div className="hidden sm:block"><LocaleSwitcher /></div>
-            <button onClick={openLogin} className="group inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-black transition-transform hover:scale-[1.04]">
-              {t("submit")} <ArrowRight weight="bold" className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            <div className="hidden sm:block"><LocaleSwitcher variant="ghost" /></div>
+            <button onClick={openLogin} className="group inline-flex items-center gap-2 rounded-full py-1.5 pl-4 pr-1.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:text-white/70 sm:hidden">
+              <User weight="bold" className="size-4" /> {t("submit")}
+            </button>
+            <button onClick={openLogin} className="group hidden items-center gap-2.5 rounded-full border border-white/30 py-1.5 pl-5 pr-1.5 text-xs font-bold uppercase tracking-widest text-white transition-colors hover:border-white sm:inline-flex">
+              {t("submit")}
+              <span className="grid size-7 place-items-center rounded-full bg-white text-black transition-transform group-hover:translate-x-0.5">
+                <ArrowRight weight="bold" className="size-3.5" />
+              </span>
             </button>
             <button onClick={() => setMenuOpen((o) => !o)} className="grid size-10 place-items-center rounded-full border border-white/15 lg:hidden">
               {menuOpen ? <X weight="bold" className="size-5" /> : <List weight="bold" className="size-5" />}
@@ -154,7 +161,7 @@ export default function LoginPage() {
               <a href="#jarayon" onClick={() => setMenuOpen(false)}>{l("navHow")}</a>
               <a href="#imkoniyatlar" onClick={() => setMenuOpen(false)}>{l("navFeatures")}</a>
               <a href="#narxlar" onClick={() => setMenuOpen(false)}>{l("navPricing")}</a>
-              <div className="pt-2"><LocaleSwitcher /></div>
+              <div className="pt-2"><LocaleSwitcher variant="ghost" /></div>
             </nav>
           </div>
         )}
@@ -403,7 +410,7 @@ export default function LoginPage() {
       {/* ── Footer ─────────────────────────────── */}
       <footer className="relative z-10 border-t border-white/10 bg-black py-12">
         <div className="mx-auto flex w-[min(1240px,92%)] flex-col items-center justify-between gap-5 sm:flex-row">
-          <a href="#" className="font-display text-xl font-extrabold tracking-tight">{tApp("name").toUpperCase()}<span className="text-white/40">.</span></a>
+          <a href="#" aria-label={tApp("name")}><BrandMark name={tApp("name")} className="font-display text-xl font-extrabold tracking-tight" /></a>
           <p className="text-xs uppercase tracking-widest text-white/35">{l("footer")}</p>
           <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/35"><Buildings className="size-3.5" /> Multi-tenant · RLS · E-IMZO</div>
         </div>
@@ -463,17 +470,17 @@ function SmokeField() {
 
     function build() {
       puffs.length = 0;
-      const N = 10;
+      const N = 13;
       for (let i = 0; i < N; i++) {
         puffs.push({
           ax: 0.12 + Math.random() * 0.76, // markaz (ulush)
           ay: 0.1 + Math.random() * 0.8,
-          bx: 0.05 + Math.random() * 0.16, // suzish amplitudasi
-          by: 0.05 + Math.random() * 0.16,
-          r: 0.26 + Math.random() * 0.34, // radius (max o'lchamdan ulush)
+          bx: 0.06 + Math.random() * 0.18, // suzish amplitudasi
+          by: 0.06 + Math.random() * 0.18,
+          r: 0.24 + Math.random() * 0.32, // radius (max o'lchamdan ulush)
           sp: 0.35 + Math.random() * 0.75, // tezlik
           ph: Math.random() * Math.PI * 2, // faza
-          al: 0.045 + Math.random() * 0.055, // shaffoflik
+          al: 0.09 + Math.random() * 0.11, // shaffoflik (sezilarli tutun)
         });
       }
     }
@@ -499,7 +506,7 @@ function SmokeField() {
         const r = p.r * M * (0.9 + 0.12 * Math.sin(t * p.sp + p.ph));
         const g = ctx!.createRadialGradient(cx, cy, 0, cx, cy, r);
         g.addColorStop(0, `rgba(255,255,255,${p.al})`);
-        g.addColorStop(0.45, `rgba(205,210,222,${p.al * 0.32})`);
+        g.addColorStop(0.35, `rgba(225,228,236,${p.al * 0.5})`);
         g.addColorStop(1, "rgba(255,255,255,0)");
         ctx!.fillStyle = g;
         ctx!.beginPath();
@@ -521,7 +528,7 @@ function SmokeField() {
     };
   }, []);
 
-  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-80" aria-hidden />;
+  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-100" aria-hidden />;
 }
 
 /** Reveal'da 0 dan qiymatgacha sanaydi (masalan "50 000+"). */
@@ -567,6 +574,24 @@ function CountUp({ value, className }: { value: string; className?: string }) {
   return (
     <span ref={ref} className={className}>
       {txt}
+    </span>
+  );
+}
+
+/** Logotip — "SMARTLEX.AI": nomdagi oxirgi ".xxx" qismi urg'u rangida. */
+function BrandMark({ name, className }: { name: string; className?: string }) {
+  const b = name.toUpperCase();
+  const i = b.lastIndexOf(".");
+  return (
+    <span className={className}>
+      {i < 0 ? (
+        b
+      ) : (
+        <>
+          {b.slice(0, i)}
+          <span className="text-white/45">{b.slice(i)}</span>
+        </>
+      )}
     </span>
   );
 }
