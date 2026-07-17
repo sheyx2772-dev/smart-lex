@@ -387,7 +387,7 @@ function HeroBg() {
   const [videoOk, setVideoOk] = useState(false);
   return (
     <>
-      {!videoOk && <FlowField />}
+      {!videoOk && <SmokeField />}
       <video
         autoPlay
         muted
@@ -406,8 +406,8 @@ function HeroBg() {
   );
 }
 
-/** Oqadigan to'lqin lentalari — original canvas "flow" effekti (oq/qora). */
-function FlowField() {
+/** Yumshoq tutun/tuман — sekin suzuvchi radial gradient bulutlari (oq/qora). */
+function SmokeField() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -419,12 +419,25 @@ function FlowField() {
     let raf = 0;
     let w = 0;
     let h = 0;
-    const parts: { x: number; y: number; life: number }[] = [];
 
-    function spawn(p: { x: number; y: number; life: number }) {
-      p.x = Math.random() * w;
-      p.y = Math.random() * h;
-      p.life = 60 + Math.random() * 220;
+    type Puff = { ax: number; ay: number; bx: number; by: number; r: number; sp: number; ph: number; al: number };
+    const puffs: Puff[] = [];
+
+    function build() {
+      puffs.length = 0;
+      const N = 10;
+      for (let i = 0; i < N; i++) {
+        puffs.push({
+          ax: 0.12 + Math.random() * 0.76, // markaz (ulush)
+          ay: 0.1 + Math.random() * 0.8,
+          bx: 0.05 + Math.random() * 0.16, // suzish amplitudasi
+          by: 0.05 + Math.random() * 0.16,
+          r: 0.26 + Math.random() * 0.34, // radius (max o'lchamdan ulush)
+          sp: 0.35 + Math.random() * 0.75, // tezlik
+          ph: Math.random() * Math.PI * 2, // faza
+          al: 0.045 + Math.random() * 0.055, // shaffoflik
+        });
+      }
     }
 
     function resize() {
@@ -433,58 +446,36 @@ function FlowField() {
       canvas!.width = Math.max(1, Math.floor(w * DPR));
       canvas!.height = Math.max(1, Math.floor(h * DPR));
       ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+
+    function render(now: number, loop: boolean) {
+      const t = now * 0.00015;
+      ctx!.globalCompositeOperation = "source-over";
       ctx!.fillStyle = "#000";
       ctx!.fillRect(0, 0, w, h);
-      const count = Math.max(260, Math.min(1500, Math.floor((w * h) / 1500)));
-      parts.length = 0;
-      for (let i = 0; i < count; i++) {
-        const p = { x: 0, y: 0, life: 0 };
-        spawn(p);
-        parts.push(p);
-      }
-    }
-
-    // Silliq oqim maydoni (Perlin o'rniga sinuslar yig'indisi) — yo'nalish burchagi
-    function field(x: number, y: number, t: number) {
-      const s = 0.0015;
-      const n =
-        Math.sin(x * s + t * 0.6) +
-        Math.sin(y * s * 1.3 - t * 0.5) +
-        Math.sin((x + y) * s * 0.7 + t * 0.35) +
-        Math.sin((x - y) * s * 0.5 - t * 0.25);
-      return n * Math.PI;
-    }
-
-    function step(now: number, loop: boolean) {
-      const t = now * 0.00011;
-      // Izlarni asta so'ndirish → oqadigan ipsimon streaklar
-      ctx!.globalCompositeOperation = "source-over";
-      ctx!.fillStyle = "rgba(0,0,0,0.055)";
-      ctx!.fillRect(0, 0, w, h);
       ctx!.globalCompositeOperation = "lighter";
-      ctx!.strokeStyle = "rgba(255,255,255,0.05)";
-      ctx!.lineWidth = 1;
-      const speed = 1.2;
-      for (const p of parts) {
-        const a = field(p.x, p.y, t);
-        const nx = p.x + Math.cos(a) * speed;
-        const ny = p.y + Math.sin(a) * speed;
+      const M = Math.max(w, h);
+      for (const p of puffs) {
+        const cx = (p.ax + Math.cos(t * p.sp + p.ph) * p.bx) * w;
+        const cy = (p.ay + Math.sin(t * p.sp * 0.9 + p.ph * 1.3) * p.by) * h;
+        const r = p.r * M * (0.9 + 0.12 * Math.sin(t * p.sp + p.ph));
+        const g = ctx!.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, `rgba(255,255,255,${p.al})`);
+        g.addColorStop(0.45, `rgba(205,210,222,${p.al * 0.32})`);
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx!.fillStyle = g;
         ctx!.beginPath();
-        ctx!.moveTo(p.x, p.y);
-        ctx!.lineTo(nx, ny);
-        ctx!.stroke();
-        p.x = nx;
-        p.y = ny;
-        p.life -= 1;
-        if (p.life <= 0 || nx < -2 || nx > w + 2 || ny < -2 || ny > h + 2) spawn(p);
+        ctx!.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx!.fill();
       }
       ctx!.globalCompositeOperation = "source-over";
-      if (loop) raf = requestAnimationFrame((n) => step(n, true));
+      if (loop) raf = requestAnimationFrame((n) => render(n, true));
     }
 
     resize();
-    if (reduce) step(0, false);
-    else raf = requestAnimationFrame((n) => step(n, true));
+    build();
+    if (reduce) render(0, false);
+    else raf = requestAnimationFrame((n) => render(n, true));
     window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
@@ -492,7 +483,7 @@ function FlowField() {
     };
   }, []);
 
-  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-90" aria-hidden />;
+  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-80" aria-hidden />;
 }
 
 /** Reveal'da 0 dan qiymatgacha sanaydi (masalan "50 000+"). */
