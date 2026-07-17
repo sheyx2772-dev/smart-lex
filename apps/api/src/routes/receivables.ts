@@ -339,3 +339,107 @@ receivableRoutes.get("/receivables/:id", async (c) => {
 
   return c.json(ok(data, "common.ok", c.get("locale")));
 });
+
+/** To'lov qayd etish — qarzni yopish sikli. To'lovni yozadi, keyin receivable'ni
+ * qayta baholaydi (outstanding, penya, holat, aging) va yangilaydi. */
+const CAN_PAY = new Set(["owner", "admin", "finance"]);
+receivableRoutes.post("/receivables/:id/payment", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_PAY.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+  const parsed = validate(paymentSchema, await c.req.json().catch(() => null));
+  if (!parsed.ok) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: parsed.fields }), 422);
+
+  let payAmount: bigint;
+  try {
+    payAmount = BigInt(String(parsed.data.amountMinor));
+  } catch {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: { amountMinor: "invalid" } }), 422);
+  }
+  if (payAmount <= 0n) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: { amountMinor: "positive" } }), 422);
+  const paidAt = parsed.data.paidAt ? new Date(parsed.data.paidAt) : new Date();
+
+  const result = await withTenant(tenantId, async (tx) => {
+    const [rec] = await tx
+      .select({
+        invoiceId: receivables.invoiceId,
+        currency: receivables.currency,
+        executedStages: receivables.executedStages,
+        invoiceAmountMinor: invoices.amountMinor,
+        dueDate: invoices.dueDate,
+        penaltyDailyBps: contracts.penaltyDailyBps,
+        penaltyCapBps: contracts.penaltyCapBps,
+      })
+      .from(receivables)
+      .innerJoin(invoices, eq(receivables.invoiceId, invoices.id))
+      .leftJoin(contracts, eq(invoices.contractId, contracts.id))
+      .where(eq(receivables.id, id))
+      .limit(1);
+    if (!rec) return null;
+
+    await tx.insert(payments).values({
+      tenantId,
+      invoiceId: rec.invoiceId,
+      amountMinor: payAmount,
+      currency: rec.currency,
+      status: "received",
+      paidAt,
+    });
+
+    const paidRows = await tx
+      .select({ amountMinor: payments.amountMinor })
+      .from(payments)
+      .where(and(eq(payments.invoiceId, rec.invoiceId), eq(payments.status, "received")));
+    const totalPaid = paidRows.reduce((s, p) => s + p.amountMinor, 0n);
+
+    const now = new Date();
+    const invoiced = money(rec.invoiceAmountMinor, rec.currency);
+    const paid = money(totalPaid, rec.currency);
+    const state = evaluateReceivable({ invoiced, paid, dueDate: rec.dueDate, now });
+    const penalty =
+      rec.penaltyDailyBps != null
+        ? calcPenalty(state.outstanding, { dailyRateBps: rec.penaltyDailyBps, capBps: rec.penaltyCapBps ?? undefined }, rec.dueDate, now).penalty
+        : money(0n, rec.currency);
+    const outstandingRatio = invoiced.minor > 0n ? Number(state.outstanding.minor) / Number(invoiced.minor) : 0;
+    const risk = calcRisk({
+      maxOverdueDays: state.overdueDays,
+      outstandingRatio,
+      latePaymentCount: 0,
+      priorDemandCount: (rec.executedStages ?? []).includes("demand_letter") ? 1 : 0,
+    });
+
+    await tx
+      .update(receivables)
+      .set({
+        status: state.status,
+        outstandingMinor: state.outstanding.minor,
+        penaltyMinor: penalty.minor,
+        overdueDays: state.overdueDays,
+        agingBucket: state.agingBucket,
+        riskScore: risk.score,
+        lastEvaluatedAt: now,
+      })
+      .where(and(eq(receivables.id, id), eq(receivables.tenantId, tenantId)));
+
+    await tx.insert(auditLogs).values({
+      tenantId,
+      actorType: "user",
+      actorId: userId,
+      action: "payment.recorded",
+      entityType: "receivable",
+      entityId: id,
+      detail: { amountMinor: payAmount.toString(), status: state.status },
+    });
+
+    return {
+      status: state.status,
+      outstanding: amount(state.outstanding.minor, rec.currency),
+      penalty: amount(penalty.minor, rec.currency),
+      totalPaid: amount(totalPaid, rec.currency),
+    };
+  });
+
+  if (!result) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  return c.json(ok(result, "common.updated", locale));
+});
