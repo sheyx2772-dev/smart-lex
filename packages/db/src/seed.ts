@@ -1,7 +1,7 @@
 import { DEFAULT_COLLECTION_STEPS } from "@lex/core";
 import { hashPassword } from "@lex/shared/auth";
 import { closeDb, getDb, withTenant } from "./client";
-import { collectionRules, contractors, contracts, documents, invoices, payments, tenants, users } from "./schema/index";
+import { approvalRequests, collectionRules, contractors, contracts, documents, invoices, payments, tenants, users } from "./schema/index";
 
 /**
  * Demo ma'lumot — 2 tenant (izolyatsiya testi uchun), turli debitorlik ssenariylari.
@@ -126,6 +126,68 @@ async function main(): Promise<void> {
       { tenantId: tenantA.id, type: "act", contractId: k1.id, contractorId: c1.id, title: "Bajarilgan ishlar dalolatnomasi #1001", didoxId: "DX-ACT-1001", createdAt: daysAgo(58) },
       { tenantId: tenantA.id, type: "reconciliation_act", contractId: k2.id, contractorId: c2.id, title: "Solishtirma dalolatnoma (akt-sverka)", didoxId: "DX-REC-2002", createdAt: daysAgo(30) },
       { tenantId: tenantA.id, type: "ttn", contractId: k1.id, contractorId: c1.id, title: "Yuk xati TTN-5567", didoxId: "DX-TTN-5567", createdAt: daysAgo(59) },
+    ]);
+
+    // ── Sud da'volari (court_claim) — Sud va Ijro bo'limlari uchun ──────────
+    // Biri E-SUD'ga topshirilgan (submitted), biri qaror chiqqan (completed → Ijro).
+    const daVoBody = (debtor: string, tin: string, contractNo: string, invoiceNo: string, total: string, overdue: number) =>
+      [
+        "IQTISODIY SUDGA DA'VO ARIZASI",
+        "",
+        `Da'vogar: "ALFA TRADE MCHJ", STIR: 301234567`,
+        `Javobgar: "${debtor}", STIR: ${tin}`,
+        `Da'vo narxi: ${total}`,
+        "",
+        `Da'vogar va javobgar o'rtasida ${contractNo} shartnoma tuzilgan. ${invoiceNo} hisob-faktura bo'yicha javobgar zimmasiga to'lov majburiyati yuklatilgan.`,
+        `Javobgar to'lovni belgilangan muddatda bajarmagan. Kechikish ${overdue} kun.`,
+        "",
+        "Huquqiy asos: O'zbekiston Respublikasi Fuqarolik kodeksi va Iqtisodiy protsessual kodeksi.",
+        "",
+        `SO'RAYMAN: Javobgardan da'vogar foydasiga jami ${total} undirilsin. Davlat boji javobgar zimmasiga yuklatilsin.`,
+      ].join("\n");
+
+    const courtDocs = await tx
+      .insert(documents)
+      .values([
+        {
+          tenantId: tenantA.id,
+          type: "court_claim",
+          contractId: k1.id,
+          contractorId: c1.id,
+          title: "Da'vo arizasi — GLOBAL SNAB MCHJ",
+          createdAt: daysAgo(20),
+          extracted: { body: daVoBody("GLOBAL SNAB MCHJ", "305111222", "SH-2026-001", "INV-1001", "5 562 500,00 UZS", 45), courtStatus: "submitted" },
+        },
+        {
+          tenantId: tenantA.id,
+          type: "court_claim",
+          contractId: k2.id,
+          contractorId: c2.id,
+          title: "Da'vo arizasi — MEGA BUILD MCHJ",
+          createdAt: daysAgo(40),
+          extracted: { body: daVoBody("MEGA BUILD MCHJ", "306333444", "SH-2026-002", "INV-1002", "8 340 000,00 UZS", 60), courtStatus: "completed" },
+        },
+      ])
+      .returning();
+    const [cd1, cd2] = courtDocs;
+
+    await tx.insert(approvalRequests).values([
+      {
+        tenantId: tenantA.id,
+        type: "court_claim",
+        status: "approved",
+        documentId: cd1?.id ?? null,
+        decidedAt: daysAgo(20),
+        payload: { court: "Toshkent shahar iqtisodiy sudi", totalMinor: "556250000", stateDutyMinor: "11125000", currency: "UZS" },
+      },
+      {
+        tenantId: tenantA.id,
+        type: "court_claim",
+        status: "approved",
+        documentId: cd2?.id ?? null,
+        decidedAt: daysAgo(40),
+        payload: { court: "Samarqand viloyat iqtisodiy sudi", totalMinor: "834000000", stateDutyMinor: "16680000", currency: "UZS" },
+      },
     ]);
   });
 
