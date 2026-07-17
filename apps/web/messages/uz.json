@@ -618,7 +618,9 @@
     "collectionHeading": "Undirish bosqichlari",
     "reminderHeading": "Eslatmalar tarixi",
     "noReminders": "Hali eslatma yuborilmagan",
-    "paymentHeading": "To'lovlar tarixi"
+    "paymentHeading": "To'lovlar tarixi",
+    "writeOff": "Hisobdan chiqarish",
+    "writeOffConfirm": "Bu qarzni undirib boʼlmaydigan deb belgilaysizmi? (hisobdan chiqariladi)"
   },
   "companies": {
     "title": "Kontragentlar",

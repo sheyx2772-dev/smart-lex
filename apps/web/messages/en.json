@@ -581,7 +581,9 @@
     "collectionHeading": "Collection stages",
     "reminderHeading": "Reminder history",
     "noReminders": "No reminders sent yet",
-    "paymentHeading": "Payment history"
+    "paymentHeading": "Payment history",
+    "writeOff": "Write off",
+    "writeOffConfirm": "Mark this debt as uncollectible? (it will be written off)"
   },
   "companies": {
     "title": "Counterparties",

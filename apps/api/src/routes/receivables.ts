@@ -443,3 +443,21 @@ receivableRoutes.post("/receivables/:id/payment", async (c) => {
   if (!result) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
   return c.json(ok(result, "common.updated", locale));
 });
+
+/** Hisobdan chiqarish — undirib bo'lmaydigan qarzni "written_off" deb belgilaydi. */
+const CAN_WRITE_OFF = new Set(["owner", "admin"]);
+receivableRoutes.post("/receivables/:id/write-off", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_WRITE_OFF.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+  const done = await withTenant(tenantId, async (tx) => {
+    const [rec] = await tx.select({ id: receivables.id }).from(receivables).where(eq(receivables.id, id)).limit(1);
+    if (!rec) return false;
+    await tx.update(receivables).set({ status: "written_off", lastEvaluatedAt: new Date() }).where(and(eq(receivables.id, id), eq(receivables.tenantId, tenantId)));
+    await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "receivable.written_off", entityType: "receivable", entityId: id, detail: {} });
+    return true;
+  });
+  if (!done) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  return c.json(ok({ status: "written_off" }, "common.updated", locale));
+});

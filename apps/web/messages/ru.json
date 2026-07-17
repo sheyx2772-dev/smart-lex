@@ -581,7 +581,9 @@
     "collectionHeading": "Этапы взыскания",
     "reminderHeading": "История напоминаний",
     "noReminders": "Напоминания ещё не отправлялись",
-    "paymentHeading": "История оплат"
+    "paymentHeading": "История оплат",
+    "writeOff": "Списать",
+    "writeOffConfirm": "Отметить этот долг как безнадёжный? (будет списан)"
   },
   "companies": {
     "title": "Контрагенты",

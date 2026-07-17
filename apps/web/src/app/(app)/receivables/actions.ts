@@ -16,6 +16,10 @@ export async function recordPayment(id: string, amountMinor: string, paidAt?: st
   });
 }
 
+export async function writeOffReceivable(id: string) {
+  return apiServer(`/api/receivables/${id}/write-off`, { method: "POST" });
+}
+
 export async function fetchReceivables(params: {
   page: number;
   status: string;

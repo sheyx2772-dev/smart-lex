@@ -22,7 +22,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { fetchReceivables, getReceivableDetail, recordPayment } from "@/app/(app)/receivables/actions";
+import { fetchReceivables, getReceivableDetail, recordPayment, writeOffReceivable } from "@/app/(app)/receivables/actions";
 import { formatMoneyInput, unformatMoney } from "@/lib/format";
 import { Badge, STATUS_TONE, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -329,8 +329,17 @@ function DetailPanel({
   const [payAmount, setPayAmount] = useState("");
   const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10));
   const [paying, setPaying] = useState(false);
+  const [writingOff, setWritingOff] = useState(false);
 
   const canPay = row.status !== "paid" && row.status !== "written_off";
+
+  async function doWriteOff() {
+    if (writingOff || !window.confirm(t("writeOffConfirm"))) return;
+    setWritingOff(true);
+    const res = await writeOffReceivable(row.id);
+    setWritingOff(false);
+    if (res.success) onPaid();
+  }
 
   async function submitPayment() {
     const minor = unformatMoney(payAmount);
@@ -438,6 +447,15 @@ function DetailPanel({
                 <CheckCircle weight="fill" className="size-4 text-success" />
                 {t("recordPayment")}
               </Button>
+            )}
+            {!payOpen && (
+              <button
+                onClick={doWriteOff}
+                disabled={writingOff}
+                className="mt-2 w-full text-center text-xs font-medium text-muted-foreground transition-colors hover:text-danger disabled:opacity-50"
+              >
+                {writingOff ? "…" : t("writeOff")}
+              </button>
             )}
           </div>
         )}
