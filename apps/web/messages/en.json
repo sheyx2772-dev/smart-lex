@@ -945,5 +945,107 @@
       "C": "Caution — require a guarantee or collateral.",
       "D": "Installment is not recommended."
     }
+  },
+  "landing": {
+    "navFeatures": "Features",
+    "navHow": "How it works",
+    "navPricing": "Pricing",
+    "stat1v": "3000+",
+    "stat1l": "Businesses",
+    "stat2v": "50,000+",
+    "stat2l": "Documents processed",
+    "stat3v": "25%",
+    "stat3l": "Recovery rate",
+    "stat4v": "7 min",
+    "stat4l": "Avg. analysis",
+    "howKicker": "Process",
+    "howTitle": "From document to enforcement in 4 steps",
+    "howDesc": "The AI agent runs the whole chain; you just confirm with E-IMZO.",
+    "s1t": "A document arrives",
+    "s1d": "From Didox or uploaded manually",
+    "s2t": "AI analysis",
+    "s2d": "Risk, debt and scoring computed automatically",
+    "s3t": "A document is drafted",
+    "s3d": "Demand, claim, act — with AI",
+    "s4t": "Court & enforcement",
+    "s4d": "Via E-SUD and hybrid post",
+    "featKicker": "Features",
+    "featTitle": "The whole legal flow in one place",
+    "featDesc": "AI agent, documents, court, enforcement and scoring — all connected.",
+    "revKicker": "Reviews",
+    "revTitle": "What clients say",
+    "revDesc": "Experience of businesses that automated receivables.",
+    "r1text": "We tracked debt by hand — now the agent prepares reminders and demands itself. Big time saver.",
+    "r1name": "CFO",
+    "r1role": "Trading company",
+    "r2text": "Claims and acts are ready in minutes. The Didox integration is very convenient.",
+    "r2name": "Head of Legal",
+    "r2role": "Distributor",
+    "r3text": "Client scoring helps with installments — we see the risk up front.",
+    "r3name": "Owner",
+    "r3role": "Installment sales",
+    "priceKicker": "Pricing",
+    "priceTitle": "A plan for every business",
+    "priceDesc": "From a small shop to a large distributor.",
+    "popular": "Popular",
+    "choose": "Choose",
+    "ctaTitle": "Ready to automate your receivables?",
+    "ctaDesc": "Sign in and launch the AI agent in one click.",
+    "footer": "© 2026 Lex AI. All rights reserved.",
+    "card": {
+      "agent": {
+        "t": "AI agent",
+        "d": "Autonomously monitors debt and recommends the next step."
+      },
+      "studio": {
+        "t": "Document studio",
+        "d": "Create legal documents with templates and AI."
+      },
+      "didox": {
+        "t": "Didox integration",
+        "d": "Receive and send documents — with E-IMZO."
+      },
+      "court": {
+        "t": "E-SUD",
+        "d": "Submit claims to cabinet.sud.uz and track them."
+      },
+      "enforcement": {
+        "t": "Enforcement",
+        "d": "Send the writ to the bureau via hybrid post."
+      },
+      "scoring": {
+        "t": "Client scoring",
+        "d": "Credit score and an installment recommendation."
+      }
+    },
+    "plan": {
+      "starter": {
+        "name": "Starter",
+        "price": "Free",
+        "per": "up to 10 docs/mo",
+        "f0": "AI agent",
+        "f1": "Document studio",
+        "f2": "Receivables control",
+        "f3": "1 user"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": "800,000",
+        "per": "UZS / month",
+        "f0": "All features",
+        "f1": "Didox integration",
+        "f2": "E-SUD & enforcement",
+        "f3": "5 users"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "Custom",
+        "per": "unlimited",
+        "f0": "Unlimited documents",
+        "f1": "Scoring + API",
+        "f2": "Priority support",
+        "f3": "Whole team"
+      }
+    }
   }
 }

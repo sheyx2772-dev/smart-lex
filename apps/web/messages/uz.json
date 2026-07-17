@@ -945,5 +945,107 @@
       "C": "Ehtiyotkorlik — kafolat yoki garov talab qiling.",
       "D": "Nasiya berish tavsiya etilmaydi."
     }
+  },
+  "landing": {
+    "navFeatures": "Imkoniyatlar",
+    "navHow": "Qanday ishlaydi",
+    "navPricing": "Narxlar",
+    "stat1v": "3000+",
+    "stat1l": "Tashkilot",
+    "stat2v": "50 000+",
+    "stat2l": "Qayta ishlangan hujjat",
+    "stat3v": "25%",
+    "stat3l": "Undirish darajasi",
+    "stat4v": "7 daq",
+    "stat4l": "O'rtacha tahlil",
+    "howKicker": "Jarayon",
+    "howTitle": "4 qadamda — hujjatdan ijrogacha",
+    "howDesc": "AI agent butun zanjirni boshqaradi, siz faqat E-IMZO bilan tasdiqlaysiz.",
+    "s1t": "Hujjat keladi",
+    "s1d": "Didox'dan yoki qo'lda yuklanadi",
+    "s2t": "AI tahlil",
+    "s2d": "Risk, qarz va skoring avtomatik hisoblanadi",
+    "s3t": "Hujjat tayyorlanadi",
+    "s3d": "Talabnoma, da'vo, akt — AI bilan",
+    "s4t": "Sud va ijro",
+    "s4d": "E-SUD va gibrid pochta orqali",
+    "featKicker": "Imkoniyatlar",
+    "featTitle": "Bitta markazda butun huquqiy oqim",
+    "featDesc": "AI agent, hujjatlar, sud, ijro va skoring — hammasi ulangan.",
+    "revKicker": "Sharhlar",
+    "revTitle": "Mijozlar nima deydi",
+    "revDesc": "Debitorlikni avtomatlashtirgan tashkilotlar tajribasi.",
+    "r1text": "Qarzdorlikni qo'lda kuzatardik — endi agent o'zi eslatma va talabnoma tayyorlaydi. Vaqtimiz sezilarli tejaldi.",
+    "r1name": "Moliya direktori",
+    "r1role": "Savdo kompaniyasi",
+    "r2text": "Da'vo va aktlar bir necha daqiqada tayyor. Didox bilan integratsiya juda qulay.",
+    "r2name": "Bosh yurist",
+    "r2role": "Distribyutor",
+    "r3text": "Mijoz skoringi nasiya berishda yordam beryapti — riskni oldindan ko'ramiz.",
+    "r3name": "Rahbar",
+    "r3role": "Nasiya savdo",
+    "priceKicker": "Narxlar",
+    "priceTitle": "Har bizness uchun tarif",
+    "priceDesc": "Kichik do‘kondan yirik distribyutorgacha.",
+    "popular": "Ommabop",
+    "choose": "Tanlash",
+    "ctaTitle": "Debitorlikni avtomatlashtirishga tayyormisiz?",
+    "ctaDesc": "Kiring va AI agentni bir bosishda ishga tushiring.",
+    "footer": "© 2026 Lex AI. Barcha huquqlar himoyalangan.",
+    "card": {
+      "agent": {
+        "t": "AI Agent",
+        "d": "Debitorlikni avtonom kuzatadi va keyingi qadamni tavsiya qiladi."
+      },
+      "studio": {
+        "t": "Hujjat tayyorlash",
+        "d": "Shablon va AI bilan huquqiy hujjat yarating."
+      },
+      "didox": {
+        "t": "Didox integratsiya",
+        "d": "Hujjatlarni oling va yuboring — E-IMZO bilan."
+      },
+      "court": {
+        "t": "E-SUD",
+        "d": "Da'volarni cabinet.sud.uz'ga topshiring va kuzating."
+      },
+      "enforcement": {
+        "t": "Ijro",
+        "d": "Ijro varaqasini byuroga gibrid pochta orqali yuboring."
+      },
+      "scoring": {
+        "t": "Mijoz skoringi",
+        "d": "Kredit balli va nasiya bo‘yicha tavsiya."
+      }
+    },
+    "plan": {
+      "starter": {
+        "name": "Boshlang'ich",
+        "price": "Bepul",
+        "per": "10 hujjatgacha/oy",
+        "f0": "AI Agent",
+        "f1": "Hujjat tayyorlash",
+        "f2": "Debitorlik nazorati",
+        "f3": "1 foydalanuvchi"
+      },
+      "standard": {
+        "name": "Standart",
+        "price": "800 000",
+        "per": "so‘m / oyiga",
+        "f0": "Barcha imkoniyatlar",
+        "f1": "Didox integratsiya",
+        "f2": "E-SUD va Ijro",
+        "f3": "5 foydalanuvchi"
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "Kelishuv",
+        "per": "cheksiz",
+        "f0": "Cheksiz hujjat",
+        "f1": "Skoring + API",
+        "f2": "Ustuvor qo‘llab-quvvatlash",
+        "f3": "Cheksiz jamoa"
+      }
+    }
   }
 }
