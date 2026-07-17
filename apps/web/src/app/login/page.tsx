@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  Brain,
   Buildings,
   CheckCircle,
   Eye,
@@ -13,12 +14,15 @@ import {
   Lightning,
   Quotes,
   Robot,
+  SealCheck,
   ShieldCheck,
+  ShieldWarning,
   Sparkle,
   Star,
   TrendUp,
   Truck,
   UploadSimple,
+  X,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -56,16 +60,9 @@ export default function LoginPage() {
   const t = useTranslations("login");
   const l = useTranslations("landing");
   const tApp = useTranslations("app");
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const [loginOpen, setLoginOpen] = useState(false);
 
-  // Scroll-reveal animatsiya.
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll("[data-reveal]");
     if (!els?.length) return;
@@ -79,36 +76,7 @@ export default function LoginPage() {
     return () => io.disconnect();
   }, []);
 
-  function validate(): boolean {
-    const next: { email?: string; password?: string } = {};
-    if (!email.trim()) next.email = t("emailRequired");
-    else if (!EMAIL_RE.test(email)) next.email = t("emailInvalid");
-    if (!password) next.password = t("passwordRequired");
-    else if (password.length < 6) next.password = t("passwordShort");
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  }
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (!validate()) return;
-    setLoading(true);
-    const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
-    const data = await res.json();
-    if (data.success) {
-      router.push("/agent");
-      router.refresh();
-    } else {
-      setError(data.message ?? t("error"));
-      setLoading(false);
-    }
-  }
-  function toLogin() {
-    document.getElementById("kirish")?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  const field =
-    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[15px] text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10";
+  const openLogin = () => setLoginOpen(true);
 
   return (
     <div ref={rootRef} className="relative min-h-screen overflow-hidden bg-white text-slate-900">
@@ -116,11 +84,13 @@ export default function LoginPage() {
         @keyframes lxAurora {0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.15)}66%{transform:translate(-30px,20px) scale(.92)}}
         @keyframes lxFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
         @keyframes lxMarquee {from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        @keyframes lxIn {from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
         [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
         [data-reveal].in{opacity:1;transform:none}
         .lx-aurora{animation:lxAurora 16s ease-in-out infinite}
         .lx-float{animation:lxFloat 6s ease-in-out infinite}
         .lx-marquee{animation:lxMarquee 26s linear infinite}
+        .lx-in{animation:lxIn .3s ease}
       `}</style>
 
       {/* ── Navbar ─────────────────────────────── */}
@@ -138,7 +108,7 @@ export default function LoginPage() {
         </nav>
         <div className="flex items-center gap-2.5">
           <LocaleSwitcher />
-          <button onClick={toLogin} className="rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-transform hover:scale-105">
+          <button onClick={openLogin} className="rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-transform hover:scale-105">
             {t("submit")}
           </button>
         </div>
@@ -146,14 +116,13 @@ export default function LoginPage() {
 
       {/* ── Hero ───────────────────────────────── */}
       <section className="relative overflow-hidden">
-        {/* Animatsion aurora fon */}
         <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/80 via-white to-white" />
         <div className="lx-aurora pointer-events-none absolute -left-40 -top-24 -z-10 size-[460px] rounded-full bg-blue-400/30 blur-3xl" />
         <div className="lx-aurora pointer-events-none absolute -right-36 top-24 -z-10 size-[420px] rounded-full bg-indigo-400/30 blur-3xl" style={{ animationDelay: "-6s" }} />
         <div className="lx-aurora pointer-events-none absolute bottom-0 left-1/3 -z-10 size-[380px] rounded-full bg-sky-400/20 blur-3xl" style={{ animationDelay: "-11s" }} />
         <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#1e293b 1px,transparent 1px),linear-gradient(90deg,#1e293b 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
 
-        <div id="kirish" className="mx-auto grid w-[min(1120px,92%)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_430px] lg:py-24">
+        <div className="mx-auto grid w-[min(1120px,92%)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_460px] lg:py-24">
           <div data-reveal className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-xs font-medium text-blue-700 shadow-sm backdrop-blur">
               <span className="relative flex size-2">
@@ -169,63 +138,44 @@ export default function LoginPage() {
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-slate-500 lg:mx-0">{t("heroDesc")}</p>
             <div className="mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start">
-              <button onClick={toLogin} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-transform hover:scale-[1.03]">
+              <button onClick={openLogin} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-transform hover:scale-[1.03]">
                 {t("submit")} <ArrowRight weight="bold" className="size-4" />
               </button>
               <a href="#qanday" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-300">
                 {l("navHow")}
               </a>
             </div>
+            <div className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
+              {FEATURES.map((f) => {
+                const Ic = f.icon;
+                return (
+                  <span key={f.key} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm">
+                    <Ic weight="fill" className="size-3.5 text-blue-600" /> {t(`feat.${f.key}` as never)}
+                  </span>
+                );
+              })}
+            </div>
           </div>
 
-          {/* O'ng: login karta + suzuvchi mini-preview */}
-          <div className="relative">
-            <div className="lx-float absolute -left-8 -top-6 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block">
+          {/* O'ng: app-preview mokap (login EMAS) */}
+          <div className="relative" data-reveal>
+            <AppPreview l={l} />
+            <div className="lx-float absolute -left-6 top-10 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block">
               <div className="flex items-center gap-2">
                 <span className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><TrendUp weight="fill" className="size-4" /></span>
                 <div><p className="text-xs font-semibold">{l("stat3v")}</p><p className="text-[10px] text-slate-400">{l("stat3l")}</p></div>
               </div>
             </div>
-            <div className="lx-float absolute -bottom-6 -right-6 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block" style={{ animationDelay: "-3s" }}>
+            <div className="lx-float absolute -bottom-5 -right-4 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block" style={{ animationDelay: "-3s" }}>
               <div className="flex items-center gap-2">
-                <span className="grid size-8 place-items-center rounded-lg bg-blue-50 text-blue-600"><Robot weight="fill" className="size-4" /></span>
-                <div><p className="text-xs font-semibold">{l("s2t")}</p><p className="text-[10px] text-slate-400">{l("s2d")}</p></div>
+                <span className="grid size-8 place-items-center rounded-lg bg-blue-50 text-blue-600"><SealCheck weight="fill" className="size-4" /></span>
+                <div><p className="text-xs font-semibold">{l("s4t")}</p><p className="text-[10px] text-slate-400">{l("s4d")}</p></div>
               </div>
-            </div>
-
-            <div className="relative mx-auto w-full max-w-[430px] rounded-3xl border border-white/80 bg-white/95 p-7 shadow-2xl shadow-blue-900/15 backdrop-blur">
-              <div className="pointer-events-none absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-blue-400/40 to-indigo-500/40 blur-md" />
-              <div className="mb-6">
-                <h2 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h2>
-                <p className="mt-1.5 text-sm text-slate-500">{t("subtitle")}</p>
-              </div>
-              <form onSubmit={onSubmit} noValidate className="space-y-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="email" className="text-sm font-medium text-slate-600">{t("email")}</label>
-                  <input id="email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-400")} />
-                  {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <label htmlFor="password" className="text-sm font-medium text-slate-600">{t("password")}</label>
-                  <div className="relative">
-                    <input id="password" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-400")} />
-                    <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-slate-600" title={show ? t("hidePassword") : t("showPassword")}>
-                      {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
-                    </button>
-                  </div>
-                  {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
-                </div>
-                {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>}
-                <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl disabled:opacity-60">
-                  {loading ? t("signingIn") : t("submit")}
-                  {!loading && <ArrowRight weight="bold" className="size-4" />}
-                </button>
-              </form>
             </div>
           </div>
         </div>
 
-        {/* Animatsion marquee — integratsiyalar */}
+        {/* Marquee — integratsiyalar */}
         <div className="relative border-y border-slate-100 bg-slate-50/70 py-4">
           <div className="flex overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
             <div className="lx-marquee flex shrink-0 items-center gap-10 pr-10">
@@ -337,7 +287,7 @@ export default function LoginPage() {
                       </li>
                     ))}
                   </ul>
-                  <button onClick={toLogin} className={cn("mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors", featured ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700")}>{l("choose")}</button>
+                  <button onClick={openLogin} className={cn("mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors", featured ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700")}>{l("choose")}</button>
                 </div>
               );
             })}
@@ -354,7 +304,7 @@ export default function LoginPage() {
             <Lightning weight="fill" className="lx-float mx-auto size-10" />
             <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">{l("ctaTitle")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-blue-100">{l("ctaDesc")}</p>
-            <button onClick={toLogin} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.04]">
+            <button onClick={openLogin} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.04]">
               {t("submit")} <ArrowRight weight="bold" className="size-4" />
             </button>
           </div>
@@ -372,6 +322,145 @@ export default function LoginPage() {
           <div className="flex items-center gap-1.5 text-xs text-slate-400"><Buildings className="size-3.5" /> Multi-tenant · RLS · E-IMZO</div>
         </div>
       </footer>
+
+      {/* ── Login modal (Kirish bosilganda) ─────── */}
+      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+    </div>
+  );
+}
+
+/** Hero'dagi mahsulot ko'rinishi (mokap) — original, testora nusxasi emas. */
+function AppPreview({ l }: { l: ReturnType<typeof useTranslations> }) {
+  const tiles = [
+    { icon: Brain, tone: "text-blue-600 bg-blue-50", v: "3", k: l("stat2l") },
+    { icon: ShieldWarning, tone: "text-amber-600 bg-amber-50", v: "2", k: l("s1t") },
+    { icon: SealCheck, tone: "text-violet-600 bg-violet-50", v: "2", k: l("navFeatures") },
+    { icon: TrendUp, tone: "text-emerald-600 bg-emerald-50", v: "0", k: l("stat3l") },
+  ];
+  return (
+    <div className="relative mx-auto w-full max-w-[460px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-blue-900/15">
+      <div className="pointer-events-none absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-blue-400/40 to-indigo-500/40 blur-md" />
+      {/* Oyna sarlavhasi */}
+      <div className="flex items-center gap-2 px-4 py-3 text-white" style={{ background: "linear-gradient(135deg,#232a44,#1b2136)" }}>
+        <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600"><Robot weight="fill" className="size-4" /></span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold leading-none">AI Agent</p>
+          <p className="mt-0.5 text-[10px] text-white/50">ALFA TRADE MCHJ</p>
+        </div>
+        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+          <span className="size-1.5 rounded-full bg-emerald-400" /> Faol
+        </span>
+      </div>
+      {/* Kontent */}
+      <div className="space-y-3 p-4">
+        <div className="grid grid-cols-2 gap-2.5">
+          {tiles.map((x, i) => {
+            const Ic = x.icon;
+            return (
+              <div key={i} className="rounded-xl border border-slate-100 p-3">
+                <span className={cn("grid size-7 place-items-center rounded-lg", x.tone)}><Ic weight="fill" className="size-4" /></span>
+                <p className="mt-2 font-display text-xl font-bold">{x.v}</p>
+                <p className="truncate text-[10px] text-slate-400">{x.k}</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="rounded-xl border border-slate-100 p-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold">GLOBAL SNAB MCHJ</p>
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-600">Risk 63</span>
+          </div>
+          <div className="mt-2.5 space-y-1.5">
+            {[72, 54, 40].map((w, i) => (
+              <div key={i} className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600" style={{ width: `${w}%` }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Login — faqat "Kirish" bosilganda ochiladigan modal. */
+function LoginModal({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("login");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  function validate(): boolean {
+    const next: { email?: string; password?: string } = {};
+    if (!email.trim()) next.email = t("emailRequired");
+    else if (!EMAIL_RE.test(email)) next.email = t("emailInvalid");
+    if (!password) next.password = t("passwordRequired");
+    else if (password.length < 6) next.password = t("passwordShort");
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!validate()) return;
+    setLoading(true);
+    const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
+    const data = await res.json();
+    if (data.success) {
+      router.push("/agent");
+      router.refresh();
+    } else {
+      setError(data.message ?? t("error"));
+      setLoading(false);
+    }
+  }
+
+  const field =
+    "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[15px] text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10";
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="lx-in w-full max-w-[420px] rounded-3xl border border-white/80 bg-white p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-6 flex items-start justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30">
+              <Sparkle weight="fill" className="size-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold tracking-tight">{t("title")}</h2>
+              <p className="text-xs text-slate-500">{t("subtitle")}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><X className="size-4" /></button>
+        </div>
+
+        <form onSubmit={onSubmit} noValidate className="space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="lm-email" className="text-sm font-medium text-slate-600">{t("email")}</label>
+            <input id="lm-email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-400")} />
+            {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="lm-pw" className="text-sm font-medium text-slate-600">{t("password")}</label>
+            <div className="relative">
+              <input id="lm-pw" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-400")} />
+              <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-slate-600" title={show ? t("hidePassword") : t("showPassword")}>
+                {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
+              </button>
+            </div>
+            {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+          </div>
+          {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>}
+          <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl disabled:opacity-60">
+            {loading ? t("signingIn") : t("submit")}
+            {!loading && <ArrowRight weight="bold" className="size-4" />}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
