@@ -52,7 +52,7 @@
     "badge": "Autonomous agent · monitoring",
     "heroLine1": "Receivables and debts",
     "heroLine2": "under automatic control.",
-    "heroDesc": "Autonomous legal & credit AI agent. Documents, reminders, demand letters and court — all in one center.",
+    "heroDesc": "The AI agent analyzes documents, monitors debt, and prepares demand letters and claims — with Didox, E-SUD and E-IMZO in one place.",
     "trust": "Multi-tenant · RLS · Audit · Uzbek legislation",
     "feat": {
       "agent": "AI agent",
@@ -60,7 +60,11 @@
       "court": "E-SUD",
       "scoring": "Scoring",
       "eimzo": "E-IMZO"
-    }
+    },
+    "trustBadge": "Trusted by 3000+ businesses",
+    "heroTitle1": "From receivables",
+    "heroTitle2": "to recovery — automatically",
+    "liveActivity": "12 documents processed today"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -52,7 +52,7 @@
     "badge": "Avtonom agent · kuzatuvda",
     "heroLine1": "Debitorlik va qarzdorlik",
     "heroLine2": "avtomatik nazoratda.",
-    "heroDesc": "Avtonom huquqiy va kredit AI agenti. Hujjatlar, eslatmalar, talabnoma va sud — barchasi bitta markazda.",
+    "heroDesc": "AI agent hujjatlarni tahlil qiladi, qarzdorlikni nazorat qiladi, talabnoma va da'vo tayyorlaydi — Didox, E-SUD va E-IMZO bilan bir markazда.",
     "trust": "Multi-tenant · RLS · Audit · O'zbekiston qonunchiligi",
     "feat": {
       "agent": "AI Agent",
@@ -60,7 +60,11 @@
       "court": "E-SUD",
       "scoring": "Skoring",
       "eimzo": "E-IMZO"
-    }
+    },
+    "trustBadge": "3000+ tashkilot ishonadi",
+    "heroTitle1": "Debitorlikdan",
+    "heroTitle2": "undiruvga — avtomatik",
+    "liveActivity": "Bugun 12 hujjat qayta ishlandi"
   },
   "dashboard": {
     "title": "Boshqaruv paneli",
