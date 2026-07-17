@@ -243,6 +243,14 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
         <EimzoImportFlow
           url="https://cabinet.sud.uz/sign-in"
           siteName="sud"
+          extensionPayload={{
+            debtor: item.contractorName ?? "",
+            tin: item.contractorTin ?? "",
+            amount: fmtMinor(item.total, item.currency),
+            amountNumber: (BigInt(item.total || "0") / 100n).toString(),
+            court: item.court,
+            body: item.body,
+          }}
           onImport={async () => {
             await setCourtStatus(item.id, "submitted");
             setStatus("submitted");

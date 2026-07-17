@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "SmartLex.AI — Avtomatik to'ldirish",
+  "version": "0.1.0",
+  "description": "SmartLex.AI da'vo/ariza ma'lumotlarini davlat saytlari (E-SUD, Gibrid pochta, xarid) formalariga avtomatik to'ldiradi. E-IMZO'ni foydalanuvchi o'zi tasdiqlaydi.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://cabinet.sud.uz/*",
+    "https://hybrid.pochta.uz/*",
+    "https://xarid.uzex.uz/*"
+  ],
+  "background": { "service_worker": "src/background.js" },
+  "action": { "default_popup": "src/popup.html", "default_title": "SmartLex.AI" },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "https://smartlex.ai/*", "https://*.smartlex.ai/*"],
+      "js": ["src/relay.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://cabinet.sud.uz/*",
+        "https://hybrid.pochta.uz/*",
+        "https://xarid.uzex.uz/*"
+      ],
+      "js": ["src/fill.js"],
+      "css": ["src/panel.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

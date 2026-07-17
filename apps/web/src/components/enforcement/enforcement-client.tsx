@@ -161,6 +161,12 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
       <EimzoImportFlow
         url={HYBRID_POST_URL}
         siteName="pochta"
+        extensionPayload={{
+          debtor: item.contractorName ?? "",
+          tin: item.contractorTin ?? "",
+          amount: fmtMinor(item.total, item.currency),
+          amountNumber: (BigInt(item.total || "0") / 100n).toString(),
+        }}
         onImport={async () => {
           const yr = (item.createdAt || "2026").slice(0, 4);
           const no = (item.id.replace(/\D/g, "") || "0").slice(-6).padStart(6, "0");

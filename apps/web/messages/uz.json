@@ -1087,6 +1087,9 @@
     "bureauName": "Majburiy ijro byurosi",
     "procNo": "Ijro raqami",
     "started": "Ijro boshlandi",
-    "amount": "Summa"
+    "amount": "Summa",
+    "sendToExt": "Kengaytmaga yuborish",
+    "extSent": "Kengaytmaga yuborildi",
+    "extHint": "Chrome kengaytmasi o‘rnatilgan bo‘lsa, davlat sayti formasi avtomatik to‘ldiriladi."
   }
 }

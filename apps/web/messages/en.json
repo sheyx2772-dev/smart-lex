@@ -1087,6 +1087,9 @@
     "bureauName": "Compulsory Enforcement Bureau",
     "procNo": "Proceeding no.",
     "started": "Enforcement started",
-    "amount": "Amount"
+    "amount": "Amount",
+    "sendToExt": "Send to extension",
+    "extSent": "Sent to the extension",
+    "extHint": "If the Chrome extension is installed, the government site form is auto-filled."
   }
 }

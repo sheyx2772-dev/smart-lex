@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowSquareOut, CheckCircle, CircleNotch, DownloadSimple, ShieldCheck } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, CircleNotch, DownloadSimple, PuzzlePiece, ShieldCheck } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { openSiteWindow } from "@/lib/open-window";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,12 @@ export interface ImportField {
   label: string;
   value: string;
   tone?: "default" | "success" | "warning";
+}
+
+/** Da'vo ma'lumotini brauzer kengaytmasiga uzatadi (o'rnatilgan bo'lsa). */
+function postToExtension(payload: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  window.postMessage({ __smartlex: true, type: "claim", payload }, "*");
 }
 
 /**
@@ -25,19 +31,42 @@ export function EimzoImportFlow({
   siteName,
   disabled,
   onImport,
+  extensionPayload,
 }: {
   url: string;
   siteName: string;
   disabled?: boolean;
   onImport: () => Promise<ImportField[]>;
+  extensionPayload?: Record<string, unknown>;
 }) {
   const t = useTranslations("integration");
   const [opened, setOpened] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fields, setFields] = useState<ImportField[] | null>(null);
+  const [extReady, setExtReady] = useState(false);
+  const [extSent, setExtSent] = useState(false);
+
+  // Brauzer kengaytmasi o'rnatilganini aniqlaymiz.
+  useEffect(() => {
+    if (!extensionPayload) return;
+    function onMsg(e: MessageEvent) {
+      if (e.source === window && (e.data as { __smartlex_ext?: boolean })?.__smartlex_ext) setExtReady(true);
+    }
+    window.addEventListener("message", onMsg);
+    window.postMessage({ __smartlex_ping: true }, "*");
+    return () => window.removeEventListener("message", onMsg);
+  }, [extensionPayload]);
+
+  function sendToExt() {
+    if (!extensionPayload) return;
+    postToExtension(extensionPayload);
+    setExtSent(true);
+    setTimeout(() => setExtSent(false), 2500);
+  }
 
   function open() {
+    if (extensionPayload) postToExtension(extensionPayload);
     openSiteWindow(url, siteName);
     setOpened(true);
   }
@@ -63,9 +92,23 @@ export function EimzoImportFlow({
 
       <ol className="space-y-3">
         <Step n={1} active={!opened} done={opened} title={t("step1")} desc={t("step1desc")}>
-          <button onClick={open} disabled={disabled} className={primary}>
-            <ArrowSquareOut weight="fill" className="size-3.5" /> {opened ? t("reopen") : t("openSite")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={open} disabled={disabled} className={primary}>
+              <ArrowSquareOut weight="fill" className="size-3.5" /> {opened ? t("reopen") : t("openSite")}
+            </button>
+            {extensionPayload && (
+              <button onClick={sendToExt} className={outline}>
+                {extSent ? <CheckCircle weight="fill" className="size-3.5 text-success" /> : <PuzzlePiece weight="fill" className="size-3.5" />}
+                {extSent ? t("extSent") : t("sendToExt")}
+              </button>
+            )}
+          </div>
+          {extensionPayload && (
+            <p className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+              {extReady && <span className="size-1.5 rounded-full bg-success" />}
+              {t("extHint")}
+            </p>
+          )}
         </Step>
 
         <Step n={2} active={opened && !confirmed} done={confirmed} title={t("step2")} desc={t("step2desc")}>
