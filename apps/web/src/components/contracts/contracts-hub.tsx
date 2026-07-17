@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, Copy, DeviceMobile, FilePlus, Handshake, House, MagnifyingGlass, PaperPlaneTilt, PencilSimpleLine, ShieldCheck, Truck, UsersThree, Wrench, type Icon } from "@phosphor-icons/react";
+import { CheckCircle, Copy, DeviceMobile, FilePlus, Gavel, Handshake, House, MagnifyingGlass, PaperPlaneTilt, PencilSimpleLine, ShieldCheck, Truck, UsersThree, Wrench, X, type Icon } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -36,6 +36,7 @@ const METHODS: { key: "sms" | "eimzo" | "telegram"; icon: Icon }[] = [
 
 export function ContractsHub({ contracts = [] }: { contracts?: HubContract[] }) {
   const t = useTranslations("contractsHub");
+  const tc = useTranslations("court");
   const [party, setParty] = useState("");
   const [phone, setPhone] = useState("");
   const [method, setMethod] = useState<"sms" | "eimzo" | "telegram">("sms");
@@ -43,6 +44,7 @@ export function ContractsHub({ contracts = [] }: { contracts?: HubContract[] }) 
   const [copied, setCopied] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "overdue">("all");
+  const [selected, setSelected] = useState<HubContract | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -131,7 +133,7 @@ export function ContractsHub({ contracts = [] }: { contracts?: HubContract[] }) 
                 </thead>
                 <tbody>
                   {filtered.map((c) => (
-                    <tr key={c.id} className="border-t border-border transition-colors hover:bg-muted/25">
+                    <tr key={c.id} onClick={() => setSelected(c)} className="cursor-pointer border-t border-border transition-colors hover:bg-muted/25">
                       <td className="whitespace-nowrap px-4 py-2.5 font-medium">{c.number}</td>
                       <td className="max-w-[180px] truncate px-4 py-2.5">{c.contractor}</td>
                       <td className="hidden px-4 py-2.5 tabular-nums text-muted-foreground sm:table-cell">{c.tin}</td>
@@ -151,6 +153,7 @@ export function ContractsHub({ contracts = [] }: { contracts?: HubContract[] }) 
                         <Link
                           href={`/studio?debtor=${c.id}`}
                           title={t("prepareDoc")}
+                          onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium transition-colors hover:border-primary/40 hover:text-primary"
                         >
                           <PencilSimpleLine className="size-3.5" /> <span className="hidden md:inline">{t("prepareDoc")}</span>
@@ -270,6 +273,74 @@ export function ContractsHub({ contracts = [] }: { contracts?: HubContract[] }) 
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("scheduleSection")}</h2>
         <PaymentSchedule />
       </section>
+
+      {/* Shartnoma detali — qidiruv → ko'rish → amal bosqichi */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-sm" onClick={() => setSelected(null)}>
+          <div className="scroll-clean h-full w-full max-w-md overflow-y-auto border-l border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 border-b border-border p-5">
+              <div className="min-w-0">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("colNumber")}</p>
+                <h3 className="font-display text-lg font-semibold">{selected.number}</h3>
+              </div>
+              <button onClick={() => setSelected(null)} className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="space-y-5 p-5">
+              <dl className="grid grid-cols-2 gap-4">
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">{t("colParty")}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold">{selected.contractor}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">{t("colTin")}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold tabular-nums">{selected.tin}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">{t("colAmount")}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold tabular-nums">{selected.amount}</dd>
+                </div>
+                <div>
+                  <dt className="text-[11px] text-muted-foreground">{t("colStatus")}</dt>
+                  <dd className={cn("mt-0.5 text-sm font-semibold", selected.status === "overdue" ? "text-danger" : "text-success")}>
+                    {selected.status === "overdue" ? t("stOverdue") : t("stActive")}
+                  </dd>
+                </div>
+              </dl>
+
+              <div className="space-y-2 border-t border-border pt-4">
+                <Link
+                  href={`/studio?debtor=${selected.id}`}
+                  onClick={() => setSelected(null)}
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3.5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  <PencilSimpleLine weight="fill" className="size-4" /> {t("prepareDoc")}
+                </Link>
+                {selected.status === "overdue" && (
+                  <Link
+                    href={`/studio?template=lawsuit&debtor=${selected.id}&title=${encodeURIComponent(tc("prepareClaim"))}`}
+                    onClick={() => setSelected(null)}
+                    className="flex items-center justify-center gap-1.5 rounded-lg bg-danger px-3.5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  >
+                    <Gavel weight="fill" className="size-4" /> {tc("prepareClaim")}
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setParty(selected.contractor);
+                    setSelected(null);
+                  }}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <Handshake weight="fill" className="size-4" /> {t("remoteSign")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
