@@ -1094,5 +1094,28 @@
     "sendToExt": "Kengaytmaga yuborish",
     "extSent": "Kengaytmaga yuborildi",
     "extHint": "Chrome kengaytmasi o‘rnatilgan bo‘lsa, davlat sayti formasi avtomatik to‘ldiriladi."
+  },
+  "bulkImport": {
+    "title": "Ko'plab ishlarni yuklash",
+    "subtitle": "CSV/Excel qatorlarini joylashtiring yoki .csv fayl yuklang — har qatordan bitta qarzdorlik ishi yaratiladi.",
+    "formatHint": "Ustunlar: Nomi, STIR, Telefon, Shartnoma№, Faktura№, Summa(so'm), Berilgan sana, To'lov muddati",
+    "paste": "Qatorlarni joylashtiring (yoki fayl yuklang)",
+    "upload": "CSV fayl",
+    "preview": "Ko'rib chiqish",
+    "createAll": "Hammasini yaratish",
+    "creating": "Yaratilmoqda…",
+    "resultOk": "{ok} ta ish yaratildi",
+    "resultFail": "{fail} ta xato",
+    "empty": "Qator topilmadi — yuqoriga joylashtiring",
+    "colRow": "№",
+    "colName": "Nomi",
+    "colTin": "STIR",
+    "colAmount": "Summa",
+    "colState": "Holat",
+    "stOk": "Tayyor",
+    "stErr": "To'liq emas",
+    "single": "Bittalab",
+    "bulk": "Ko'plab (CSV)",
+    "back": "Orqaga"
   }
 }

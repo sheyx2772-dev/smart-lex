@@ -15,6 +15,7 @@ const plusDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOStrin
 
 export function NewContractForm() {
   const t = useTranslations("newContract");
+  const tb = useTranslations("bulkImport");
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -76,6 +77,12 @@ export function NewContractForm() {
         </Link>
         <h1 className="font-display text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+        <div className="mt-3 inline-flex rounded-lg border border-border bg-card p-0.5 text-sm">
+          <span className="rounded-md bg-primary px-3 py-1.5 font-medium text-primary-foreground">{tb("single")}</span>
+          <Link href="/contracts/import" className="rounded-md px-3 py-1.5 font-medium text-muted-foreground transition-colors hover:text-foreground">
+            {tb("bulk")}
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={submit} className="space-y-4">

@@ -1094,5 +1094,28 @@
     "sendToExt": "Send to extension",
     "extSent": "Sent to the extension",
     "extHint": "If the Chrome extension is installed, the government site form is auto-filled."
+  },
+  "bulkImport": {
+    "title": "Bulk import cases",
+    "subtitle": "Paste CSV/Excel rows or upload a .csv — each row creates a debt case.",
+    "formatHint": "Columns: Name, TIN, Phone, Contract№, Invoice№, Amount(UZS), Issued date, Due date",
+    "paste": "Paste rows (or upload a file)",
+    "upload": "CSV file",
+    "preview": "Preview",
+    "createAll": "Create all",
+    "creating": "Creating…",
+    "resultOk": "{ok} cases created",
+    "resultFail": "{fail} errors",
+    "empty": "No rows — paste above",
+    "colRow": "#",
+    "colName": "Name",
+    "colTin": "TIN",
+    "colAmount": "Amount",
+    "colState": "State",
+    "stOk": "Ready",
+    "stErr": "Incomplete",
+    "single": "One by one",
+    "bulk": "Bulk (CSV)",
+    "back": "Back"
   }
 }
