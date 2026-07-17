@@ -8,6 +8,7 @@ import {
   FileText,
   Gavel,
   PencilSimpleLine,
+  Plus,
   Robot,
   SealCheck,
   ShieldWarning,
@@ -160,16 +161,23 @@ export default async function DashboardPage() {
               )}
             </div>
           </div>
-          {w.pendingApprovals > 0 && (
+          <div className="flex shrink-0 items-center gap-2">
+            {w.pendingApprovals > 0 && (
+              <Link
+                href="/approvals"
+                className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 font-medium transition-colors hover:border-primary/40"
+              >
+                <SealCheck weight="fill" className="size-5 text-primary" />
+                <span className="tabular">{w.pendingApprovals}</span> {t("wApprovals")}
+              </Link>
+            )}
             <Link
-              href="/approvals"
-              className="flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 font-medium text-primary-foreground shadow-sm shadow-primary/30 transition-transform hover:scale-[1.02]"
+              href="/contracts/new"
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 font-medium text-primary-foreground shadow-sm shadow-primary/30 transition-transform hover:scale-[1.02]"
             >
-              <SealCheck weight="fill" className="size-5" />
-              <span className="tabular">{w.pendingApprovals}</span> {t("wApprovals")}
-              <ArrowRight className="size-4" />
+              <Plus weight="bold" className="size-5" /> {t("newCase")}
             </Link>
-          )}
+          </div>
         </div>
       </div>
 
