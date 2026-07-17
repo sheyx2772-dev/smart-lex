@@ -16,12 +16,13 @@ import {
   ShieldCheck,
   Sparkle,
   Star,
+  TrendUp,
   Truck,
   UploadSimple,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +63,21 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Scroll-reveal animatsiya.
+  useEffect(() => {
+    const els = rootRef.current?.querySelectorAll("[data-reveal]");
+    if (!els?.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) e.target.classList.add("in");
+      },
+      { threshold: 0.12 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
 
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
@@ -95,23 +111,34 @@ export default function LoginPage() {
     "w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[15px] text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10";
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white text-slate-900">
+    <div ref={rootRef} className="relative min-h-screen overflow-hidden bg-white text-slate-900">
+      <style>{`
+        @keyframes lxAurora {0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.15)}66%{transform:translate(-30px,20px) scale(.92)}}
+        @keyframes lxFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+        @keyframes lxMarquee {from{transform:translateX(0)}to{transform:translateX(-50%)}}
+        [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+        [data-reveal].in{opacity:1;transform:none}
+        .lx-aurora{animation:lxAurora 16s ease-in-out infinite}
+        .lx-float{animation:lxFloat 6s ease-in-out infinite}
+        .lx-marquee{animation:lxMarquee 26s linear infinite}
+      `}</style>
+
       {/* ── Navbar ─────────────────────────────── */}
-      <header className="sticky top-4 z-30 mx-auto flex w-[min(1120px,92%)] items-center justify-between rounded-2xl border border-white/70 bg-white/85 px-4 py-2.5 shadow-lg shadow-blue-900/5 backdrop-blur">
+      <header className="sticky top-4 z-30 mx-auto flex w-[min(1120px,92%)] items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-2.5 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
         <div className="flex items-center gap-2.5">
-          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/30">
+          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30">
             <Sparkle weight="fill" className="size-5 text-white" />
           </div>
           <span className="font-display text-[17px] font-bold tracking-tight">{tApp("name")}</span>
         </div>
         <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
-          <a href="#imkoniyatlar" className="transition-colors hover:text-slate-900">{l("navFeatures")}</a>
-          <a href="#qanday" className="transition-colors hover:text-slate-900">{l("navHow")}</a>
-          <a href="#narxlar" className="transition-colors hover:text-slate-900">{l("navPricing")}</a>
+          <a href="#imkoniyatlar" className="transition-colors hover:text-blue-600">{l("navFeatures")}</a>
+          <a href="#qanday" className="transition-colors hover:text-blue-600">{l("navHow")}</a>
+          <a href="#narxlar" className="transition-colors hover:text-blue-600">{l("navPricing")}</a>
         </nav>
         <div className="flex items-center gap-2.5">
           <LocaleSwitcher />
-          <button onClick={toLogin} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-colors hover:bg-blue-700">
+          <button onClick={toLogin} className="rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-transform hover:scale-105">
             {t("submit")}
           </button>
         </div>
@@ -119,71 +146,107 @@ export default function LoginPage() {
 
       {/* ── Hero ───────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-blue-50 via-white to-white" />
-        <div className="pointer-events-none absolute -left-40 -top-20 -z-10 size-[440px] rounded-full bg-blue-300/40 blur-3xl" />
-        <div className="pointer-events-none absolute -right-32 top-32 -z-10 size-[380px] rounded-full bg-indigo-300/40 blur-3xl" />
-        <div id="kirish" className="mx-auto grid w-[min(1120px,92%)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_420px] lg:py-24">
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-xs font-medium text-blue-700 shadow-sm">
+        {/* Animatsion aurora fon */}
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/80 via-white to-white" />
+        <div className="lx-aurora pointer-events-none absolute -left-40 -top-24 -z-10 size-[460px] rounded-full bg-blue-400/30 blur-3xl" />
+        <div className="lx-aurora pointer-events-none absolute -right-36 top-24 -z-10 size-[420px] rounded-full bg-indigo-400/30 blur-3xl" style={{ animationDelay: "-6s" }} />
+        <div className="lx-aurora pointer-events-none absolute bottom-0 left-1/3 -z-10 size-[380px] rounded-full bg-sky-400/20 blur-3xl" style={{ animationDelay: "-11s" }} />
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#1e293b 1px,transparent 1px),linear-gradient(90deg,#1e293b 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
+
+        <div id="kirish" className="mx-auto grid w-[min(1120px,92%)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_430px] lg:py-24">
+          <div data-reveal className="text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-xs font-medium text-blue-700 shadow-sm backdrop-blur">
               <span className="relative flex size-2">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-blue-500 opacity-70" />
                 <span className="relative inline-flex size-2 rounded-full bg-blue-500" />
               </span>
               {t("trustBadge")}
             </div>
-            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.04] tracking-tight sm:text-5xl lg:text-6xl">
               {t("heroTitle1")}
               <br />
-              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">{t("heroTitle2")}</span>
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">{t("heroTitle2")}</span>
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-slate-500 lg:mx-0">{t("heroDesc")}</p>
             <div className="mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start">
-              {FEATURES.map((f) => {
+              <button onClick={toLogin} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-transform hover:scale-[1.03]">
+                {t("submit")} <ArrowRight weight="bold" className="size-4" />
+              </button>
+              <a href="#qanday" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-300">
+                {l("navHow")}
+              </a>
+            </div>
+          </div>
+
+          {/* O'ng: login karta + suzuvchi mini-preview */}
+          <div className="relative">
+            <div className="lx-float absolute -left-8 -top-6 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block">
+              <div className="flex items-center gap-2">
+                <span className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600"><TrendUp weight="fill" className="size-4" /></span>
+                <div><p className="text-xs font-semibold">{l("stat3v")}</p><p className="text-[10px] text-slate-400">{l("stat3l")}</p></div>
+              </div>
+            </div>
+            <div className="lx-float absolute -bottom-6 -right-6 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block" style={{ animationDelay: "-3s" }}>
+              <div className="flex items-center gap-2">
+                <span className="grid size-8 place-items-center rounded-lg bg-blue-50 text-blue-600"><Robot weight="fill" className="size-4" /></span>
+                <div><p className="text-xs font-semibold">{l("s2t")}</p><p className="text-[10px] text-slate-400">{l("s2d")}</p></div>
+              </div>
+            </div>
+
+            <div className="relative mx-auto w-full max-w-[430px] rounded-3xl border border-white/80 bg-white/95 p-7 shadow-2xl shadow-blue-900/15 backdrop-blur">
+              <div className="pointer-events-none absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-blue-400/40 to-indigo-500/40 blur-md" />
+              <div className="mb-6">
+                <h2 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h2>
+                <p className="mt-1.5 text-sm text-slate-500">{t("subtitle")}</p>
+              </div>
+              <form onSubmit={onSubmit} noValidate className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="email" className="text-sm font-medium text-slate-600">{t("email")}</label>
+                  <input id="email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-400")} />
+                  {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="password" className="text-sm font-medium text-slate-600">{t("password")}</label>
+                  <div className="relative">
+                    <input id="password" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-400")} />
+                    <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-slate-600" title={show ? t("hidePassword") : t("showPassword")}>
+                      {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+                </div>
+                {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>}
+                <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl disabled:opacity-60">
+                  {loading ? t("signingIn") : t("submit")}
+                  {!loading && <ArrowRight weight="bold" className="size-4" />}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Animatsion marquee — integratsiyalar */}
+        <div className="relative border-y border-slate-100 bg-slate-50/70 py-4">
+          <div className="flex overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
+            <div className="lx-marquee flex shrink-0 items-center gap-10 pr-10">
+              {[...FEATURES, ...FEATURES, ...FEATURES, ...FEATURES].map((f, i) => {
                 const Ic = f.icon;
                 return (
-                  <span key={f.key} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm">
-                    <Ic weight="fill" className="size-3.5 text-blue-600" /> {t(`feat.${f.key}` as never)}
+                  <span key={i} className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-slate-400">
+                    <Ic weight="fill" className="size-4 text-blue-500" /> {t(`feat.${f.key}` as never)}
                   </span>
                 );
               })}
             </div>
           </div>
-
-          {/* Login karta */}
-          <div className="mx-auto w-full max-w-[420px] rounded-3xl border border-white/80 bg-white/95 p-7 shadow-2xl shadow-blue-900/10 backdrop-blur">
-            <div className="mb-6">
-              <h2 className="font-display text-2xl font-bold tracking-tight">{t("title")}</h2>
-              <p className="mt-1.5 text-sm text-slate-500">{t("subtitle")}</p>
-            </div>
-            <form onSubmit={onSubmit} noValidate className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="text-sm font-medium text-slate-600">{t("email")}</label>
-                <input id="email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-400")} />
-                {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="password" className="text-sm font-medium text-slate-600">{t("password")}</label>
-                <div className="relative">
-                  <input id="password" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-400")} />
-                  <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-slate-400 hover:text-slate-600" title={show ? t("hidePassword") : t("showPassword")}>
-                    {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
-                  </button>
-                </div>
-                {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
-              </div>
-              {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-600">{error}</div>}
-              <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/25 transition-all hover:bg-blue-700 disabled:opacity-60">
-                {loading ? t("signingIn") : t("submit")}
-                {!loading && <ArrowRight weight="bold" className="size-4" />}
-              </button>
-            </form>
-          </div>
         </div>
+      </section>
 
-        {/* Stat strip */}
-        <div className="mx-auto grid w-[min(1120px,92%)] grid-cols-2 gap-4 pb-16 sm:grid-cols-4">
+      {/* ── Stat strip ─────────────────────────── */}
+      <section className="py-16">
+        <div data-reveal className="mx-auto grid w-[min(1120px,92%)] grid-cols-2 gap-4 sm:grid-cols-4">
           {(["stat1", "stat2", "stat3", "stat4"] as const).map((k) => (
-            <div key={k} className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm">
+            <div key={k} className="rounded-2xl border border-slate-100 bg-gradient-to-b from-white to-blue-50/40 p-6 text-center shadow-sm">
               <p className="font-display text-3xl font-extrabold text-blue-600">{l(`${k}v` as never)}</p>
               <p className="mt-1 text-xs text-slate-500">{l(`${k}l` as never)}</p>
             </div>
@@ -194,16 +257,16 @@ export default function LoginPage() {
       {/* ── Qanday ishlaydi ─────────────────────── */}
       <section id="qanday" className="bg-slate-50 py-20">
         <div className="mx-auto w-[min(1120px,92%)]">
-          <Head kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} />
+          <div data-reveal><Head kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} /></div>
           <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => {
               const Ic = s.icon;
               return (
-                <div key={s.key} className="relative rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                  <span className="absolute right-5 top-5 font-display text-3xl font-extrabold text-blue-100">{i + 1}</span>
-                  <span className="grid size-11 place-items-center rounded-xl bg-blue-50 text-blue-600"><Ic weight="fill" className="size-6" /></span>
-                  <h3 className="mt-4 font-display text-lg font-semibold">{l(`${s.key}t` as never)}</h3>
-                  <p className="mt-1.5 text-sm text-slate-500">{l(`${s.key}d` as never)}</p>
+                <div key={s.key} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                  <span className="absolute right-4 top-3 font-display text-5xl font-extrabold text-blue-50">{i + 1}</span>
+                  <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30"><Ic weight="fill" className="size-6" /></span>
+                  <h3 className="relative mt-4 font-display text-lg font-semibold">{l(`${s.key}t` as never)}</h3>
+                  <p className="relative mt-1.5 text-sm text-slate-500">{l(`${s.key}d` as never)}</p>
                 </div>
               );
             })}
@@ -214,13 +277,14 @@ export default function LoginPage() {
       {/* ── Imkoniyatlar ───────────────────────── */}
       <section id="imkoniyatlar" className="py-20">
         <div className="mx-auto w-[min(1120px,92%)]">
-          <Head kicker={l("featKicker")} title={l("featTitle")} desc={l("featDesc")} />
+          <div data-reveal><Head kicker={l("featKicker")} title={l("featTitle")} desc={l("featDesc")} /></div>
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {CARDS.map((c) => {
+            {CARDS.map((c, i) => {
               const Ic = c.icon;
               return (
-                <div key={c.key} className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5">
-                  <span className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md shadow-blue-500/30"><Ic weight="fill" className="size-6" /></span>
+                <div key={c.key} data-reveal style={{ transitionDelay: `${(i % 3) * 90}ms` }} className="group relative rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:-translate-y-1.5 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/10">
+                  <span className="absolute inset-x-6 top-0 h-1 rounded-b-full bg-gradient-to-r from-blue-500 to-indigo-600 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <span className="grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30 transition-transform group-hover:scale-110"><Ic weight="fill" className="size-6" /></span>
                   <h3 className="mt-4 font-display text-lg font-semibold">{l(`card.${c.key}.t` as never)}</h3>
                   <p className="mt-1.5 text-sm text-slate-500">{l(`card.${c.key}.d` as never)}</p>
                 </div>
@@ -231,23 +295,21 @@ export default function LoginPage() {
       </section>
 
       {/* ── Sharhlar ───────────────────────────── */}
-      <section className="bg-slate-50 py-20">
+      <section className="bg-gradient-to-b from-white to-blue-50/50 py-20">
         <div className="mx-auto w-[min(1120px,92%)]">
-          <Head kicker={l("revKicker")} title={l("revTitle")} desc={l("revDesc")} />
+          <div data-reveal><Head kicker={l("revKicker")} title={l("revTitle")} desc={l("revDesc")} /></div>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {REVIEWS.map((r) => (
-              <div key={r} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                <Quotes weight="fill" className="size-7 text-blue-200" />
+            {REVIEWS.map((r, i) => (
+              <div key={r} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                <Quotes weight="fill" className="size-8 text-blue-200" />
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">{l(`${r}text` as never)}</p>
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full bg-blue-100 font-display font-bold text-blue-700">{l(`${r}name` as never).slice(0, 1)}</span>
+                  <span className="grid size-10 place-items-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 font-display font-bold text-white">{l(`${r}name` as never).slice(0, 1)}</span>
                   <div>
                     <p className="text-sm font-semibold">{l(`${r}name` as never)}</p>
                     <p className="text-xs text-slate-500">{l(`${r}role` as never)}</p>
                   </div>
-                  <div className="ml-auto flex gap-0.5 text-amber-400">
-                    {[0, 1, 2, 3, 4].map((i) => <Star key={i} weight="fill" className="size-3.5" />)}
-                  </div>
+                  <div className="ml-auto flex gap-0.5 text-amber-400">{[0, 1, 2, 3, 4].map((s) => <Star key={s} weight="fill" className="size-3.5" />)}</div>
                 </div>
               </div>
             ))}
@@ -258,26 +320,24 @@ export default function LoginPage() {
       {/* ── Narxlar ────────────────────────────── */}
       <section id="narxlar" className="py-20">
         <div className="mx-auto w-[min(1120px,92%)]">
-          <Head kicker={l("priceKicker")} title={l("priceTitle")} desc={l("priceDesc")} />
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {PLANS.map((p) => {
+          <div data-reveal><Head kicker={l("priceKicker")} title={l("priceTitle")} desc={l("priceDesc")} /></div>
+          <div className="mt-12 grid items-start gap-5 md:grid-cols-3">
+            {PLANS.map((p, i) => {
               const featured = p === "standard";
               return (
-                <div key={p} className={cn("relative rounded-2xl border p-7 shadow-sm", featured ? "border-blue-500 bg-blue-600 text-white shadow-xl shadow-blue-600/20" : "border-slate-100 bg-white")}>
+                <div key={p} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className={cn("relative rounded-2xl border p-7 shadow-sm", featured ? "border-transparent bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl shadow-blue-600/25 md:-translate-y-3" : "border-slate-100 bg-white")}>
                   {featured && <span className="absolute right-5 top-5 rounded-full bg-white/20 px-2.5 py-1 text-xs font-medium">{l("popular")}</span>}
                   <p className={cn("text-sm font-semibold", featured ? "text-blue-100" : "text-blue-600")}>{l(`plan.${p}.name` as never)}</p>
                   <p className="mt-3 font-display text-3xl font-extrabold">{l(`plan.${p}.price` as never)}</p>
                   <p className={cn("mt-1 text-xs", featured ? "text-blue-100" : "text-slate-500")}>{l(`plan.${p}.per` as never)}</p>
                   <ul className="mt-5 space-y-2.5 text-sm">
-                    {[0, 1, 2, 3].map((i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <CheckCircle weight="fill" className={cn("mt-0.5 size-4 shrink-0", featured ? "text-white" : "text-blue-600")} /> {l(`plan.${p}.f${i}` as never)}
+                    {[0, 1, 2, 3].map((k) => (
+                      <li key={k} className="flex items-start gap-2">
+                        <CheckCircle weight="fill" className={cn("mt-0.5 size-4 shrink-0", featured ? "text-white" : "text-blue-600")} /> {l(`plan.${p}.f${k}` as never)}
                       </li>
                     ))}
                   </ul>
-                  <button onClick={toLogin} className={cn("mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors", featured ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700")}>
-                    {l("choose")}
-                  </button>
+                  <button onClick={toLogin} className={cn("mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors", featured ? "bg-white text-blue-700 hover:bg-blue-50" : "bg-blue-600 text-white hover:bg-blue-700")}>{l("choose")}</button>
                 </div>
               );
             })}
@@ -287,13 +347,14 @@ export default function LoginPage() {
 
       {/* ── Yakuniy CTA ────────────────────────── */}
       <section className="py-20">
-        <div className="mx-auto w-[min(1120px,92%)]">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 px-8 py-14 text-center text-white shadow-xl shadow-blue-600/20">
-            <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-white/10 blur-2xl" />
-            <Lightning weight="fill" className="mx-auto size-9" />
+        <div data-reveal className="mx-auto w-[min(1120px,92%)]">
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 px-8 py-16 text-center text-white shadow-2xl shadow-blue-600/25">
+            <div className="lx-aurora pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-white/15 blur-2xl" />
+            <div className="lx-aurora pointer-events-none absolute -bottom-20 -left-10 size-72 rounded-full bg-sky-300/20 blur-2xl" style={{ animationDelay: "-8s" }} />
+            <Lightning weight="fill" className="lx-float mx-auto size-10" />
             <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">{l("ctaTitle")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-blue-100">{l("ctaDesc")}</p>
-            <button onClick={toLogin} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.03]">
+            <button onClick={toLogin} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.04]">
               {t("submit")} <ArrowRight weight="bold" className="size-4" />
             </button>
           </div>
@@ -304,13 +365,11 @@ export default function LoginPage() {
       <footer className="border-t border-slate-100 py-10">
         <div className="mx-auto flex w-[min(1120px,92%)] flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2.5">
-            <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600"><Sparkle weight="fill" className="size-4 text-white" /></div>
+            <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600"><Sparkle weight="fill" className="size-4 text-white" /></div>
             <span className="font-display font-bold">{tApp("name")}</span>
           </div>
           <p className="text-xs text-slate-400">{l("footer")}</p>
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Buildings className="size-3.5" /> Multi-tenant · RLS · E-IMZO
-          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-400"><Buildings className="size-3.5" /> Multi-tenant · RLS · E-IMZO</div>
         </div>
       </footer>
     </div>
