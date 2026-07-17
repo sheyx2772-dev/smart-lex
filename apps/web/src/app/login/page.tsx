@@ -14,6 +14,7 @@ import {
   Lightning,
   Quotes,
   Robot,
+  Scales,
   SealCheck,
   ShieldCheck,
   ShieldWarning,
@@ -88,6 +89,11 @@ export default function LoginPage() {
         @keyframes lxShine {0%{transform:translateX(-140%) skewX(-18deg)}60%,100%{transform:translateX(240%) skewX(-18deg)}}
         @keyframes lxGlow {0%,100%{filter:drop-shadow(0 0 0 rgba(59,130,246,0))}50%{filter:drop-shadow(0 0 7px rgba(59,130,246,.75))}}
         @keyframes lxWave {0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
+        @keyframes lxProgress {0%{width:22%}55%{width:82%}100%{width:22%}}
+        @keyframes lxBorderGlow {0%,100%{opacity:.45;filter:blur(7px) hue-rotate(0deg)}50%{opacity:.85;filter:blur(11px) hue-rotate(45deg)}}
+        @keyframes lxSpinSlow {to{transform:rotate(360deg)}}
+        @keyframes lxBar {0%,100%{transform:scaleY(var(--lo,.5))}50%{transform:scaleY(1)}}
+        @keyframes lxPulseDot {0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
         [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
         [data-reveal].in{opacity:1;transform:none}
         .lx-aurora{animation:lxAurora 16s ease-in-out infinite}
@@ -96,6 +102,11 @@ export default function LoginPage() {
         .lx-in{animation:lxIn .3s ease}
         .lx-glow{animation:lxGlow 2.6s ease-in-out infinite}
         .lx-wave{animation:lxWave 9s ease-in-out infinite}
+        .lx-progress{animation:lxProgress 2.8s ease-in-out infinite}
+        .lx-borderglow{animation:lxBorderGlow 4s ease-in-out infinite}
+        .lx-spin-slow{animation:lxSpinSlow 14s linear infinite}
+        .lx-bar{transform-origin:bottom;animation:lxBar 2.2s ease-in-out infinite}
+        .lx-dot{animation:lxPulseDot 3s ease-in-out infinite}
         .lx-shine{position:relative;overflow:hidden}
         .lx-shine>span{position:relative;z-index:1}
         .lx-shine::after{content:"";position:absolute;top:0;left:0;height:100%;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:lxShine 3s ease-in-out infinite;pointer-events:none}
@@ -189,10 +200,34 @@ export default function LoginPage() {
                 );
               })}
             </div>
+            {/* Ijtimoiy isbot — reyting + mijozlar */}
+            <div className="mt-7 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
+              <div className="flex -space-x-2.5">
+                {["#3b82f6", "#6366f1", "#0ea5e9", "#8b5cf6", "#22c55e"].map((c, i) => (
+                  <span key={i} className="grid size-9 place-items-center rounded-full border-2 border-white text-[11px] font-bold text-white shadow-sm" style={{ background: `linear-gradient(135deg,${c},#1e293b)` }}>
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                ))}
+              </div>
+              <div>
+                <div className="flex items-center gap-0.5 text-amber-400">
+                  {[0, 1, 2, 3, 4].map((s) => <Star key={s} weight="fill" className="size-4" />)}
+                  <span className="ml-1.5 text-sm font-bold text-slate-800">4.9</span>
+                </div>
+                <p className="text-xs text-slate-500">{t("trustBadge")}</p>
+              </div>
+            </div>
           </div>
 
           {/* O'ng: app-preview mokap (login EMAS) */}
           <div className="relative" data-reveal>
+            {/* Yorqin ko'k nur — mokap ortida */}
+            <div className="pointer-events-none absolute -inset-8 -z-10 rounded-[40px] bg-[radial-gradient(circle_at_50%_40%,rgba(59,130,246,.35),transparent_70%)] blur-2xl" />
+            {/* Uchqun nuqtalar */}
+            <span className="lx-dot absolute -left-3 top-6 size-2 rounded-full bg-blue-500 shadow-[0_0_10px_2px_rgba(59,130,246,.8)]" />
+            <span className="lx-dot absolute right-8 -top-3 size-1.5 rounded-full bg-indigo-400 shadow-[0_0_10px_2px_rgba(99,102,241,.8)]" style={{ animationDelay: "-1s" }} />
+            <span className="lx-dot absolute -right-2 bottom-24 size-2 rounded-full bg-sky-400 shadow-[0_0_10px_2px_rgba(56,189,248,.8)]" style={{ animationDelay: "-2s" }} />
+            <span className="lx-dot absolute left-10 -bottom-2 size-1.5 rounded-full bg-violet-400 shadow-[0_0_10px_2px_rgba(139,92,246,.8)]" style={{ animationDelay: "-1.5s" }} />
             <AppPreview l={l} />
             <div className="lx-float absolute -left-6 top-10 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur lg:block">
               <div className="flex items-center gap-2">
@@ -204,6 +239,12 @@ export default function LoginPage() {
               <div className="flex items-center gap-2">
                 <span className="grid size-8 place-items-center rounded-lg bg-blue-50 text-blue-600"><SealCheck weight="fill" className="size-4" /></span>
                 <div><p className="text-xs font-semibold">{l("s4t")}</p><p className="text-[10px] text-slate-400">{l("s4d")}</p></div>
+              </div>
+            </div>
+            <div className="lx-float absolute -right-8 top-1/2 z-10 hidden rounded-2xl border border-white/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-blue-900/10 backdrop-blur xl:block" style={{ animationDelay: "-1.5s" }}>
+              <div className="flex items-center gap-2">
+                <span className="grid size-8 place-items-center rounded-lg bg-violet-50 text-violet-600"><Brain weight="fill" className="size-4" /></span>
+                <div><p className="text-xs font-semibold">Da'vo tayyor</p><p className="text-[10px] text-slate-400">32 soniyada</p></div>
               </div>
             </div>
           </div>
@@ -366,43 +407,79 @@ export default function LoginPage() {
 /** Hero'dagi mahsulot ko'rinishi (mokap) — original, testora nusxasi emas. */
 function AppPreview({ l }: { l: ReturnType<typeof useTranslations> }) {
   const tiles = [
-    { icon: Brain, tone: "text-blue-600 bg-blue-50", v: "3", k: l("stat2l") },
-    { icon: ShieldWarning, tone: "text-amber-600 bg-amber-50", v: "2", k: l("s1t") },
-    { icon: SealCheck, tone: "text-violet-600 bg-violet-50", v: "2", k: l("navFeatures") },
-    { icon: TrendUp, tone: "text-emerald-600 bg-emerald-50", v: "0", k: l("stat3l") },
+    { icon: Brain, tone: "text-blue-600 bg-blue-50", v: "24", k: l("stat2l") },
+    { icon: ShieldWarning, tone: "text-amber-600 bg-amber-50", v: "6", k: l("s1t") },
+    { icon: Gavel, tone: "text-rose-600 bg-rose-50", v: "3", k: l("navFeatures") },
+    { icon: TrendUp, tone: "text-emerald-600 bg-emerald-50", v: "92%", k: l("stat3l") },
   ];
+  const bars = [46, 68, 52, 84, 60, 92, 74];
   return (
-    <div className="relative mx-auto w-full max-w-[460px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-blue-900/15">
-      <div className="pointer-events-none absolute -inset-px -z-10 rounded-3xl bg-gradient-to-br from-blue-400/40 to-indigo-500/40 blur-md" />
-      {/* Oyna sarlavhasi */}
-      <div className="flex items-center gap-2 px-4 py-3 text-white" style={{ background: "linear-gradient(135deg,#232a44,#1b2136)" }}>
-        <span className="grid size-7 place-items-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600"><Robot weight="fill" className="size-4" /></span>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold leading-none">AI Agent</p>
-          <p className="mt-0.5 text-[10px] text-white/50">ALFA TRADE MCHJ</p>
+    <div className="relative mx-auto w-full max-w-[470px]">
+      {/* Aylanuvchi gradient nur ramka */}
+      <div className="lx-borderglow pointer-events-none absolute -inset-[3px] -z-10 rounded-[27px] bg-[conic-gradient(from_0deg,#3b82f6,#22d3ee,#6366f1,#8b5cf6,#3b82f6)]" />
+      <div className="relative overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-2xl shadow-blue-900/20">
+        {/* Oyna sarlavhasi */}
+        <div className="flex items-center gap-2.5 px-4 py-3 text-white" style={{ background: "linear-gradient(135deg,#1e2547,#141a30)" }}>
+          <span className="grid size-8 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/40"><Robot weight="fill" className="size-4" /></span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold leading-none">Lex AI Agent</p>
+            <p className="mt-1 text-[10px] text-white/50">ALFA TRADE MCHJ</p>
+          </div>
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+            <span className="lx-dot size-1.5 rounded-full bg-emerald-400" /> Faol
+          </span>
         </div>
-        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-          <span className="size-1.5 rounded-full bg-emerald-400" /> Faol
-        </span>
-      </div>
-      {/* Kontent */}
-      <div className="space-y-3 p-4">
-        <div className="grid grid-cols-2 gap-2.5">
+
+        {/* AI hozir tayyorlamoqda — jonli progress */}
+        <div className="border-b border-slate-100 bg-gradient-to-r from-blue-50 to-indigo-50/60 px-4 py-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-700">
+            <Sparkle weight="fill" className="lx-glow size-3.5" /> AI tayyorlamoqda: Da'vo arizasi #A-1042
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-blue-100/80">
+            <div className="lx-progress h-full rounded-full bg-gradient-to-r from-blue-500 via-indigo-500 to-sky-400" />
+          </div>
+        </div>
+
+        {/* Statistik plitalar */}
+        <div className="grid grid-cols-4 gap-2 p-4 pb-2">
           {tiles.map((x, i) => {
             const Ic = x.icon;
             return (
-              <div key={i} className="rounded-xl border border-slate-100 p-3">
-                <span className={cn("grid size-7 place-items-center rounded-lg", x.tone)}><Ic weight="fill" className="size-4" /></span>
-                <p className="mt-2 font-display text-xl font-bold">{x.v}</p>
-                <p className="truncate text-[10px] text-slate-400">{x.k}</p>
+              <div key={i} className="rounded-xl border border-slate-100 bg-white p-2.5 text-center">
+                <span className={cn("mx-auto grid size-7 place-items-center rounded-lg", x.tone)}><Ic weight="fill" className="size-4" /></span>
+                <p className="mt-1.5 font-display text-lg font-bold leading-none">{x.v}</p>
+                <p className="mt-1 truncate text-[9px] text-slate-400">{x.k}</p>
               </div>
             );
           })}
         </div>
-        <div className="rounded-xl border border-slate-100 p-3">
+
+        {/* Mini grafik — haftalik faollik */}
+        <div className="mx-4 rounded-xl border border-slate-100 p-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold">GLOBAL SNAB MCHJ</p>
-            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-600">Risk 63</span>
+            <p className="text-xs font-semibold text-slate-700">Haftalik faollik</p>
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600"><TrendUp weight="bold" className="size-3" /> 18%</span>
+          </div>
+          <div className="mt-3 flex h-14 items-end justify-between gap-1.5">
+            {bars.map((h, i) => (
+              <div key={i} className="flex-1 overflow-hidden rounded-t-md" style={{ height: `${h}%` }}>
+                <div
+                  className="lx-bar h-full rounded-t-md bg-gradient-to-t from-blue-500 to-indigo-400"
+                  style={{ ["--lo" as string]: (0.55 + (i % 3) * 0.12).toFixed(2), animationDelay: `${i * 0.12}s` }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Qarzdor risk kartasi */}
+        <div className="m-4 mt-3 rounded-xl border border-slate-100 bg-gradient-to-br from-white to-blue-50/40 p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="grid size-7 place-items-center rounded-lg bg-slate-900 text-[10px] font-bold text-white">GS</span>
+              <p className="text-sm font-semibold">GLOBAL SNAB MCHJ</p>
+            </div>
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">Risk 63</span>
           </div>
           <div className="mt-2.5 space-y-1.5">
             {[72, 54, 40].map((w, i) => (
@@ -411,6 +488,12 @@ function AppPreview({ l }: { l: ReturnType<typeof useTranslations> }) {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Amal tugmalari */}
+        <div className="flex gap-2 px-4 pb-4">
+          <span className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 py-2 text-[11px] font-semibold text-white"><Scales weight="fill" className="size-3.5" /> E-SUD</span>
+          <span className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-2 text-[11px] font-semibold text-slate-700"><FileText weight="fill" className="size-3.5 text-blue-600" /> Didox</span>
         </div>
       </div>
     </div>
