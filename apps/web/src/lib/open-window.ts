@@ -16,14 +16,8 @@ export const OPEN_SITE_EVENT = "lex:open-site";
 
 export function openSiteWindow(url: string, name: string): void {
   if (typeof window === "undefined") return;
-  // Avval haqiqiy markaziy brauzer oynasi — sayt to'liq yuklanadi va u yerda
-  // E-IMZO bilan kirish mumkin (didox/sud/pochta iframe'da bloklaydi).
-  const win = openSitePopup(url, name);
-  if (win) {
-    win.focus?.();
-    return;
-  }
-  // Popup bloklangan bo'lsa — ilova ichidagi oyna fallback sifatida ochiladi.
+  // BITTA brauzerda, ekran o'rtasida oyna ochib, saytni o'sha oyna ichida
+  // ko'rsatamiz (alohida OS-oyna emas). SiteWindowHost tinglaydi.
   window.dispatchEvent(new CustomEvent<OpenSiteDetail>(OPEN_SITE_EVENT, { detail: { url, title: name } }));
 }
 
