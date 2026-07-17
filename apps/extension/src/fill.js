@@ -41,6 +41,7 @@
     };
   });
 
+  // Umumiy heuristika — profil topilmaganда yoki qoldiq maydonlar uchun.
   const FIELD_MAP = [
     { keys: ["stir", "инн", "tin", "inn"], get: (c) => c.tin },
     { keys: ["nomi", "название", "наименование", "name", "tashkilot", "компания", "org", "debtor", "javobgar", "ответчик"], get: (c) => c.debtor },
@@ -48,26 +49,70 @@
     { keys: ["shartnoma", "договор", "contract"], get: (c) => c.contractNumber },
     { keys: ["faktura", "счет", "счёт", "invoice"], get: (c) => c.invoiceNumber },
     { keys: ["sud", "суд", "court"], get: (c) => c.court },
+    { keys: ["manzil", "адрес", "address"], get: (c) => c.address },
   ];
+
+  function pickProfile() {
+    const host = location.hostname;
+    const profiles = self.LEX_PROFILES || {};
+    const key = Object.keys(profiles).find((k) => host === k || host.endsWith(`.${k}`) || host.endsWith(k));
+    return key ? profiles[key] : null;
+  }
 
   function fillForm(claim) {
     let count = 0;
-    const fields = Array.from(document.querySelectorAll("input, textarea"));
-    for (const f of fields) {
-      const type = (f.getAttribute("type") || "text").toLowerCase();
-      if (["hidden", "password", "file", "checkbox", "radio", "submit", "button"].includes(type)) continue;
-      if (f.disabled || f.readOnly || f.value) continue;
+    const used = new Set();
+
+    // 1) Sayt profili — aniq selektorlar (ustuvor)
+    const profile = pickProfile();
+    if (profile) {
+      for (const rule of profile) {
+        const val = rule.get(claim);
+        if (!val) continue;
+        for (const sel of rule.selectors || []) {
+          let el = null;
+          try {
+            el = document.querySelector(sel);
+          } catch {
+            el = null;
+          }
+          if (el && !used.has(el) && isFillable(el) && isEmpty(el)) {
+            if (setAny(el, val)) {
+              used.add(el);
+              count++;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // 2) Umumiy heuristika — profil to'ldirmagan maydonlar
+    for (const f of document.querySelectorAll("input, textarea, select")) {
+      if (used.has(f) || !isFillable(f) || !isEmpty(f)) continue;
       const hay = `${f.name} ${f.id} ${f.placeholder || ""} ${labelText(f)}`.toLowerCase();
       for (const m of FIELD_MAP) {
         const val = m.get(claim);
         if (val && m.keys.some((k) => hay.includes(k))) {
-          setValue(f, val);
-          count++;
+          if (setAny(f, val)) {
+            used.add(f);
+            count++;
+          }
           break;
         }
       }
     }
     return count;
+  }
+
+  function isFillable(el) {
+    if (el.tagName === "SELECT") return !el.disabled;
+    const type = (el.getAttribute("type") || "text").toLowerCase();
+    if (["hidden", "password", "file", "checkbox", "radio", "submit", "button", "image", "reset"].includes(type)) return false;
+    return !el.disabled && !el.readOnly;
+  }
+  function isEmpty(el) {
+    return el.tagName === "SELECT" ? !el.value || el.selectedIndex <= 0 : !el.value;
   }
 
   function labelText(el) {
@@ -79,6 +124,23 @@
     return wrap ? wrap.textContent || "" : "";
   }
 
+  function setAny(el, value) {
+    if (el.tagName === "SELECT") return setSelect(el, value);
+    setValue(el, value);
+    return true;
+  }
+
+  // Dropdown — variantni qiymat yoki matn bo'yicha topadi.
+  function setSelect(el, value) {
+    const v = String(value).toLowerCase().trim();
+    const opt = Array.from(el.options).find((o) => o.value.toLowerCase() === v || (o.textContent || "").toLowerCase().includes(v));
+    if (!opt) return false;
+    el.value = opt.value;
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+    flash(el);
+    return true;
+  }
+
   // React/Vue kabi controlled input'lar uchun native setter + input/change hodisasi.
   function setValue(el, value) {
     const proto = el.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
@@ -87,6 +149,10 @@
     else el.value = String(value);
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
+    flash(el);
+  }
+
+  function flash(el) {
     el.style.outline = "2px solid #22c55e";
     el.style.transition = "outline .3s ease";
     setTimeout(() => (el.style.outline = ""), 2500);
