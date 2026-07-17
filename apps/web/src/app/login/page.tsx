@@ -117,8 +117,8 @@ export default function LoginPage() {
       {/* Scroll progress chizig'i */}
       <div className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-white" style={{ transform: `scaleX(${progress})` }} />
 
-      {/* Jonli fon: oqadigan to'lqin lentalari + suzuvchi nur + panjara */}
-      <FlowField />
+      {/* Jonli fon: video (public/home-bg.mp4 bo'lsa) yoki oqadigan to'lqin */}
+      <HeroBg />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="lx-drift absolute -left-40 top-0 size-[540px] rounded-full bg-white/[0.06] blur-[130px]" />
         <div className="lx-drift absolute right-0 top-1/3 size-[460px] rounded-full bg-white/[0.05] blur-[130px]" style={{ animationDelay: "-8s" }} />
@@ -374,6 +374,35 @@ export default function LoginPage() {
       {/* ── Login modal ────────────────────────── */}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
     </div>
+  );
+}
+
+/**
+ * Hero foni. Agar `public/home-bg.mp4` mavjud bo'lsa — video fon (qorong'i
+ * qatlam bilan). Bo'lmasa — oqadigan to'lqin animatsiyasi (FlowField).
+ * Faylni o'zingizning egaligingizdagi videodan `apps/web/public/home-bg.mp4`
+ * ga joylashtiring; tashqi saytdan avtomatik yuklab olinmaydi.
+ */
+function HeroBg() {
+  const [videoOk, setVideoOk] = useState(false);
+  return (
+    <>
+      {!videoOk && <FlowField />}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden
+        onCanPlay={() => setVideoOk(true)}
+        onError={() => setVideoOk(false)}
+        className={cn("pointer-events-none fixed inset-0 z-0 h-full w-full object-cover transition-opacity duration-700", videoOk ? "opacity-45" : "opacity-0")}
+      >
+        <source src="/home-bg.mp4" type="video/mp4" />
+      </video>
+      {videoOk && <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-black/50 via-black/35 to-black/70" />}
+    </>
   );
 }
 
