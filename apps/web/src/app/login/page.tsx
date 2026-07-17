@@ -13,6 +13,7 @@ import {
   type Icon,
   Lightning,
   List,
+  Plus,
   Quotes,
   Robot,
   ShieldCheck,
@@ -56,18 +57,29 @@ export default function LoginPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
 
+  // Scroll'da yo'qolib-paydo bo'lish (ikki tomonlama) + progress chizig'i
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll("[data-reveal]");
-    if (!els?.length) return;
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) if (e.isIntersecting) e.target.classList.add("in");
+        for (const e of entries) e.target.classList.toggle("in", e.isIntersecting);
       },
-      { threshold: 0.12 },
+      { threshold: 0.15 },
     );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    els?.forEach((el) => io.observe(el));
+
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? window.scrollY / max : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   const openLogin = () => {
@@ -82,27 +94,43 @@ export default function LoginPage() {
         @keyframes lxMarqueeR {from{transform:translateX(-50%)}to{transform:translateX(0)}}
         @keyframes lxIn {from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
         @keyframes lxWave {0%,100%{transform:translateX(0)}50%{transform:translateX(-30px)}}
-        @keyframes lxDot {0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
-        [data-reveal]{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+        @keyframes lxDot {0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
+        @keyframes lxDrift {0%,100%{transform:translate(0,0)}33%{transform:translate(5vw,-4vh)}66%{transform:translate(-4vw,4vh)}}
+        @keyframes lxFloatY {0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+        @keyframes lxScan {0%{transform:translateY(-120%)}100%{transform:translateY(520px)}}
+        @keyframes lxSpin {to{transform:rotate(360deg)}}
+        [data-reveal]{opacity:0;transform:translateY(46px) scale(.965);transition:opacity .85s cubic-bezier(.2,.7,.2,1),transform .85s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
         [data-reveal].in{opacity:1;transform:none}
         .lx-marquee{animation:lxMarquee 30s linear infinite}
-        .lx-marquee-r{animation:lxMarqueeR 40s linear infinite}
+        .lx-marquee-r{animation:lxMarqueeR 46s linear infinite}
         .lx-in{animation:lxIn .3s ease}
         .lx-wave{animation:lxWave 10s ease-in-out infinite}
         .lx-dot{animation:lxDot 2.6s ease-in-out infinite}
+        .lx-drift{animation:lxDrift 26s ease-in-out infinite}
+        .lx-floaty{animation:lxFloatY 5s ease-in-out infinite}
         .lx-cond{font-stretch:condensed;letter-spacing:-.02em}
         .lx-stroke{-webkit-text-stroke:1.5px rgba(255,255,255,.85);color:transparent}
         @media (min-width:1024px){.lx-stroke{-webkit-text-stroke-width:2px}}
+        @media (prefers-reduced-motion:reduce){.lx-marquee,.lx-marquee-r,.lx-wave,.lx-dot,.lx-drift,.lx-floaty{animation:none}}
       `}</style>
 
-      {/* Nuqta teksturasi */}
-      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(#fff 1px,transparent 1px)", backgroundSize: "26px 26px" }} />
+      {/* Scroll progress chizig'i */}
+      <div className="fixed inset-x-0 top-0 z-50 h-0.5 origin-left bg-white" style={{ transform: `scaleX(${progress})` }} />
+
+      {/* Jonli fon: zarrachalar tarmog'i + suzuvchi nur + panjara */}
+      <ParticleField />
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="lx-drift absolute -left-40 top-0 size-[540px] rounded-full bg-white/[0.06] blur-[130px]" />
+        <div className="lx-drift absolute right-0 top-1/3 size-[460px] rounded-full bg-white/[0.05] blur-[130px]" style={{ animationDelay: "-8s" }} />
+        <div className="lx-drift absolute bottom-0 left-1/3 size-[420px] rounded-full bg-white/[0.04] blur-[130px]" style={{ animationDelay: "-16s" }} />
+        <div className="absolute inset-0 opacity-[0.045]" style={{ backgroundImage: "radial-gradient(#fff 1px,transparent 1px)", backgroundSize: "26px 26px" }} />
+      </div>
 
       {/* ── Navbar ─────────────────────────────── */}
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-black/70 backdrop-blur-xl">
         <div className="mx-auto flex w-[min(1240px,92%)] items-center justify-between py-4">
           <a href="#" className="font-display text-2xl font-extrabold tracking-tight">
-            {tApp("name").toUpperCase()}<span className="text-white/40">.</span>
+            {tApp("name").toUpperCase()}<span className="lx-dot inline-block text-white/50">.</span>
           </a>
           <nav className="hidden items-center gap-9 text-xs font-semibold uppercase tracking-widest text-white/60 lg:flex">
             <a href="#jarayon" className="transition-colors hover:text-white">{l("navHow")}</a>
@@ -146,7 +174,12 @@ export default function LoginPage() {
             <path key={i} fill="none" stroke="url(#lxg)" strokeWidth="1" d={`M0,${200 + o} C360,${120 + o} 720,${300 + o} 1080,${180 + o} S1440,${240 + o} 1440,${240 + o}`} opacity={1 - i * 0.14} />
           ))}
         </svg>
+        {/* "Flow" nur sweep */}
+        <div className="lx-floaty pointer-events-none absolute inset-x-0 top-24 -z-10 mx-auto h-px w-[80%] bg-gradient-to-r from-transparent via-white/40 to-transparent" style={{ animation: "lxScan 6s ease-in-out infinite" }} />
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-gradient-to-b from-white/[0.06] to-transparent" />
+        {/* Suzuvchi dekor ikonlar */}
+        <Sparkle weight="fill" className="lx-floaty pointer-events-none absolute right-[8%] top-40 -z-10 size-6 text-white/20" />
+        <Plus weight="bold" className="lx-floaty pointer-events-none absolute left-[6%] top-72 -z-10 size-5 text-white/15" style={{ animationDelay: "-2s" }} />
 
         <div className="mx-auto w-[min(1240px,92%)]">
           <div data-reveal className="flex items-center gap-4">
@@ -173,11 +206,11 @@ export default function LoginPage() {
 
           {/* Integratsiya chiplari */}
           <div data-reveal className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-3 lg:grid-cols-5">
-            {FEATURES.map((f) => {
+            {FEATURES.map((f, i) => {
               const Ic = f.icon;
               return (
-                <div key={f.key} className="flex items-center gap-2.5 bg-black px-5 py-5">
-                  <Ic weight="light" className="size-5 text-white/70" />
+                <div key={f.key} className="flex items-center gap-2.5 bg-black px-5 py-5 transition-colors hover:bg-white/[0.04]">
+                  <Ic weight="light" className="lx-floaty size-5 text-white/70" style={{ animationDelay: `${i * 0.5}s` }} />
                   <span className="text-xs font-semibold uppercase tracking-wider text-white/70">{t(`feat.${f.key}` as never)}</span>
                 </div>
               );
@@ -185,13 +218,22 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Yirik marquee band */}
-        <div className="mt-24 overflow-hidden border-y border-white/10 py-8">
+        {/* Yirik marquee band — ikki qatlam */}
+        <div className="mt-24 space-y-3 overflow-hidden border-y border-white/10 py-8">
           <div className="flex whitespace-nowrap">
             <div className="lx-marquee flex shrink-0 items-center">
               {[...MARQUEE, ...MARQUEE].map((w, i) => (
                 <span key={i} className="lx-stroke lx-cond mx-8 font-display text-5xl font-extrabold uppercase tracking-tight sm:text-7xl">
-                  {w}<span className="mx-8 align-middle text-white/30" style={{ WebkitTextStroke: "0" }}>◆</span>
+                  {w}<span className="mx-8 align-middle text-white/25" style={{ WebkitTextStroke: "0" }}>◆</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex whitespace-nowrap">
+            <div className="lx-marquee-r flex shrink-0 items-center">
+              {[...MARQUEE, ...MARQUEE].map((w, i) => (
+                <span key={i} className="lx-cond mx-8 font-display text-5xl font-extrabold uppercase tracking-tight text-white/[0.07] sm:text-7xl">
+                  {w}<span className="mx-8 align-middle">◆</span>
                 </span>
               ))}
             </div>
@@ -205,7 +247,7 @@ export default function LoginPage() {
           <SectionHead index="01" kicker={l("howKicker")} title={l("howTitle")} desc={l("howDesc")} />
           <div className="mt-14 border-t border-white/10">
             {STEPS.map((s, i) => (
-              <div key={s} data-reveal className="group grid grid-cols-1 items-start gap-4 border-b border-white/10 py-8 transition-colors hover:bg-white/[0.03] md:grid-cols-[120px_1fr_1.2fr] md:gap-10 md:py-10">
+              <div key={s} data-reveal style={{ transitionDelay: `${i * 80}ms` }} className="group grid grid-cols-1 items-start gap-4 border-b border-white/10 py-8 transition-colors hover:bg-white/[0.03] md:grid-cols-[120px_1fr_1.2fr] md:gap-10 md:py-10">
                 <span className="lx-cond font-display text-5xl font-extrabold text-white/20 transition-colors group-hover:text-white md:text-6xl">0{i + 1}</span>
                 <h3 className="font-display text-2xl font-bold uppercase tracking-tight md:text-3xl">{l(`${s}t` as never)}</h3>
                 <p className="max-w-lg text-sm leading-relaxed text-white/50 md:pt-2">{l(`${s}d` as never)}</p>
@@ -223,14 +265,14 @@ export default function LoginPage() {
             {CARDS.map((c, i) => {
               const Ic = c.icon;
               return (
-                <div key={c.key} data-reveal className="group relative flex flex-col bg-black p-8 transition-colors hover:bg-white hover:text-black">
+                <div key={c.key} data-reveal style={{ transitionDelay: `${(i % 3) * 90}ms` }} className="group relative flex flex-col bg-black p-8 transition-colors hover:bg-white hover:text-black">
                   <div className="flex items-center justify-between">
-                    <Ic weight="light" className="size-8" />
+                    <Ic weight="light" className="size-8 transition-transform group-hover:scale-110" />
                     <span className="lx-cond font-display text-2xl font-extrabold text-white/15 transition-colors group-hover:text-black/20">0{i + 1}</span>
                   </div>
                   <h3 className="mt-8 font-display text-xl font-bold uppercase tracking-tight">{l(`card.${c.key}.t` as never)}</h3>
                   <p className="mt-3 text-sm leading-relaxed text-white/50 transition-colors group-hover:text-black/60">{l(`card.${c.key}.d` as never)}</p>
-                  <ArrowUpRight weight="bold" className="mt-6 size-5 opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowUpRight weight="bold" className="mt-6 size-5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
                 </div>
               );
             })}
@@ -238,12 +280,12 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* ── Statistika ─────────────────────────── */}
+      {/* ── Statistika (sanab chiqadi) ─────────── */}
       <section className="relative z-10 border-t border-white/10 py-20">
-        <div data-reveal className="mx-auto grid w-[min(1240px,92%)] grid-cols-2 gap-y-12 lg:grid-cols-4">
-          {(["stat1", "stat2", "stat3", "stat4"] as const).map((k) => (
-            <div key={k} className="border-l border-white/15 pl-6">
-              <p className="lx-cond font-display text-5xl font-extrabold tracking-tight lg:text-6xl">{l(`${k}v` as never)}</p>
+        <div className="mx-auto grid w-[min(1240px,92%)] grid-cols-2 gap-y-12 lg:grid-cols-4">
+          {(["stat1", "stat2", "stat3", "stat4"] as const).map((k, i) => (
+            <div key={k} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="border-l border-white/15 pl-6">
+              <CountUp value={l(`${k}v` as never)} className="lx-cond block font-display text-5xl font-extrabold tracking-tight lg:text-6xl" />
               <p className="mt-3 text-xs font-semibold uppercase tracking-widest text-white/45">{l(`${k}l` as never)}</p>
             </div>
           ))}
@@ -255,8 +297,8 @@ export default function LoginPage() {
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="03" kicker={l("revKicker")} title={l("revTitle")} desc={l("revDesc")} />
           <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {REVIEWS.map((r) => (
-              <div key={r} data-reveal className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8">
+            {REVIEWS.map((r, i) => (
+              <div key={r} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className="flex flex-col justify-between rounded-2xl border border-white/10 bg-black p-8 transition-colors hover:border-white/30">
                 <div>
                   <Quotes weight="fill" className="size-8 text-white/25" />
                   <p className="mt-5 text-[15px] leading-relaxed text-white/80">{l(`${r}text` as never)}</p>
@@ -280,10 +322,10 @@ export default function LoginPage() {
         <div className="mx-auto w-[min(1240px,92%)]">
           <SectionHead index="04" kicker={l("priceKicker")} title={l("priceTitle")} desc={l("priceDesc")} />
           <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {PLANS.map((p) => {
+            {PLANS.map((p, i) => {
               const featured = p === "standard";
               return (
-                <div key={p} data-reveal className={cn("relative flex flex-col rounded-2xl border p-8", featured ? "border-white bg-white text-black" : "border-white/12 bg-black")}>
+                <div key={p} data-reveal style={{ transitionDelay: `${i * 90}ms` }} className={cn("relative flex flex-col rounded-2xl border p-8 transition-transform hover:-translate-y-1", featured ? "border-white bg-white text-black" : "border-white/12 bg-black")}>
                   {featured && <span className="absolute right-6 top-6 rounded-full bg-black px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">{l("popular")}</span>}
                   <p className={cn("text-xs font-bold uppercase tracking-widest", featured ? "text-black/60" : "text-white/50")}>{l(`plan.${p}.name` as never)}</p>
                   <p className="lx-cond mt-5 font-display text-5xl font-extrabold tracking-tight">{l(`plan.${p}.price` as never)}</p>
@@ -308,9 +350,8 @@ export default function LoginPage() {
 
       {/* ── Yakuniy CTA ────────────────────────── */}
       <section className="relative z-10 overflow-hidden border-t border-white/10 py-28 lg:py-40">
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]" style={{ backgroundImage: "radial-gradient(#fff 1px,transparent 1px)", backgroundSize: "26px 26px" }} />
         <div data-reveal className="mx-auto w-[min(1240px,92%)] text-center">
-          <Lightning weight="fill" className="mx-auto size-9 text-white/70" />
+          <Lightning weight="fill" className="lx-floaty mx-auto size-9 text-white/70" />
           <h2 className="lx-cond mx-auto mt-6 max-w-4xl font-display font-extrabold uppercase leading-[0.9] tracking-tight" style={{ fontSize: "clamp(2.25rem,7vw,5.5rem)" }}>
             {l("ctaTitle")}
           </h2>
@@ -333,6 +374,134 @@ export default function LoginPage() {
       {/* ── Login modal ────────────────────────── */}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
     </div>
+  );
+}
+
+/** Jonli zarrachalar tarmog'i — original canvas effekti (oq/qora). */
+function ParticleField() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const DPR = Math.min(2, window.devicePixelRatio || 1);
+    let raf = 0;
+    let w = 0;
+    let h = 0;
+    const pts: { x: number; y: number; vx: number; vy: number }[] = [];
+
+    function resize() {
+      w = canvas!.clientWidth;
+      h = canvas!.clientHeight;
+      canvas!.width = Math.max(1, Math.floor(w * DPR));
+      canvas!.height = Math.max(1, Math.floor(h * DPR));
+      ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const count = Math.max(24, Math.min(80, Math.floor((w * h) / 17000)));
+      pts.length = 0;
+      for (let i = 0; i < count; i++) {
+        pts.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35 });
+      }
+    }
+
+    function draw(moving: boolean) {
+      ctx!.clearRect(0, 0, w, h);
+      for (const p of pts) {
+        if (moving) {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+        }
+      }
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const a = pts[i];
+          const b = pts[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d = Math.hypot(dx, dy);
+          if (d < 130) {
+            ctx!.strokeStyle = `rgba(255,255,255,${(1 - d / 130) * 0.12})`;
+            ctx!.lineWidth = 1;
+            ctx!.beginPath();
+            ctx!.moveTo(a.x, a.y);
+            ctx!.lineTo(b.x, b.y);
+            ctx!.stroke();
+          }
+        }
+      }
+      ctx!.fillStyle = "rgba(255,255,255,0.5)";
+      for (const p of pts) {
+        ctx!.beginPath();
+        ctx!.arc(p.x, p.y, 1.3, 0, Math.PI * 2);
+        ctx!.fill();
+      }
+    }
+
+    function tick() {
+      draw(true);
+      raf = requestAnimationFrame(tick);
+    }
+
+    resize();
+    if (reduce) draw(false);
+    else tick();
+    window.addEventListener("resize", resize);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-60" aria-hidden />;
+}
+
+/** Reveal'da 0 dan qiymatgacha sanaydi (masalan "50 000+"). */
+function CountUp({ value, className }: { value: string; className?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const m = value.match(/^(\D*?)([\d][\d\s]*\d|\d)(.*)$/s);
+  const prefix = m?.[1] ?? "";
+  const numRaw = m?.[2] ?? "";
+  const suffix = m?.[3] ?? "";
+  const target = Number.parseInt(numRaw.replace(/\s/g, ""), 10);
+  const [txt, setTxt] = useState(Number.isNaN(target) ? value : `${prefix}0${suffix}`);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || Number.isNaN(target)) return;
+    let done = false;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting && !done) {
+            done = true;
+            const dur = 1200;
+            const start = performance.now();
+            const step = (now: number) => {
+              const p = Math.min(1, (now - start) / dur);
+              const eased = 1 - (1 - p) ** 3;
+              if (p >= 1) setTxt(value);
+              else {
+                setTxt(`${prefix}${Math.round(target * eased)}${suffix}`);
+                requestAnimationFrame(step);
+              }
+            };
+            requestAnimationFrame(step);
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [target, prefix, suffix, value]);
+
+  return (
+    <span ref={ref} className={className}>
+      {txt}
+    </span>
   );
 }
 
