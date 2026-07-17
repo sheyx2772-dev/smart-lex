@@ -416,10 +416,16 @@ function FlowField() {
     if (!ctx) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const DPR = Math.min(2, window.devicePixelRatio || 1);
-    const LINES = 52;
     let raf = 0;
     let w = 0;
     let h = 0;
+    const parts: { x: number; y: number; life: number }[] = [];
+
+    function spawn(p: { x: number; y: number; life: number }) {
+      p.x = Math.random() * w;
+      p.y = Math.random() * h;
+      p.life = 60 + Math.random() * 220;
+    }
 
     function resize() {
       w = canvas!.clientWidth;
@@ -427,58 +433,58 @@ function FlowField() {
       canvas!.width = Math.max(1, Math.floor(w * DPR));
       canvas!.height = Math.max(1, Math.floor(h * DPR));
       ctx!.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx!.fillStyle = "#000";
+      ctx!.fillRect(0, 0, w, h);
+      const count = Math.max(260, Math.min(1500, Math.floor((w * h) / 1500)));
+      parts.length = 0;
+      for (let i = 0; i < count; i++) {
+        const p = { x: 0, y: 0, life: 0 };
+        spawn(p);
+        parts.push(p);
+      }
     }
 
-    function render(now: number) {
-      const t = now * 0.00024;
-      ctx!.clearRect(0, 0, w, h);
-      const bandY = h * 0.4 + Math.sin(t * 0.5) * (h * 0.03);
-      const spread = Math.min(340, h * 0.36);
+    // Silliq oqim maydoni (Perlin o'rniga sinuslar yig'indisi) — yo'nalish burchagi
+    function field(x: number, y: number, t: number) {
+      const s = 0.0015;
+      const n =
+        Math.sin(x * s + t * 0.6) +
+        Math.sin(y * s * 1.3 - t * 0.5) +
+        Math.sin((x + y) * s * 0.7 + t * 0.35) +
+        Math.sin((x - y) * s * 0.5 - t * 0.25);
+      return n * Math.PI;
+    }
 
-      // Markaziy yumshoq porlash (ribbon ortida)
-      const glow = ctx!.createRadialGradient(w * 0.5, bandY, 0, w * 0.5, bandY, Math.max(w, h) * 0.5);
-      glow.addColorStop(0, "rgba(255,255,255,0.05)");
-      glow.addColorStop(0.4, "rgba(255,255,255,0.015)");
-      glow.addColorStop(1, "rgba(255,255,255,0)");
-      ctx!.fillStyle = glow;
+    function step(now: number, loop: boolean) {
+      const t = now * 0.00011;
+      // Izlarni asta so'ndirish → oqadigan ipsimon streaklar
+      ctx!.globalCompositeOperation = "source-over";
+      ctx!.fillStyle = "rgba(0,0,0,0.055)";
       ctx!.fillRect(0, 0, w, h);
-
-      // Additiv oqim — chiziqlar bir-birining ustiga yorug'lik qo'shadi
       ctx!.globalCompositeOperation = "lighter";
-      ctx!.lineWidth = 1.1;
-      for (let i = 0; i < LINES; i++) {
-        const f = LINES > 1 ? i / (LINES - 1) : 0.5;
-        const off = (f - 0.5) * 2; // -1..1 (band markazidan uzoqlik)
-        const centered = 1 - Math.abs(off);
-        const y0 = bandY + off * spread + Math.sin(t * 0.7 + i * 0.6) * 26;
-        const amp = 30 + 90 * centered;
-        const freq = 1.2 + f * 1.3;
-        const freq2 = 2.6 + f * 1.1;
-        const phase = t * (0.7 + f * 0.8) + i * 0.4;
-        const alpha = centered * centered * 0.2 + 0.012;
+      ctx!.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx!.lineWidth = 1;
+      const speed = 1.2;
+      for (const p of parts) {
+        const a = field(p.x, p.y, t);
+        const nx = p.x + Math.cos(a) * speed;
+        const ny = p.y + Math.sin(a) * speed;
         ctx!.beginPath();
-        for (let x = 0; x <= w; x += 8) {
-          const nx = x / w;
-          const env = 0.4 + 0.6 * Math.sin(nx * Math.PI); // to'liqroq, uchlarda yumshoq so'nadi
-          const wave = Math.sin(nx * Math.PI * freq + phase) * 0.7 + Math.sin(nx * Math.PI * freq2 - phase * 0.6) * 0.3;
-          const y = y0 + wave * amp * env;
-          if (x === 0) ctx!.moveTo(x, y);
-          else ctx!.lineTo(x, y);
-        }
-        const g = ctx!.createLinearGradient(0, 0, w, 0);
-        g.addColorStop(0, "rgba(255,255,255,0)");
-        g.addColorStop(0.5, `rgba(255,255,255,${alpha})`);
-        g.addColorStop(1, "rgba(255,255,255,0)");
-        ctx!.strokeStyle = g;
+        ctx!.moveTo(p.x, p.y);
+        ctx!.lineTo(nx, ny);
         ctx!.stroke();
+        p.x = nx;
+        p.y = ny;
+        p.life -= 1;
+        if (p.life <= 0 || nx < -2 || nx > w + 2 || ny < -2 || ny > h + 2) spawn(p);
       }
       ctx!.globalCompositeOperation = "source-over";
-      raf = requestAnimationFrame(render);
+      if (loop) raf = requestAnimationFrame((n) => step(n, true));
     }
 
     resize();
-    if (reduce) render(0);
-    else raf = requestAnimationFrame(render);
+    if (reduce) step(0, false);
+    else raf = requestAnimationFrame((n) => step(n, true));
     window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
@@ -486,7 +492,7 @@ function FlowField() {
     };
   }, []);
 
-  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-70" aria-hidden />;
+  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-0 h-full w-full opacity-90" aria-hidden />;
 }
 
 /** Reveal'da 0 dan qiymatgacha sanaydi (masalan "50 000+"). */
