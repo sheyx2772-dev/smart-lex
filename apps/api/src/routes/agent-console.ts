@@ -1,7 +1,7 @@
 import { type CollectionStep, calcRisk, daysBetween, dueCollectionSteps, DEFAULT_COLLECTION_STEPS, format, money } from "@lex/core";
-import { approvalRequests, auditLogs, collectionRules, contractors, contracts, invoices, receivables, withTenant } from "@lex/db";
-import { type CollectionStage, ok } from "@lex/shared";
-import { desc, eq, sql } from "drizzle-orm";
+import { agentTasks, approvalRequests, auditLogs, collectionRules, contractors, contracts, invoices, receivables, withTenant } from "@lex/db";
+import { ERROR_CODE, fail, type CollectionStage, ok } from "@lex/shared";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 
@@ -212,4 +212,160 @@ agentConsoleRoutes.post("/agent/run", async (c) => {
   });
 
   return c.json(ok(result, "common.ok", c.get("locale")));
+});
+
+// ─── Platformaga topshiriqlar (agent tasks) ─────────────────────────────────
+const TASK_ACTIONS = new Set(["analyze", "score", "demand", "custom"]);
+const CAN_TASK = new Set(["owner", "admin", "finance", "legal"]);
+
+/** Topshiriqlar ro'yxati (qarzdor nomi bilan). */
+agentConsoleRoutes.get("/agent/tasks", async (c) => {
+  const { tenantId } = c.get("auth");
+  const items = await withTenant(tenantId, (tx) =>
+    tx
+      .select({
+        id: agentTasks.id,
+        action: agentTasks.action,
+        title: agentTasks.title,
+        receivableId: agentTasks.receivableId,
+        deadline: agentTasks.deadline,
+        status: agentTasks.status,
+        result: agentTasks.result,
+        completedAt: agentTasks.completedAt,
+        createdAt: agentTasks.createdAt,
+        contractorName: contractors.name,
+      })
+      .from(agentTasks)
+      .leftJoin(receivables, eq(agentTasks.receivableId, receivables.id))
+      .leftJoin(contractors, eq(receivables.contractorId, contractors.id))
+      .orderBy(desc(agentTasks.createdAt)),
+  );
+  return c.json(ok({ items }, "common.ok", c.get("locale")));
+});
+
+/** Topshiriq yaratish — platformaga ish biriktirish. */
+agentConsoleRoutes.post("/agent/tasks", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_TASK.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const body = (await c.req.json().catch(() => ({}))) as { action?: string; title?: string; receivableId?: string; deadline?: string };
+  if (!body.action || !TASK_ACTIONS.has(body.action) || !body.title?.trim()) {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  }
+  const [task] = await withTenant(tenantId, (tx) =>
+    tx
+      .insert(agentTasks)
+      .values({
+        tenantId,
+        action: body.action!,
+        title: body.title!.trim(),
+        receivableId: body.receivableId || null,
+        deadline: body.deadline ? new Date(body.deadline) : null,
+        createdByUserId: userId,
+      })
+      .returning(),
+  );
+  return c.json(ok(task, "common.created", locale));
+});
+
+/** Topshiriqni bajarish — platforma (agent) ishni deterministik amalga oshiradi. */
+agentConsoleRoutes.post("/agent/tasks/:id/run", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_TASK.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+  const now = new Date();
+
+  const out = await withTenant(tenantId, async (tx) => {
+    const [task] = await tx.select().from(agentTasks).where(eq(agentTasks.id, id)).limit(1);
+    if (!task) return { notFound: true as const };
+    if (task.status === "done") return { task };
+
+    let result = "";
+    // Nishon debitorlik ma'lumoti (bo'lsa).
+    const rec = task.receivableId
+      ? (
+          await tx
+            .select({
+              recId: receivables.id,
+              outstandingMinor: receivables.outstandingMinor,
+              penaltyMinor: receivables.penaltyMinor,
+              overdueDays: receivables.overdueDays,
+              agingBucket: receivables.agingBucket,
+              executedStages: receivables.executedStages,
+              riskScore: receivables.riskScore,
+              currency: receivables.currency,
+              invoiceAmount: invoices.amountMinor,
+              invoiceNumber: invoices.number,
+              dueDate: invoices.dueDate,
+              contractorName: contractors.name,
+              contractorTin: contractors.tin,
+              contractNumber: contracts.number,
+            })
+            .from(receivables)
+            .innerJoin(invoices, eq(receivables.invoiceId, invoices.id))
+            .leftJoin(contractors, eq(receivables.contractorId, contractors.id))
+            .leftJoin(contracts, eq(invoices.contractId, contracts.id))
+            .where(eq(receivables.id, task.receivableId))
+            .limit(1)
+        )[0]
+      : undefined;
+
+    if (task.action === "score" && rec) {
+      const outstandingRatio = rec.invoiceAmount > 0n ? Number(rec.outstandingMinor) / Number(rec.invoiceAmount) : 0;
+      const risk = calcRisk({
+        maxOverdueDays: rec.overdueDays,
+        outstandingRatio,
+        latePaymentCount: 0,
+        priorDemandCount: (rec.executedStages ?? []).includes("demand_letter") ? 1 : 0,
+      });
+      await tx.update(receivables).set({ riskScore: risk.score, lastEvaluatedAt: now }).where(and(eq(receivables.id, rec.recId), eq(receivables.tenantId, tenantId)));
+      result = `Risk qayta baholandi: ${risk.score}/100.`;
+    } else if (task.action === "analyze" && rec) {
+      const steps = await tenantSteps(tx);
+      const a = analyze({
+        outstandingMinor: rec.outstandingMinor,
+        penaltyMinor: rec.penaltyMinor,
+        invoiceAmount: rec.invoiceAmount,
+        overdueDays: rec.overdueDays,
+        agingBucket: rec.agingBucket,
+        executedStages: (rec.executedStages ?? []) as CollectionStage[],
+        dueDate: rec.dueDate,
+        now,
+        steps,
+      });
+      result = a.recommendation ? `Tavsiya: keyingi bosqich — ${a.recommendation.stage}. Risk: ${a.riskScore}/100.` : `Harakat talab etilmaydi. Risk: ${a.riskScore}/100.`;
+    } else if (task.action === "demand" && rec) {
+      result = [
+        "TALABNOMA (loyiha)",
+        `Qarzdor: ${rec.contractorName ?? "—"} (STIR ${rec.contractorTin ?? "—"})`,
+        `Shartnoma: ${rec.contractNumber ?? "—"} · Faktura: ${rec.invoiceNumber}`,
+        `Muddati o'tgan qarz: ${format(money(rec.outstandingMinor, rec.currency))}, kechikish ${rec.overdueDays} kun.`,
+        "10 kun ichida to'lash talab qilinadi, aks holda sudga da'vo beriladi.",
+      ].join("\n");
+    } else {
+      result = "Bajarildi.";
+    }
+
+    const [updated] = await tx
+      .update(agentTasks)
+      .set({ status: "done", result, completedAt: now })
+      .where(and(eq(agentTasks.id, id), eq(agentTasks.tenantId, tenantId)))
+      .returning();
+
+    await tx.insert(auditLogs).values({
+      tenantId,
+      actorType: "ai_agent",
+      actorId: userId,
+      action: "agent.task_ran",
+      entityType: "agent_task",
+      entityId: id,
+      detail: { action: task.action },
+    });
+
+    return { task: updated };
+  });
+
+  if ("notFound" in out) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  return c.json(ok(out.task, "common.updated", locale));
 });

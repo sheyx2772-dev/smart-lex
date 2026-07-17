@@ -311,3 +311,29 @@ export const auditLogs = pgTable(
   },
   (t) => [index("audit_tenant_created_idx").on(t.tenantId, t.createdAt)],
 );
+
+/**
+ * Platformaga (AI agentga) biriktirilgan topshiriqlar — foydalanuvchi agentga
+ * ish beradi (tahlil, risk baholash, talabnoma tayyorlash...), muddat bilan.
+ * Agent bajaradi va natijani yozadi.
+ */
+export const agentTasks = pgTable(
+  "agent_tasks",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    action: text("action").notNull(), // analyze | score | demand | custom
+    title: text("title").notNull(),
+    receivableId: uuid("receivable_id").references(() => receivables.id, { onDelete: "set null" }),
+    deadline: timestamp("deadline", { withTimezone: true }),
+    status: text("status").notNull().default("pending"), // pending | done | failed
+    result: text("result"),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("agent_tasks_tenant_status_idx").on(t.tenantId, t.status)],
+);

@@ -18,6 +18,7 @@ export const TENANT_SCOPED_TABLES = [
   "reminders",
   "approval_requests",
   "audit_logs",
+  "agent_tasks",
 ] as const;
 
 /**

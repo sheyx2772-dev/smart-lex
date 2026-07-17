@@ -25,7 +25,8 @@
     "studio": "Hujjat tayyorlash",
     "scoring": "Skoring",
     "active": "Faol",
-    "monitoring": "Kuzatuvda"
+    "monitoring": "Kuzatuvda",
+    "tasks": "Topshiriqlar"
   },
   "agent": {
     "status": "Agent holati",
@@ -1117,5 +1118,32 @@
     "single": "Bittalab",
     "bulk": "Ko'plab (CSV)",
     "back": "Orqaga"
+  },
+  "agentTasks": {
+    "title": "Topshiriqlar",
+    "subtitle": "Platformaga (AI agentga) ish biriktiring — u bajaradi va natijani yozadi.",
+    "newTask": "Yangi topshiriq",
+    "action": "Amal",
+    "actAnalyze": "Tahlil qilish",
+    "actScore": "Risk baholash",
+    "actDemand": "Talabnoma tayyorlash",
+    "actCustom": "Boshqa (qo'lda)",
+    "taskTitle": "Sarlavha",
+    "taskTitlePh": "masalan, GLOBAL SNAB bo'yicha tahlil",
+    "target": "Nishon (qarzdor)",
+    "targetNone": "— tanlanmagan —",
+    "deadline": "Muddat",
+    "create": "Biriktirish",
+    "creating": "Yaratilmoqda…",
+    "colTask": "Topshiriq",
+    "colTarget": "Qarzdor",
+    "colDeadline": "Muddat",
+    "colStatus": "Holat",
+    "run": "Bajarish",
+    "running": "Bajarilmoqda…",
+    "stPending": "Kutilmoqda",
+    "stDone": "Bajarildi",
+    "empty": "Topshiriq yo'q — birinchisini biriktiring",
+    "resultLabel": "Natija"
   }
 }

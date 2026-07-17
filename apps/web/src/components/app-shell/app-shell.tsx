@@ -12,6 +12,7 @@ import {
   Handshake,
   type Icon,
   NotePencil,
+  ListChecks,
   PaperPlaneTilt,
   Pulse,
   Robot,
@@ -37,6 +38,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     label: "groupMain",
     items: [
       { href: "/agent", key: "agent", icon: Robot },
+      { href: "/agent/tasks", key: "tasks", icon: ListChecks },
       { href: "/chat", key: "chat", icon: ChatCircleDots },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },

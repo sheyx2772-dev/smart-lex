@@ -25,7 +25,8 @@
     "studio": "Document studio",
     "scoring": "Scoring",
     "active": "Active",
-    "monitoring": "Monitoring"
+    "monitoring": "Monitoring",
+    "tasks": "Tasks"
   },
   "agent": {
     "status": "Agent status",
@@ -1117,5 +1118,32 @@
     "single": "One by one",
     "bulk": "Bulk (CSV)",
     "back": "Back"
+  },
+  "agentTasks": {
+    "title": "Tasks",
+    "subtitle": "Assign work to the platform (AI agent) — it executes and records the result.",
+    "newTask": "New task",
+    "action": "Action",
+    "actAnalyze": "Analyze",
+    "actScore": "Score risk",
+    "actDemand": "Prepare demand",
+    "actCustom": "Other (manual)",
+    "taskTitle": "Title",
+    "taskTitlePh": "e.g. analysis for GLOBAL SNAB",
+    "target": "Target (debtor)",
+    "targetNone": "— none —",
+    "deadline": "Deadline",
+    "create": "Assign",
+    "creating": "Creating…",
+    "colTask": "Task",
+    "colTarget": "Debtor",
+    "colDeadline": "Deadline",
+    "colStatus": "Status",
+    "run": "Run",
+    "running": "Running…",
+    "stPending": "Pending",
+    "stDone": "Done",
+    "empty": "No tasks — assign the first",
+    "resultLabel": "Result"
   }
 }
