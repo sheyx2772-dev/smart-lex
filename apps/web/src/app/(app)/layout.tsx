@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell/app-shell";
+import { SiteWindowHost } from "@/components/site-window";
 import { apiServer } from "@/lib/api";
 
 interface Me {
@@ -20,6 +21,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <AppShell user={meRes.data.user} tenant={meRes.data.tenant} pendingApprovals={pendingApprovals}>
       {children}
+      <SiteWindowHost />
     </AppShell>
   );
 }

@@ -1,8 +1,25 @@
 /**
- * Tashqi saytni (sud.uz, didox.uz, pochta...) EKRAN O'RTASIDA alohida oynada
- * ochadi — boshqa tabga o'tmasdan. Foydalanuvchi u yerda E-IMZO bilan kiradi.
+ * Tashqi sayt integratsiyasi (sud.uz, didox.uz, pochta...).
+ *
+ * `openSiteWindow` — ilova ICHIDA, ekran O'RTASIDA "oyna" modalini ochadi
+ * (SiteWindowHost tinglaydi). Bu in-app brauzerda ham, popup-bloklangan
+ * brauzerlarda ham ishonchli ishlaydi.
+ *
+ * `openSitePopup` — haqiqiy alohida brauzer oynasi (E-IMZO bilan kirish uchun).
  */
-export function openSiteWindow(url: string, name: string): Window | null {
+export interface OpenSiteDetail {
+  url: string;
+  title: string;
+}
+
+export const OPEN_SITE_EVENT = "lex:open-site";
+
+export function openSiteWindow(url: string, name: string): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent<OpenSiteDetail>(OPEN_SITE_EVENT, { detail: { url, title: name } }));
+}
+
+export function openSitePopup(url: string, name: string): Window | null {
   if (typeof window === "undefined") return null;
   const sw = window.screen.availWidth;
   const sh = window.screen.availHeight;
