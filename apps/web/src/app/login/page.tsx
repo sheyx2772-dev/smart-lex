@@ -85,18 +85,26 @@ export default function LoginPage() {
         @keyframes lxFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
         @keyframes lxMarquee {from{transform:translateX(0)}to{transform:translateX(-50%)}}
         @keyframes lxIn {from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+        @keyframes lxShine {0%{transform:translateX(-140%) skewX(-18deg)}60%,100%{transform:translateX(240%) skewX(-18deg)}}
+        @keyframes lxGlow {0%,100%{filter:drop-shadow(0 0 0 rgba(59,130,246,0))}50%{filter:drop-shadow(0 0 7px rgba(59,130,246,.75))}}
+        @keyframes lxWave {0%,100%{transform:translateX(0)}50%{transform:translateX(-24px)}}
         [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
         [data-reveal].in{opacity:1;transform:none}
         .lx-aurora{animation:lxAurora 16s ease-in-out infinite}
         .lx-float{animation:lxFloat 6s ease-in-out infinite}
         .lx-marquee{animation:lxMarquee 26s linear infinite}
         .lx-in{animation:lxIn .3s ease}
+        .lx-glow{animation:lxGlow 2.6s ease-in-out infinite}
+        .lx-wave{animation:lxWave 9s ease-in-out infinite}
+        .lx-shine{position:relative;overflow:hidden}
+        .lx-shine>span{position:relative;z-index:1}
+        .lx-shine::after{content:"";position:absolute;top:0;left:0;height:100%;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:lxShine 3s ease-in-out infinite;pointer-events:none}
       `}</style>
 
       {/* ── Navbar ─────────────────────────────── */}
       <header className="sticky top-4 z-30 mx-auto flex w-[min(1120px,92%)] items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-2.5 shadow-lg shadow-blue-900/5 backdrop-blur-xl">
         <div className="flex items-center gap-2.5">
-          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30">
+          <div className="lx-glow grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-blue-500/30">
             <Sparkle weight="fill" className="size-5 text-white" />
           </div>
           <span className="font-display text-[17px] font-bold tracking-tight">{tApp("name")}</span>
@@ -108,19 +116,45 @@ export default function LoginPage() {
         </nav>
         <div className="flex items-center gap-2.5">
           <LocaleSwitcher />
-          <button onClick={openLogin} className="rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-transform hover:scale-105">
-            {t("submit")}
+          <button onClick={openLogin} className="lx-shine rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-transform hover:scale-105">
+            <span>{t("submit")}</span>
           </button>
         </div>
       </header>
 
       {/* ── Hero ───────────────────────────────── */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-blue-50/80 via-white to-white" />
+        {/* Xira ko'k gradient baner (soft banner) */}
+        <div
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{ background: "radial-gradient(1100px 520px at 50% -8%, rgba(37,99,235,.24), transparent 62%), linear-gradient(180deg,#eaf1ff 0%,#f4f8ff 42%,#ffffff 100%)" }}
+        />
         <div className="lx-aurora pointer-events-none absolute -left-40 -top-24 -z-10 size-[460px] rounded-full bg-blue-400/30 blur-3xl" />
         <div className="lx-aurora pointer-events-none absolute -right-36 top-24 -z-10 size-[420px] rounded-full bg-indigo-400/30 blur-3xl" style={{ animationDelay: "-6s" }} />
         <div className="lx-aurora pointer-events-none absolute bottom-0 left-1/3 -z-10 size-[380px] rounded-full bg-sky-400/20 blur-3xl" style={{ animationDelay: "-11s" }} />
         <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(#1e293b 1px,transparent 1px),linear-gradient(90deg,#1e293b 1px,transparent 1px)", backgroundSize: "44px 44px" }} />
+        {/* Orqa ko'k rasmli baner — abstrakt to'lqinli SVG (original) */}
+        <svg
+          className="lx-wave pointer-events-none absolute bottom-16 -z-10 h-72 opacity-90"
+          style={{ width: "106%", left: "-3%" }}
+          viewBox="0 0 1440 320"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+        >
+          <defs>
+            <linearGradient id="lxw1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="lxw2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path fill="url(#lxw1)" d="M0,160 C240,240 480,80 720,140 C960,200 1200,120 1440,180 L1440,320 L0,320 Z" />
+          <path fill="url(#lxw2)" d="M0,224 C300,164 560,262 840,214 C1080,172 1260,244 1440,214 L1440,320 L0,320 Z" />
+        </svg>
 
         <div className="mx-auto grid w-[min(1120px,92%)] items-center gap-10 py-16 lg:grid-cols-[1.05fr_460px] lg:py-24">
           <div data-reveal className="text-center lg:text-left">
@@ -138,19 +172,19 @@ export default function LoginPage() {
             </h1>
             <p className="mx-auto mt-5 max-w-xl text-[15px] leading-relaxed text-slate-500 lg:mx-0">{t("heroDesc")}</p>
             <div className="mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start">
-              <button onClick={openLogin} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-transform hover:scale-[1.03]">
-                {t("submit")} <ArrowRight weight="bold" className="size-4" />
+              <button onClick={openLogin} className="lx-shine inline-flex items-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/25 transition-transform hover:scale-[1.03]">
+                <span className="inline-flex items-center gap-2">{t("submit")} <ArrowRight weight="bold" className="size-4" /></span>
               </button>
               <a href="#qanday" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-blue-300">
                 {l("navHow")}
               </a>
             </div>
             <div className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start">
-              {FEATURES.map((f) => {
+              {FEATURES.map((f, i) => {
                 const Ic = f.icon;
                 return (
                   <span key={f.key} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white/80 px-2.5 py-1 text-xs font-medium text-slate-600 shadow-sm">
-                    <Ic weight="fill" className="size-3.5 text-blue-600" /> {t(`feat.${f.key}` as never)}
+                    <Ic weight="fill" className="lx-glow size-3.5 text-blue-600" style={{ animationDelay: `${i * 0.4}s` }} /> {t(`feat.${f.key}` as never)}
                   </span>
                 );
               })}
@@ -304,8 +338,8 @@ export default function LoginPage() {
             <Lightning weight="fill" className="lx-float mx-auto size-10" />
             <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">{l("ctaTitle")}</h2>
             <p className="mx-auto mt-3 max-w-xl text-blue-100">{l("ctaDesc")}</p>
-            <button onClick={openLogin} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.04]">
-              {t("submit")} <ArrowRight weight="bold" className="size-4" />
+            <button onClick={openLogin} className="lx-shine mt-8 inline-flex items-center rounded-xl bg-white px-6 py-3.5 text-[15px] font-semibold text-blue-700 shadow-lg transition-transform hover:scale-[1.04]">
+              <span className="inline-flex items-center gap-2">{t("submit")} <ArrowRight weight="bold" className="size-4" /></span>
             </button>
           </div>
         </div>
