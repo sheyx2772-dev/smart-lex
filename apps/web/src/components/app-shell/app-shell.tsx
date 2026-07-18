@@ -97,7 +97,10 @@ export function AppShell({ user, tenant, pendingApprovals, children }: Props) {
   }
 
   return (
-    <div className="grid h-screen grid-cols-[248px_1fr] overflow-hidden bg-background">
+    <div
+      className="grid h-screen grid-cols-[248px_1fr] overflow-hidden bg-background"
+      style={{ "--font-display": "var(--font-inter), ui-sans-serif, system-ui, sans-serif" } as React.CSSProperties}
+    >
       {/* ── Sidebar — yumshoq "command rail" ───────────────────── */}
       <aside
         className="relative flex h-screen flex-col overflow-hidden text-white"

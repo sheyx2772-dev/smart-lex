@@ -96,9 +96,9 @@
   --color-danger-foreground: var(--danger-foreground);
   --color-danger-soft: var(--danger-soft);
 
-  /* Yagona shrift tizimi — sarlavha ham, matn ham Inter (kirill+lotin izchil).
-     Sarlavhalar faqat og'irroq/qisiqroq bo'ladi, shrift oilasi bir xil. */
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* Landing sarlavhalari uchun Space Grotesk (o'ziga xos editorial ko'rinish).
+     Ichki ilova esa app-shell'da Inter'ga o'tadi (kirill izchilligi uchun). */
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
