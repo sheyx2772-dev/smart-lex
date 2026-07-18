@@ -110,11 +110,11 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
       {/* Premium "mission control" hero — sarlavha + agent run + buyruq qatori */}
       <div
         className="relative overflow-hidden rounded-2xl border border-white/10 p-5 text-white shadow-lg"
-        style={{ background: "linear-gradient(135deg, #232a44 0%, #1b2136 55%, #171c2e 100%)" }}
+        style={{ background: "linear-gradient(135deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
       >
         <div
-          className="pointer-events-none absolute -right-10 -top-12 size-56 rounded-full opacity-50"
-          style={{ background: "radial-gradient(circle, rgba(124,58,237,0.35), transparent 70%)" }}
+          className="pointer-events-none absolute -right-10 -top-12 size-56 rounded-full opacity-60"
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.07), transparent 70%)" }}
         />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.04]"
@@ -125,7 +125,7 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
         />
         <div className="relative flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/40 ring-1 ring-white/15">
+            <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-zinc-900 shadow-lg ring-1 ring-white/20">
               <Robot weight="fill" className="size-6" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
           <button
             onClick={runAgent}
             disabled={running}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-primary to-secondary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/40 transition-all hover:shadow-xl disabled:opacity-70"
+            className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 shadow-lg transition-all hover:bg-white/90 disabled:opacity-70"
           >
             {running ? <Spinner className="size-4 animate-spin" /> : <Lightning weight="fill" className="size-4" />}
             {running ? t("running") : t("runAgent")}
@@ -151,8 +151,8 @@ export function AgentConsoleClient({ initial }: { initial: ConsoleData }) {
           }}
           className="relative mt-4"
         >
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] p-1.5 backdrop-blur focus-within:border-primary/50">
-            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
+          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] p-1.5 backdrop-blur focus-within:border-white/30">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white text-zinc-900">
               <Sparkle weight="fill" className="size-4" />
             </span>
             <input

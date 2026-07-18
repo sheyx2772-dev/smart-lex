@@ -139,7 +139,7 @@ export default async function DashboardPage() {
       <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary-soft/60 via-card to-secondary-soft/40 p-6">
         <div
           className="pointer-events-none absolute -right-10 -top-10 size-48 rounded-full opacity-50"
-          style={{ background: "radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(120,124,135,0.14), transparent 70%)" }}
         />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">

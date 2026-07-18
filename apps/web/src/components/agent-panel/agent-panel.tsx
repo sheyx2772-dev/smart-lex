@@ -151,7 +151,7 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
           onClick={openPanel}
           aria-label={t("open")}
           className="group fixed bottom-6 right-6 z-[55] grid size-14 place-items-center rounded-full text-white shadow-xl shadow-primary/30 ring-1 ring-white/15 transition-all hover:scale-105 hover:shadow-primary/50"
-          style={{ background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)" }}
+          style={{ background: "linear-gradient(135deg, #2a2c34 0%, #1e2027 100%)" }}
         >
           <Robot weight="fill" className="size-7" />
           {/* Faol puls */}
@@ -176,7 +176,7 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
             <button
               key={e.id}
               onClick={openPanel}
-              className="animate-toast-in pointer-events-auto flex items-center gap-3 rounded-xl border border-white/10 bg-[#1b2136]/95 p-3 text-left shadow-2xl backdrop-blur-md transition-transform hover:scale-[1.01]"
+              className="animate-toast-in pointer-events-auto flex items-center gap-3 rounded-xl border border-white/10 bg-[#20222a]/95 p-3 text-left shadow-2xl backdrop-blur-md transition-transform hover:scale-[1.01]"
             >
               <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white shadow-md shadow-primary/40">
                 <Ic weight="fill" className="size-[18px]" />
@@ -206,13 +206,13 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
           "fixed inset-y-0 left-0 z-[60] flex w-[384px] max-w-[92vw] flex-col overflow-hidden text-white shadow-2xl transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
         )}
-        style={{ background: "linear-gradient(180deg, #232a44 0%, #1b2136 60%, #171c2e 100%)" }}
+        style={{ background: "linear-gradient(180deg, #282a31 0%, #202228 60%, #191b20 100%)" }}
         aria-hidden={!open}
       >
         {/* Ambient glow */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-64 opacity-70"
-          style={{ background: "radial-gradient(120% 80% at 30% 0%, rgba(124,58,237,0.28), transparent 72%)" }}
+          style={{ background: "radial-gradient(120% 80% at 30% 0%, rgba(255,255,255,0.07), transparent 72%)" }}
         />
 
         {/* Header */}
