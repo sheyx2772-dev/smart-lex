@@ -55,10 +55,13 @@ if [ -f "$CRED" ]; then . "$CRED"; else
   printf 'PG_SUPER_PW=%s\nAPP_DB_PW=%s\nJWT_SECRET=%s\n' "$PG_SUPER_PW" "$APP_DB_PW" "$JWT_SECRET" > "$CRED"
   chmod 600 "$CRED"
 fi
-sudo -u postgres psql -v ON_ERROR_STOP=1 -c "ALTER USER postgres PASSWORD '${PG_SUPER_PW}';"
-sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='lex'" | grep -q 1 || sudo -u postgres createdb lex
-# gen_random_uuid() eski Postgres (13-) da pgcrypto talab qiladi — kafolat uchun:
-sudo -u postgres psql -d lex -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null 2>&1 || true
+# /tmp dan — postgres foydalanuvchi /root ga kira olmagani uchun (zararsiz ogohlantirishni oldini oladi)
+( cd /tmp
+  sudo -u postgres psql -v ON_ERROR_STOP=1 -c "ALTER USER postgres PASSWORD '${PG_SUPER_PW}';"
+  sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='lex'" | grep -q 1 || sudo -u postgres createdb lex
+  # gen_random_uuid() eski Postgres (13-) da pgcrypto talab qiladi — kafolat uchun:
+  sudo -u postgres psql -d lex -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null 2>&1 || true
+)
 
 log "4/7 apps/api/.env"
 ENV="$ROOT/apps/api/.env"
@@ -90,7 +93,7 @@ ENVEOF
 else echo "  mavjud — tegilmadi: $ENV"; fi
 
 log "5/7 Bog'liqliklar (pnpm install) — bir necha daqiqa"
-corepack pnpm install --frozen-lockfile
+corepack pnpm install --no-frozen-lockfile
 
 log "6/7 Migratsiya (sxema + RLS + One-ID funksiyalari)"
 set -a; . "$ENV"; set +a
