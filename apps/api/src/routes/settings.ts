@@ -103,7 +103,8 @@ settingsRoutes.put("/password", async (c) => {
 
   const result = await withTenant(tenantId, async (tx) => {
     const [user] = await tx.select().from(users).where(eq(users.id, userId));
-    if (!user || !(await verifyPassword(parsed.data.currentPassword, user.passwordHash))) return "bad_current";
+    // One-ID (parolsiz) foydalanuvchida passwordHash null — parol almashtirib bo'lmaydi.
+    if (!user || !user.passwordHash || !(await verifyPassword(parsed.data.currentPassword, user.passwordHash))) return "bad_current";
     const hash = await hashPassword(parsed.data.newPassword);
     await tx.update(users).set({ passwordHash: hash }).where(eq(users.id, userId));
     return "ok";

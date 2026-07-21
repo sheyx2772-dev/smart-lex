@@ -16,7 +16,8 @@ authRoutes.post("/login", async (c) => {
   }
 
   const user = await findUserForAuth(parsed.data.email);
-  if (!user || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
+  // passwordHash null => One-ID (parolsiz) foydalanuvchi: parol bilan kira olmaydi.
+  if (!user || !user.passwordHash || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
     return c.json(fail(ERROR_CODE.UNAUTHORIZED, "auth.invalid_credentials", locale), 401);
   }
 

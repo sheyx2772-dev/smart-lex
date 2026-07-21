@@ -13,7 +13,8 @@ export { EskizNotifier } from "./eskiz";
  *   — REAL Eskiz.uz; aks holda mock.
  * - Boshqa kanallar (email/telegram/hybrid): hozircha mock (real provayder shu yerda ulanadi).
  */
-export function createNotifier(channel: ReminderChannel): Notifier {
+export function createNotifier(channel: ReminderChannel, _config?: { pochtaToken?: string | null }): Notifier {
+  // _config (mas. pochtaToken) — hybrid/pochta provayderи ulanganда ishlatiladi (hozircha mock).
   if (channel === "sms" && (process.env.ESKIZ_TOKEN || (process.env.ESKIZ_EMAIL && process.env.ESKIZ_PASSWORD))) {
     return new EskizNotifier({
       email: process.env.ESKIZ_EMAIL,

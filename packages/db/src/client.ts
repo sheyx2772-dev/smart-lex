@@ -40,7 +40,7 @@ export async function withTenant<T>(tenantId: string, fn: (tx: TenantTx) => Prom
 export interface AuthUser {
   id: string;
   tenantId: string;
-  passwordHash: string;
+  passwordHash: string | null; // One-ID (parolsiz) foydalanuvchilarда null
   role: string;
   locale: string;
   fullName: string;
@@ -55,7 +55,7 @@ export async function findUserForAuth(email: string): Promise<AuthUser | null> {
   const rows = await db.execute<{
     id: string;
     tenant_id: string;
-    password_hash: string;
+    password_hash: string | null;
     role: string;
     locale: string;
     full_name: string;
