@@ -5,11 +5,15 @@ import { type Currency, DEFAULT_CURRENCY, type Money } from "@lex/shared";
  * Suzuvchi nuqta ISHLATILMAYDI — moliyaviy aniqlik uchun.
  */
 
-export function money(minor: bigint | number, currency: Currency = DEFAULT_CURRENCY): Money {
-  return { minor: typeof minor === "bigint" ? minor : BigInt(Math.trunc(minor)), currency };
+// Currency'ni Currency yoki ixtiyoriy string sifatida qabul qilamiz (DB'dan
+// kelgan enum ustunlar `string` deb tiplashi mumkin) — avtomatik tugallash saqlanadi.
+type CurrencyInput = Currency | (string & {});
+
+export function money(minor: bigint | number, currency: CurrencyInput = DEFAULT_CURRENCY): Money {
+  return { minor: typeof minor === "bigint" ? minor : BigInt(Math.trunc(minor)), currency: currency as Currency };
 }
 
-export const zero = (currency: Currency = DEFAULT_CURRENCY): Money => money(0n, currency);
+export const zero = (currency: CurrencyInput = DEFAULT_CURRENCY): Money => money(0n, currency);
 
 function assertSameCurrency(a: Money, b: Money): void {
   if (a.currency !== b.currency) {

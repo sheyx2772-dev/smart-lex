@@ -10,8 +10,8 @@
 export type DocTemplateType = "demand_letter" | "court_claim" | "reconciliation_act";
 
 /** {var} larni qiymatlar bilan almashtiradi (topilmagani bo'sh qoladi). */
-export function fillTemplate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : ""));
+export function fillDocTemplate(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_m: string, k: string) => vars[k] ?? "");
 }
 
 /** Har hujjat turi uchun mavjud o'zgaruvchilar (UI chiplari uchun). */

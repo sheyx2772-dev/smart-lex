@@ -20,7 +20,7 @@ auditRoutes.get("/audit", async (c) => {
   const where = conds.length ? and(...conds) : undefined;
 
   const data = await withTenant(tenantId, async (tx) => {
-    const [{ count }] = await tx.select({ count: sql<number>`count(*)::int` }).from(auditLogs).where(where);
+    const count = (await tx.select({ count: sql<number>`count(*)::int` }).from(auditLogs).where(where))[0]?.count ?? 0;
 
     const rows = await tx
       .select()

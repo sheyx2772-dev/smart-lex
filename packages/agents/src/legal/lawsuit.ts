@@ -2,7 +2,7 @@ import { format } from "@lex/core";
 import { type Locale, type Money } from "@lex/shared";
 import { generateText } from "ai";
 import { getModel } from "../llm";
-import { fillTemplate } from "./doc-templates";
+import { fillDocTemplate } from "./doc-templates";
 
 /**
  * Da'vo arizasi (iqtisodiy sud) generatori.
@@ -186,7 +186,7 @@ function fromCustomLawsuit(input: LawsuitInput, template: string): Lawsuit {
     kun: String(input.overdueDays),
     imzolovchi: input.signatory ? `${input.signatory.position} ${input.signatory.name}`.trim() : input.plaintiff.name,
   };
-  return { subject: base.subject, body: fillTemplate(template, vars), generatedBy: "template" };
+  return { subject: base.subject, body: fillDocTemplate(template, vars), generatedBy: "template" };
 }
 
 /** LLM bilan sayqallangan da'vo. Tenant shabloni bo'lsa — o'sha. Aks holda default + LLM. */

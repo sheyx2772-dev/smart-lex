@@ -7,8 +7,8 @@ import { generateReconciliationAct } from "./reconciliation";
 describe("generateDemandLetter (talabnoma)", () => {
   const letter = generateDemandLetter({
     locale: "uz",
-    creditor: { name: "ALFA TRADE", bankAccount: "2020...", bankMfo: "00014" },
-    debtor: { name: "GLOBAL SNAB" },
+    creditor: { name: "ALFA TRADE", tin: "301234567", bankAccount: "2020...", bankMfo: "00014" },
+    debtor: { name: "GLOBAL SNAB", tin: "305111222" },
     contractNumber: "SH-2026-001",
     invoiceNumbers: ["INV-1001"],
     principal: money(500_000_000n, "UZS"),

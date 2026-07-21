@@ -37,7 +37,7 @@ companyRoutes.get("/companies", async (c) => {
   const data = await withTenant(tenantId, async (tx) => {
     const where = q ? or(ilike(contractors.name, `%${q}%`), ilike(contractors.tin, `%${q}%`)) : undefined;
 
-    const [{ count }] = await tx.select({ count: sql<number>`count(*)::int` }).from(contractors).where(where);
+    const count = (await tx.select({ count: sql<number>`count(*)::int` }).from(contractors).where(where))[0]?.count ?? 0;
 
     const rows = await tx
       .select({

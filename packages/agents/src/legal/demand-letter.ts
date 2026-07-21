@@ -2,7 +2,7 @@ import { format } from "@lex/core";
 import { type Locale, type Money } from "@lex/shared";
 import { generateText } from "ai";
 import { getModel } from "../llm";
-import { fillTemplate } from "./doc-templates";
+import { fillDocTemplate } from "./doc-templates";
 
 /**
  * Talabnoma (sudgacha da'vo/pretenziya) generatori.
@@ -161,7 +161,7 @@ function fromCustom(input: DemandLetterInput, template: string): DemandLetter {
     muddat: String(input.responseDeadlineDays),
     imzolovchi: input.signatory ? `${input.signatory.position} ${input.signatory.name}`.trim() : "",
   };
-  return { subject: base.subject, body: fillTemplate(template, vars), generatedBy: "template" };
+  return { subject: base.subject, body: fillDocTemplate(template, vars), generatedBy: "template" };
 }
 
 export async function generateDemandLetterSmart(input: DemandLetterInput, customTemplate?: string): Promise<DemandLetter> {

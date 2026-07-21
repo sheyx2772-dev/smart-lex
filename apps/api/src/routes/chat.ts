@@ -51,8 +51,7 @@ chatRoutes.post("/chat", async (c) => {
       .limit(20);
 
     let totOut = 0n, totPen = 0n, over = 0, paidCnt = 0;
-    const [{ paid }] = await tx.select({ paid: sql<number>`count(*) filter (where ${receivables.status}='paid')::int` }).from(receivables);
-    paidCnt = paid ?? 0;
+    paidCnt = (await tx.select({ paid: sql<number>`count(*) filter (where ${receivables.status}='paid')::int` }).from(receivables))[0]?.paid ?? 0;
     for (const r of rows) {
       totOut += BigInt(r.out);
       totPen += BigInt(r.pen);
@@ -80,7 +79,7 @@ chatRoutes.post("/chat", async (c) => {
     // Xabarda kontragent nomi bor-yo'qligini aniqlaymiz (eng uzun moslik).
     const matched = allContractors
       .filter((cc) => {
-        const first = cc.name.toLowerCase().split(/\s+/)[0];
+        const first = cc.name.toLowerCase().split(/\s+/)[0] ?? "";
         return m.includes(cc.name.toLowerCase()) || (first.length >= 3 && m.includes(first)) || m.includes(cc.tin);
       })
       .sort((a, b) => b.name.length - a.name.length)[0];
@@ -180,8 +179,8 @@ function fill(tpl: string, vars: Record<string, string | number>): string {
 }
 
 // Ko'p tilli javob shablonlari (locale kaliti bilan).
-type L = Record<string, string>;
-const T: Record<string, L> = {
+type L = { uz: string; ru: string; en: string };
+const T = {
   empty: { uz: "Savolingizni yozing.", ru: "Напишите ваш вопрос.", en: "Type your question." },
   tin: { uz: "STIR", ru: "ИНН", en: "TIN" },
   days: { uz: "kun", ru: "дн.", en: "days" },
@@ -216,4 +215,4 @@ const T: Record<string, L> = {
     ru: "Спросите меня: «просроченные долги», «документы GLOBAL SNAB», «неоплаченные», «высокий риск» или введите название контрагента.",
     en: "Ask me: 'overdue debts', 'GLOBAL SNAB documents', 'unpaid', 'high risk', or type a counterparty name.",
   },
-};
+} satisfies Record<string, L>;

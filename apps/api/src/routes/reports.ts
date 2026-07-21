@@ -64,7 +64,7 @@ reportRoutes.get("/reports", async (c) => {
       else if (r.riskScore >= 60) risk.high++;
       else if (r.riskScore >= 30) risk.medium++;
       else risk.low++;
-      for (const st of r.executedStages ?? []) if (st in funnel) funnel[st]++;
+      for (const st of r.executedStages ?? []) if (st in funnel) funnel[st] = (funnel[st] ?? 0) + 1;
     }
 
     const totalAgingSum = AGING_BUCKETS.reduce((s, b) => s + (agingSum[b] ?? 0n), 0n);

@@ -63,7 +63,7 @@ dashboardRoutes.get("/dashboard", async (c) => {
         overdueCount++;
         overdueDaysSum += r.overdueDays;
       }
-      for (const st of r.executedStages ?? []) if (st in funnel) funnel[st]++;
+      for (const st of r.executedStages ?? []) if (st in funnel) funnel[st] = (funnel[st] ?? 0) + 1;
     }
 
     const total = recs.length;
