@@ -70,7 +70,7 @@ services:
       DATABASE_URL: postgresql://lex_app:${APP_DB_PASSWORD}@postgres:5432/lex
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET}
-      WEB_URL: https://tijoraat.uz
+      WEB_URL: https://${APP_DOMAIN}
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: ${S3_ACCESS_KEY}
       S3_SECRET_KEY: ${S3_SECRET_KEY}
@@ -80,10 +80,11 @@ services:
       ONEID_BASE_URL: https://sso.egov.uz/sso/oauth/Authorization.do
       ONEID_CLIENT_ID: ${ONEID_CLIENT_ID}
       ONEID_CLIENT_SECRET: ${ONEID_CLIENT_SECRET}
-      ONEID_REDIRECT_URI: https://api.tijoraat.uz/auth/oneid/callback
+      # DIQQAT: bu One-ID'да ro'yxatdан o'tган redirect_uri bilan AYNAN teng bo'lishi shart.
+      ONEID_REDIRECT_URI: https://${API_DOMAIN}/auth/oneid/callback
       ONEID_SCOPE: ${ONEID_SCOPE}
-      ONEID_POST_LOGIN_REDIRECT: https://tijoraat.uz
-      COOKIE_DOMAIN: .tijoraat.uz
+      ONEID_POST_LOGIN_REDIRECT: https://${APP_DOMAIN}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN}
       ONEID_AUTO_PROVISION: ${ONEID_AUTO_PROVISION:-false}
       ONEID_REQUIRE_VERIFIED: ${ONEID_REQUIRE_VERIFIED:-false}
       ONEID_REQUIRE_ERI: ${ONEID_REQUIRE_ERI:-false}
@@ -99,7 +100,7 @@ services:
     environment:
       NODE_ENV: production
       API_URL: http://api:3001
-      ONEID_PUBLIC_API_URL: https://api.tijoraat.uz
+      ONEID_PUBLIC_API_URL: https://${API_DOMAIN}
     depends_on:
       - api
 
@@ -125,6 +126,9 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddydata:/data

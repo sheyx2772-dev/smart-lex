@@ -1,8 +1,18 @@
-# SmartLex — VPS'ga deploy (tijoraat.uz, One-ID bilan)
+# SmartLex — VPS'ga deploy (One-ID bilan)
 
 Server: **VPS 185.191.141.146** (Eskiz VDS). Bu IP One-ID whitelist'ида —
-shuning uchun whitelist'ни o'zgartirish shart emas. Barcha buyruqlar **serverда**
-(SSH orqali) bajariladi.
+shuning uchun IP whitelist'ни o'zgartirish shart emas. Barcha buyruqlar **serverда**
+(SSH orqali) bajariladi. Domen `infra/.env`даги `APP_DOMAIN`/`API_DOMAIN` bilan
+belgilanadi (kod o'zgartirilmaydi).
+
+> ## ⚠️ One-ID va domen — eng muhim shart
+> One-ID `redirect_uri` **uzinfokomда ro'yxatдан o'tган domen bilan AYNAN teng**
+> bo'lishi shart. Agar domenni o'zgartirгan bo'lsangiz (mas. `tijoraat.uz` →
+> `lexai.com.uz`), One-ID **avtomatik ishlamaydi** — avval **uzinfokomга murojaat
+> qilib**, `redirect_uri`ни yangi domenга (`https://api.<yangi-domen>/auth/oneid/callback`)
+> **qayta ro'yxatдан o'tkazish** kerak. IP (`185.191.141.146`) o'sha bo'lsa,
+> IP whitelist'ни o'zgartirish shart emas. Ro'yxat yangilanmaguncha One-ID
+> `invalid redirect` beradi.
 
 ---
 
@@ -14,15 +24,15 @@ shuning uchun whitelist'ни o'zgartirish shart emas. Barcha buyruqlar **server�
 
 ## 1. DNS (Eskiz panelида yoki NS orqali)
 
-Ikkala A-yozuv `185.191.141.146`ga qarasin:
+Domeningiz A-yozuvlari `185.191.141.146`ga qarasin (misol `lexai.com.uz`):
 
 | Nom | Turi | Qiymat |
 |---|---|---|
-| `tijoraat.uz` | A | 185.191.141.146 |
-| `api.tijoraat.uz` | A | 185.191.141.146 |
-| `www.tijoraat.uz` | A | 185.191.141.146 |
+| `lexai.com.uz` (APP_DOMAIN) | A | 185.191.141.146 |
+| `api.lexai.com.uz` (API_DOMAIN) | A | 185.191.141.146 |
+| `www.lexai.com.uz` | A | 185.191.141.146 |
 
-> `api.tijoraat.uz` — One-ID `redirect_uri` shu yerда. HTTPS Caddy avtomatik oladi.
+> `api.<domen>` — One-ID `redirect_uri` shu yerда (uzinfokomда ro'yxatдан o'tган bo'lsin). HTTPS'ni Caddy avtomatik oladi.
 
 ## 2. Serverга kirish + Docker o'rnatish
 
