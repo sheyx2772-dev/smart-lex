@@ -19,6 +19,10 @@ export const env = {
     cookieDomain: process.env.COOKIE_DOMAIN ?? "",
     // Tashkilot mavjud, lekin foydalanuvchi yo'q bo'lsa — avtomatik yaratilsinmi?
     autoProvision: (process.env.ONEID_AUTO_PROVISION ?? "false") === "true",
+    // "Tasdiqlangan foydalanuvchi" (ERI/Mobile-ID) shartmi — huquqiy oqim uchun.
+    requireVerified: (process.env.ONEID_REQUIRE_VERIFIED ?? "false") === "true",
+    // Faqat E-IMZO (ERI) bilan kirishga ruxsat (Mobile-ID/parol rad etiladi).
+    requireEri: (process.env.ONEID_REQUIRE_ERI ?? "false") === "true",
   },
   // Web login cookie nomi (web /api/session bilan bir xil).
   tokenCookie: process.env.TOKEN_COOKIE ?? "LEX_TOKEN",

@@ -1,11 +1,11 @@
-import { createOneIdUser, findTenantByTin, findUserByOneId, linkOneIdByEmail, type OneIdSessionUser } from "@lex/db";
+import { auditLogs, createOneIdUser, findTenantByTin, findUserByOneId, linkOneIdByEmail, type OneIdSessionUser, withTenant } from "@lex/db";
 import { type UserRole } from "@lex/shared";
 import { Hono } from "hono";
 import { setCookie } from "hono/cookie";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
 import { signToken } from "../lib/jwt";
-import { buildAuthorizeUrl, exchangeCode, identify, oneIdLogout, primaryLegalTin, signState, verifyState } from "../lib/oneid";
+import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalTin, signState, verifyState } from "../lib/oneid";
 
 export const oneIdRoutes = new Hono<{ Variables: Variables }>();
 
@@ -45,6 +45,11 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
     const pin = id.pin?.trim();
     if (!pin) return c.redirect(loginError("no_pin"));
 
+    // ── E-IMZO (ERI) / tasdiqlanganlik — One-ID ичida kirish usuli ──
+    const auth = describeAuth(id);
+    if (env.oneid.requireEri && !auth.eri) return c.redirect(loginError("require_eri"));
+    if (env.oneid.requireVerified && !auth.verified) return c.redirect(loginError("not_verified"));
+
     // Tashkilotni STIR bo'yicha aniqlash (B2B — foydalanuvchi yuridik shaxsni ifodalashi kerak).
     const legalTin = primaryLegalTin(id);
     if (!legalTin) return c.redirect(loginError("no_legal_entity"));
@@ -69,6 +74,31 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
       });
     }
     if (!user) return c.redirect(loginError("user_not_found"));
+
+    // Kirish usulini audit'ga yozamiz — huquqiy platforma uchun (kim, qanday: E-IMZO/ERI/Mobile-ID).
+    try {
+      const u = user;
+      await withTenant(u.tenantId, (tx) =>
+        tx.insert(auditLogs).values({
+          tenantId: u.tenantId,
+          actorType: "user",
+          actorId: u.id,
+          action: "auth.oneid_login",
+          entityType: "user",
+          entityId: u.id,
+          detail: {
+            authMethod: auth.method, // LOGINPASSMETHOD | MOBILEMETHOD | PKCSMETHOD | LEPKCSMETHOD | QR
+            eri: auth.eri, // E-IMZO (ERI) bilan kirdi
+            legalEri: auth.legalEri, // yuridik shaxs ERIsi
+            verified: auth.verified, // "Tasdiqlangan foydalanuvchi"
+            legalTin, // qaysi yuridik shaxs (STIR)
+            sessId: id.sess_id ?? null,
+          },
+        }),
+      );
+    } catch (e) {
+      console.error("[oneid:audit]", e);
+    }
 
     // Ilova sessiyasi (JWT) — mavjud login bilan bir xil.
     const appToken = await signToken(user.id, user.tenantId, user.role as UserRole);

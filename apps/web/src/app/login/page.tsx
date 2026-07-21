@@ -622,7 +622,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const tApp = useTranslations("app");
   const router = useRouter();
   const oneidError = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("oneid_error") : null;
-  const KNOWN_ONEID_ERR = new Set(["not_configured", "invalid_state", "not_valid", "no_pin", "no_legal_entity", "tenant_not_registered", "user_not_found", "exchange_failed"]);
+  const KNOWN_ONEID_ERR = new Set(["not_configured", "invalid_state", "not_valid", "no_pin", "no_legal_entity", "tenant_not_registered", "user_not_found", "exchange_failed", "require_eri", "not_verified"]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);

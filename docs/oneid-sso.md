@@ -44,6 +44,26 @@ ulash. Texnologik yo'riqnoma (MC LEGAL ↔ Operator) asosida, OAuth2.
 > Agar u ochiq kanalда yuborilgan bo'lsa — ishga tushirishдан oldin uzinfokomдан
 > **yangi secret** so'rab, almashtiring.
 
+## E-IMZO (ERI) — One-ID ichida
+
+Yo'riqnomада E-IMZO **alohida integratsiya emas** — u One-ID ичidagi autentifikatsiya
+usuli sifatida keladi (`auth_method`):
+
+- `PKCSMETHOD` — jismoniy shaxs ERIsi (E-IMZO)
+- `LEPKCSMETHOD` — yuridik shaxs ERIsi (E-IMZO) → `pkcs_legal_tin` beriladi
+- `MOBILEMETHOD` — Mobile-ID · `LOGINPASSMETHOD` — login/parol · `QR` — QR kod
+
+`identify` javobidagi `valid` ("Tasdiqlangan foydalanuvchi") va `validation_method`
+kirish darajasini bildiradi. Callback bularni o'qib:
+
+- **audit** yozadi (`auth.oneid_login` — `authMethod`, `eri`, `legalEri`, `verified`, `legalTin`);
+- ixtiyoriy cheklaydi:
+  - `ONEID_REQUIRE_ERI=true` → faqat E-IMZO (ERI) bilan kirish (`require_eri` xatosi);
+  - `ONEID_REQUIRE_VERIFIED=true` → faqat tasdiqlangan (ERI/Mobile-ID) hisob (`not_verified`).
+
+Huquqiy hujjatlarни (talabnoma/da'vo) E-IMZO bilan **imzolash** — bu alohida qadam
+bo'lib, o'z API/oqimini talab qiladi (bu yo'riqnomада yo'q); kelganда qo'shiladi.
+
 ## Foydalanuvchini bog'lash (tenant + user)
 
 - **Tenant** — `tenants.tin` = One-ID `legal_info.tin`. Tashkilot oldindan tizimda

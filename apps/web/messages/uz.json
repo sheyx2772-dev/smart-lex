@@ -63,7 +63,9 @@
         "no_legal_entity": "Hisobingizga yuridik shaxs biriktirilmagan.",
         "tenant_not_registered": "Tashkilotingiz tizimda ro'yxatdan o'tmagan. Administrator bilan bog'laning.",
         "user_not_found": "Foydalanuvchi topilmadi. Administrator sizni tizimga qo'shishi kerak.",
-        "exchange_failed": "One-ID bilan aloqada xatolik. Keyinroq urinib ko'ring."
+        "exchange_failed": "One-ID bilan aloqada xatolik. Keyinroq urinib ko'ring.",
+        "require_eri": "Bu tizimga faqat E-IMZO (ERI) bilan kirish mumkin.",
+        "not_verified": "Hisobingiz tasdiqlanmagan. E-IMZO yoki Mobile-ID bilan tasdiqlang."
       }
     },
     "badge": "Avtonom agent · kuzatuvda",

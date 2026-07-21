@@ -63,7 +63,9 @@
         "no_legal_entity": "No legal entity is linked to your account.",
         "tenant_not_registered": "Your organization is not registered in the system. Contact your administrator.",
         "user_not_found": "User not found. Your administrator must add you to the system.",
-        "exchange_failed": "Error communicating with One-ID. Please try again later."
+        "exchange_failed": "Error communicating with One-ID. Please try again later.",
+        "require_eri": "This system can only be accessed with an e-signature (E-IMZO).",
+        "not_verified": "Your account is not verified. Verify it with an e-signature or Mobile-ID."
       }
     },
     "badge": "Autonomous agent · monitoring",

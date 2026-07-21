@@ -137,3 +137,28 @@ export function primaryLegalTin(id: OneIdIdentity): string | null {
   const basic = list.find((l) => l.is_basic) ?? list[0];
   return basic?.tin ?? basic?.le_tin ?? id.pkcs_legal_tin ?? null;
 }
+
+// E-IMZO (ERI) va Mobile-ID — One-ID ichidagi tasdiqlash/kirish usullari.
+const ERI_METHODS = new Set(["PKCSMETHOD", "LEPKCSMETHOD"]); // ERI (E-IMZO): jismoniy / yuridik
+const VERIFIED_METHODS = new Set(["PKCSMETHOD", "MOBILEMETHOD"]); // "Tasdiqlangan foydalanuvchi" usullari
+
+/** Foydalanuvchi E-IMZO (ERI) bilan kirdimi — auth_method PKCS/LEPKCS. */
+export function signedInWithEri(id: OneIdIdentity): boolean {
+  return ERI_METHODS.has((id.auth_method ?? "").toUpperCase());
+}
+
+/**
+ * "Tasdiqlangan foydalanuvchi"mi — valid=true YOKI ERI/Mobile-ID bilan tasdiqlangan.
+ * (Bo'sh validation_method = tasdiqlanmagan hisob.)
+ */
+export function isVerified(id: OneIdIdentity): boolean {
+  if (String(id.valid ?? "") === "true" || id.valid === true) return true;
+  if (signedInWithEri(id) || (id.auth_method ?? "").toUpperCase() === "MOBILEMETHOD") return true;
+  return (id.validation_method ?? []).some((m) => VERIFIED_METHODS.has((m ?? "").toUpperCase()));
+}
+
+/** Kirish usulini qisqa tavsiflaydi (audit uchun). */
+export function describeAuth(id: OneIdIdentity): { method: string; eri: boolean; verified: boolean; legalEri: boolean } {
+  const method = (id.auth_method ?? "").toUpperCase() || "UNKNOWN";
+  return { method, eri: signedInWithEri(id), verified: isVerified(id), legalEri: method === "LEPKCSMETHOD" };
+}
