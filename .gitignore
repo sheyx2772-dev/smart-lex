@@ -11,3 +11,7 @@ coverage/
 .pnpm-store/
 infra/.data/
 *.rdb
+
+# VPS bootstrap sirlari
+infra/.db-creds
+apps/*/.env
