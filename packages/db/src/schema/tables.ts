@@ -62,15 +62,22 @@ export const users = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     email: text("email").notNull(),
-    passwordHash: text("password_hash").notNull(),
+    // One-ID (SSO) foydalanuvchilarida parol yo'q — shuning uchun nullable.
+    passwordHash: text("password_hash"),
     fullName: text("full_name").notNull(),
     role: userRoleEnum("role").notNull().default("viewer"),
     locale: localeEnum("locale").notNull().default("uz"),
     isActive: boolean("is_active").notNull().default(true),
+    // ── One-ID (sso.egov.uz) identifikatori ──
+    oneidPin: text("oneid_pin"), // JShShIR (jismoniy shaxs PIN)
+    oneidSub: text("oneid_sub"), // One-ID user_id (login)
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex("users_tenant_email_uq").on(t.tenantId, t.email)],
+  (t) => [
+    uniqueIndex("users_tenant_email_uq").on(t.tenantId, t.email),
+    uniqueIndex("users_tenant_oneid_uq").on(t.tenantId, t.oneidPin),
+  ],
 );
 
 /** Kontragent (qarzdor/hamkor) — Didox/bank profilidan olinadi. */

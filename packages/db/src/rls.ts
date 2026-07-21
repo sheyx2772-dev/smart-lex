@@ -56,6 +56,58 @@ export function authFunctionStatements(): string[] {
      $$;`,
     `REVOKE ALL ON FUNCTION auth_find_user(text) FROM PUBLIC;`,
     `GRANT EXECUTE ON FUNCTION auth_find_user(text) TO lex_app;`,
+
+    // ── One-ID (SSO): tenant konteksti hali yo'q. Bu funksiyalar login oqimida
+    //    RLS'ni nazorat ostida chetlab o'tadi (owner huquqi bilan), boshqa hech narsani ochmaydi.
+
+    // Tashkilotni STIR (tenants.tin) bo'yicha topish — One-ID legal_info.tin bilan mos.
+    `CREATE OR REPLACE FUNCTION auth_find_tenant_by_tin(p_tin text)
+     RETURNS TABLE(id uuid, default_locale text)
+     LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+       SELECT id, default_locale::text FROM tenants WHERE tin = p_tin LIMIT 1;
+     $$;`,
+    `REVOKE ALL ON FUNCTION auth_find_tenant_by_tin(text) FROM PUBLIC;`,
+    `GRANT EXECUTE ON FUNCTION auth_find_tenant_by_tin(text) TO lex_app;`,
+
+    // Foydalanuvchini One-ID PIN (JShShIR) bo'yicha tashkilot ichida topish.
+    `CREATE OR REPLACE FUNCTION auth_find_user_by_oneid(p_tenant uuid, p_pin text)
+     RETURNS TABLE(id uuid, tenant_id uuid, role text, locale text, full_name text, is_active boolean)
+     LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+       SELECT id, tenant_id, role::text, locale::text, full_name, is_active
+       FROM users WHERE tenant_id = p_tenant AND oneid_pin = p_pin LIMIT 1;
+     $$;`,
+    `REVOKE ALL ON FUNCTION auth_find_user_by_oneid(uuid, text) FROM PUBLIC;`,
+    `GRANT EXECUTE ON FUNCTION auth_find_user_by_oneid(uuid, text) TO lex_app;`,
+
+    // Mavjud (parolli) foydalanuvchini birinchi One-ID kirishда PIN bilan bog'lash —
+    // email bo'yicha topib, oneid_pin bo'sh bo'lsa to'ldiradi. Aks holda hech nima.
+    `CREATE OR REPLACE FUNCTION auth_link_oneid_by_email(p_tenant uuid, p_email text, p_pin text, p_sub text)
+     RETURNS TABLE(id uuid, tenant_id uuid, role text, locale text, full_name text, is_active boolean)
+     LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+       UPDATE users SET oneid_pin = p_pin, oneid_sub = p_sub, updated_at = now()
+       WHERE tenant_id = p_tenant AND lower(email) = lower(p_email) AND oneid_pin IS NULL
+       RETURNING id, tenant_id, role::text, locale::text, full_name, is_active;
+     $$;`,
+    `REVOKE ALL ON FUNCTION auth_link_oneid_by_email(uuid, text, text, text) FROM PUBLIC;`,
+    `GRANT EXECUTE ON FUNCTION auth_link_oneid_by_email(uuid, text, text, text) TO lex_app;`,
+
+    // Yangi One-ID foydalanuvchisini yaratish (avtomatik provisioning yoqilganда).
+    // Parolsiz (password_hash NULL). Default rol 'viewer'. Email bo'lmasa PIN'dan yasaladi.
+    `CREATE OR REPLACE FUNCTION auth_create_oneid_user(p_tenant uuid, p_pin text, p_sub text, p_full_name text, p_email text, p_locale text)
+     RETURNS TABLE(id uuid, tenant_id uuid, role text, locale text, full_name text, is_active boolean)
+     LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+     DECLARE r record;
+     BEGIN
+       INSERT INTO users (tenant_id, email, password_hash, full_name, role, locale, is_active, oneid_pin, oneid_sub)
+       VALUES (p_tenant, coalesce(nullif(p_email, ''), p_pin || '@oneid.local'), NULL, p_full_name,
+               'viewer', coalesce(nullif(p_locale, ''), 'uz')::locale, true, p_pin, p_sub)
+       RETURNING users.id, users.tenant_id, users.role::text, users.locale::text, users.full_name, users.is_active
+       INTO r;
+       RETURN QUERY SELECT r.id, r.tenant_id, r.role, r.locale, r.full_name, r.is_active;
+     END;
+     $$;`,
+    `REVOKE ALL ON FUNCTION auth_create_oneid_user(uuid, text, text, text, text, text) FROM PUBLIC;`,
+    `GRANT EXECUTE ON FUNCTION auth_create_oneid_user(uuid, text, text, text, text, text) TO lex_app;`,
   ];
 }
 

@@ -50,6 +50,22 @@
     "passwordShort": "Password must be at least 6 characters",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
+    "oneid": {
+      "or": "or",
+      "button": "Sign in with One-ID",
+      "hint": "Secure sign-in via the national identity system (sso.egov.uz)",
+      "err": {
+        "generic": "One-ID sign-in failed",
+        "not_configured": "One-ID is not configured yet. Contact your administrator.",
+        "invalid_state": "Session expired. Please try again.",
+        "not_valid": "Your One-ID account is not verified (e-signature or Mobile-ID required).",
+        "no_pin": "Could not retrieve user data from One-ID.",
+        "no_legal_entity": "No legal entity is linked to your account.",
+        "tenant_not_registered": "Your organization is not registered in the system. Contact your administrator.",
+        "user_not_found": "User not found. Your administrator must add you to the system.",
+        "exchange_failed": "Error communicating with One-ID. Please try again later."
+      }
+    },
     "badge": "Autonomous agent · monitoring",
     "heroLine1": "Receivables and debts",
     "heroLine2": "under automatic control.",

@@ -83,6 +83,11 @@ export default function LoginPage() {
     };
   }, []);
 
+  // One-ID callback xato bilan qaytarsa (?oneid_error=...) — login oynasini ochamiz.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).has("oneid_error")) setLoginOpen(true);
+  }, []);
+
   const openLogin = () => {
     setMenuOpen(false);
     setLoginOpen(true);
@@ -616,11 +621,13 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const t = useTranslations("login");
   const tApp = useTranslations("app");
   const router = useRouter();
+  const oneidError = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("oneid_error") : null;
+  const KNOWN_ONEID_ERR = new Set(["not_configured", "invalid_state", "not_valid", "no_pin", "no_legal_entity", "tenant_not_registered", "user_not_found", "exchange_failed"]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(oneidError ? t(`oneid.err.${KNOWN_ONEID_ERR.has(oneidError) ? oneidError : "generic"}`) : null);
   const [loading, setLoading] = useState(false);
 
   function validate(): boolean {
@@ -689,6 +696,17 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             {!loading && <ArrowRight weight="bold" className="size-4" />}
           </button>
         </form>
+
+        <div className="my-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-widest text-white/30">
+          <span className="h-px flex-1 bg-white/10" />
+          {t("oneid.or")}
+          <span className="h-px flex-1 bg-white/10" />
+        </div>
+        <a href="/api/oneid" className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-white/50 hover:bg-white/10">
+          <ShieldCheck weight="fill" className="size-5 text-emerald-400" />
+          {t("oneid.button")}
+        </a>
+        <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">{t("oneid.hint")}</p>
       </div>
     </div>
   );

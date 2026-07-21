@@ -50,6 +50,22 @@
     "passwordShort": "Parol kamida 6 belgidan iborat bo'lsin",
     "showPassword": "Parolni ko'rsatish",
     "hidePassword": "Parolni yashirish",
+    "oneid": {
+      "or": "yoki",
+      "button": "One-ID orqali kirish",
+      "hint": "Davlat identifikatsiya tizimi (sso.egov.uz) orqali xavfsiz kirish",
+      "err": {
+        "generic": "One-ID orqali kirishda xatolik yuz berdi",
+        "not_configured": "One-ID hali sozlanmagan. Administrator bilan bog'laning.",
+        "invalid_state": "Sessiya muddati tugadi. Qaytadan urinib ko'ring.",
+        "not_valid": "One-ID hisobingiz tasdiqlanmagan (ERI yoki Mobile-ID kerak).",
+        "no_pin": "One-ID'dan foydalanuvchi ma'lumoti olinmadi.",
+        "no_legal_entity": "Hisobingizga yuridik shaxs biriktirilmagan.",
+        "tenant_not_registered": "Tashkilotingiz tizimda ro'yxatdan o'tmagan. Administrator bilan bog'laning.",
+        "user_not_found": "Foydalanuvchi topilmadi. Administrator sizni tizimga qo'shishi kerak.",
+        "exchange_failed": "One-ID bilan aloqada xatolik. Keyinroq urinib ko'ring."
+      }
+    },
     "badge": "Avtonom agent · kuzatuvda",
     "heroLine1": "Debitorlik va qarzdorlik",
     "heroLine2": "avtomatik nazoratda.",

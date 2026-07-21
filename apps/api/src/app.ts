@@ -14,6 +14,7 @@ import { courtRoutes } from "./routes/court";
 import { dashboardRoutes } from "./routes/dashboard";
 import { documentRoutes } from "./routes/documents";
 import { miscRoutes } from "./routes/misc";
+import { oneIdRoutes } from "./routes/oneid";
 import { overdueRoutes } from "./routes/overdue";
 import { receivableRoutes } from "./routes/receivables";
 import { agentConsoleRoutes } from "./routes/agent-console";
@@ -32,6 +33,9 @@ export function createApp() {
 
   // Ochiq (auth talab qilmaydigan) yo'llar.
   app.route("/api/auth", authRoutes);
+  // One-ID (SSO) callback ro'yxatdan o'tgan redirect_uri bilan mos bo'lishi uchun
+  // `/auth/oneid/callback` yo'lida (api.tijoraat.uz), `/api` prefiksisiz.
+  app.route("/auth", oneIdRoutes);
 
   // Himoyalangan yo'llar.
   const api = new Hono<{ Variables: Variables }>();
