@@ -1,0 +1,13 @@
+# SmartLex — HTTPS reverse proxy (avtomatik Let's Encrypt).
+# Shart: tijoraat.uz VA api.tijoraat.uz DNS A-yozuvlari 185.191.141.146'ga qaragan bo'lsin,
+# 80/443 portlar ochiq bo'lsin. One-ID redirect_uri HTTPS talab qiladi.
+
+tijoraat.uz, www.tijoraat.uz {
+	reverse_proxy web:3000
+	encode gzip
+}
+
+api.tijoraat.uz {
+	reverse_proxy api:3001
+	encode gzip
+}

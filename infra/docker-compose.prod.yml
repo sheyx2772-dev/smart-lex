@@ -1,0 +1,141 @@
+# SmartLex — PRODUCTION (VPS 185.191.141.146 / tijoraat.uz).
+# Ishga tushirish:
+#   docker compose -f infra/docker-compose.prod.yml --env-file infra/.env up -d --build
+# Barcha maxfiy qiymatlar infra/.env dan keladi (git'ga TUSHMAYDI).
+name: smartlex
+
+x-app: &app
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  image: smartlex:latest
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartlex-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lex
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: lex
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lex -d lex"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartlex-redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: smartlex-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
+    volumes:
+      - miniodata:/data
+
+  # Migratsiya + RLS + One-ID SECURITY DEFINER funksiyalari (bir marta ishlaydi).
+  migrate:
+    <<: *app
+    container_name: smartlex-migrate
+    command: ["pnpm", "--filter", "@lex/db", "migrate"]
+    environment:
+      DATABASE_URL: postgresql://lex_app:${APP_DB_PASSWORD}@postgres:5432/lex
+      DATABASE_MIGRATION_URL: postgresql://lex:${POSTGRES_PASSWORD}@postgres:5432/lex
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    <<: *app
+    container_name: smartlex-api
+    command: ["pnpm", "--filter", "@lex/api", "start"]
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: "3001"
+      DATABASE_URL: postgresql://lex_app:${APP_DB_PASSWORD}@postgres:5432/lex
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      WEB_URL: https://tijoraat.uz
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: lex-documents
+      USE_MOCKS: ${USE_MOCKS:-true}
+      # ── One-ID (SSO) ──
+      ONEID_BASE_URL: https://sso.egov.uz/sso/oauth/Authorization.do
+      ONEID_CLIENT_ID: ${ONEID_CLIENT_ID}
+      ONEID_CLIENT_SECRET: ${ONEID_CLIENT_SECRET}
+      ONEID_REDIRECT_URI: https://api.tijoraat.uz/auth/oneid/callback
+      ONEID_SCOPE: ${ONEID_SCOPE}
+      ONEID_POST_LOGIN_REDIRECT: https://tijoraat.uz
+      COOKIE_DOMAIN: .tijoraat.uz
+      ONEID_AUTO_PROVISION: ${ONEID_AUTO_PROVISION:-false}
+      ONEID_REQUIRE_VERIFIED: ${ONEID_REQUIRE_VERIFIED:-false}
+      ONEID_REQUIRE_ERI: ${ONEID_REQUIRE_ERI:-false}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  web:
+    <<: *app
+    container_name: smartlex-web
+    command: ["pnpm", "--filter", "@lex/web", "start"]
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:3001
+      ONEID_PUBLIC_API_URL: https://api.tijoraat.uz
+    depends_on:
+      - api
+
+  worker:
+    <<: *app
+    container_name: smartlex-worker
+    command: ["pnpm", "--filter", "@lex/worker", "start"]
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://lex_app:${APP_DB_PASSWORD}@postgres:5432/lex
+      REDIS_URL: redis://redis:6379
+      USE_MOCKS: ${USE_MOCKS:-true}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # HTTPS terminatsiya + reverse proxy. Let's Encrypt (avtomatik) — DNS 185.191.141.146'ga qaragan bo'lishi shart.
+  caddy:
+    image: caddy:2-alpine
+    container_name: smartlex-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - api
+      - web
+
+volumes:
+  pgdata:
+  redisdata:
+  miniodata:
+  caddydata:
+  caddyconfig:
