@@ -28,14 +28,21 @@ apt-get install -y nodejs git build-essential redis-server openssl
 corepack enable
 systemctl enable --now redis-server
 
-log "2/7 PostgreSQL 16"
-if ! { command -v psql >/dev/null && psql --version | grep -q ' 16'; }; then
+log "2/7 PostgreSQL (16 — bo'lmasa Ubuntu standarti)"
+if ! command -v psql >/dev/null; then
   . /etc/os-release
   install -d /usr/share/postgresql-common/pgdg
-  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc || true
   echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-  apt-get update
-  apt-get install -y postgresql-16
+  apt-get update || true
+  if apt-get install -y postgresql-16; then
+    echo "  PostgreSQL 16 (PGDG) o'rnatildi"
+  else
+    echo "  ⚠ PGDG mavjud emas — Ubuntu standart PostgreSQL o'rnatiladi"
+    rm -f /etc/apt/sources.list.d/pgdg.list
+    apt-get update
+    apt-get install -y postgresql
+  fi
 fi
 systemctl enable --now postgresql
 
@@ -50,6 +57,8 @@ if [ -f "$CRED" ]; then . "$CRED"; else
 fi
 sudo -u postgres psql -v ON_ERROR_STOP=1 -c "ALTER USER postgres PASSWORD '${PG_SUPER_PW}';"
 sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='lex'" | grep -q 1 || sudo -u postgres createdb lex
+# gen_random_uuid() eski Postgres (13-) da pgcrypto talab qiladi — kafolat uchun:
+sudo -u postgres psql -d lex -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null 2>&1 || true
 
 log "4/7 apps/api/.env"
 ENV="$ROOT/apps/api/.env"
