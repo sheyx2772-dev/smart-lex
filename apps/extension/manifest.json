@@ -7,6 +7,7 @@
     "storage"
   ],
   "host_permissions": [
+    "https://adolat.sud.uz/*",
     "https://cabinet.sud.uz/*",
     "https://hybrid.pochta.uz/*",
     "https://xarid.uzex.uz/*"
@@ -35,6 +36,7 @@
     },
     {
       "matches": [
+        "https://adolat.sud.uz/*",
         "https://cabinet.sud.uz/*",
         "https://hybrid.pochta.uz/*",
         "https://xarid.uzex.uz/*"
