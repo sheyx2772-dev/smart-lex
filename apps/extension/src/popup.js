@@ -30,6 +30,20 @@ document.getElementById("clear").addEventListener("click", () => {
   chrome.runtime.sendMessage({ type: "lex:clear" }, () => render(null));
 });
 
+// Sinash uchun namuna ma'lumot — SmartLex'dan yubormasdan formani sinash.
+document.getElementById("testdata").addEventListener("click", () => {
+  const sample = {
+    debtor: "GLOBAL SNAB MCHJ",
+    tin: "305111222",
+    amount: "5 112 500,00 UZS",
+    amountNumber: "5112500",
+    court: "Toshkent shahar iqtisodiy sudi",
+    contractNumber: "SH-2026-001",
+    body: "Namuna da'vo arizasi matni.",
+  };
+  chrome.runtime.sendMessage({ type: "lex:store", payload: sample }, () => render(sample));
+});
+
 // "Avtomatik to'ldirish" sozlamasi
 const auto = document.getElementById("autofill");
 chrome.storage.local.get("autofill", (r) => {
