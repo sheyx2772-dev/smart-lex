@@ -96,7 +96,7 @@
     // 2) Umumiy heuristika — profil to'ldirmagan maydonlar
     for (const f of document.querySelectorAll("input, textarea, select")) {
       if (used.has(f) || !isFillable(f) || !isEmpty(f)) continue;
-      const hay = `${f.name} ${f.id} ${f.placeholder || ""} ${labelText(f)}`.toLowerCase();
+      const hay = `${f.name} ${f.id} ${f.getAttribute("formcontrolname") || ""} ${f.placeholder || ""} ${labelText(f)}`.toLowerCase();
       for (const m of FIELD_MAP) {
         const val = m.get(claim);
         if (val && m.keys.some((k) => hay.includes(k))) {
@@ -121,13 +121,30 @@
     return el.tagName === "SELECT" ? !el.value || el.selectedIndex <= 0 : !el.value;
   }
 
+  // Yorliq matnini bir necha manbadan yig'adi — Angular Material (mat-label),
+  // aria-label/labelledby va oddiy <label> ni ham qamrab oladi.
   function labelText(el) {
+    const parts = [];
     if (el.id) {
       const l = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
-      if (l) return l.textContent || "";
+      if (l) parts.push(l.textContent || "");
     }
     const wrap = el.closest("label");
-    return wrap ? wrap.textContent || "" : "";
+    if (wrap) parts.push(wrap.textContent || "");
+    const aria = el.getAttribute("aria-label");
+    if (aria) parts.push(aria);
+    const alby = el.getAttribute("aria-labelledby");
+    if (alby) for (const id of alby.split(/\s+/)) {
+      const r = document.getElementById(id);
+      if (r) parts.push(r.textContent || "");
+    }
+    // Angular Material: mat-form-field ichidagi mat-label.
+    const mff = el.closest("mat-form-field, .mat-form-field, .mat-mdc-form-field");
+    if (mff) {
+      const ml = mff.querySelector("mat-label, .mat-form-field-label, .mat-mdc-floating-label");
+      if (ml) parts.push(ml.textContent || "");
+    }
+    return parts.join(" ");
   }
 
   function setAny(el, value) {
