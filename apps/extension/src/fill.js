@@ -48,14 +48,17 @@
   });
 
   // Umumiy heuristika — profil topilmaganда yoki qoldiq maydonlar uchun.
+  // DIQQAT: kalitlar ANIQ bo'lsin — keng so'zlar ("nomi", "summa") boshqa
+  // maydonlarga (Sud nomi, Foiz summasi...) noto'g'ri tushadi.
   const FIELD_MAP = [
-    { keys: ["stir", "инн", "tin", "inn"], get: (c) => c.tin },
-    { keys: ["nomi", "название", "наименование", "name", "tashkilot", "компания", "org", "debtor", "javobgar", "ответчик"], get: (c) => c.debtor },
-    { keys: ["summa", "сумма", "amount", "narx", "цена", "qiymat", "стоимость"], get: (c) => c.amountNumber || c.amount },
-    { keys: ["shartnoma", "договор", "contract"], get: (c) => c.contractNumber },
+    { keys: ["stir", "инн", " tin", "jshshir"], get: (c) => c.tin },
+    // Javobgar — faqat aniq: "javobgar/ответчик". Umumiy "nomi" ishlatilmaydi.
+    { keys: ["javobgar", "ответчик", "otvetchik", "respondent", "defendant"], get: (c) => c.debtor },
+    // Da'vo summasi (jami) — "da'vo summasi" aniq iborasi bo'yicha.
+    { keys: ["da'vo summasi", "da`vo summasi", "davo summasi", "сумма иска", "da'vo qiymati"], get: (c) => c.amountNumber || c.amount },
+    { keys: ["shartnoma raqami", "договор", "shartnoma"], get: (c) => c.contractNumber },
     { keys: ["faktura", "счет", "счёт", "invoice"], get: (c) => c.invoiceNumber },
-    { keys: ["sud", "суд", "court"], get: (c) => c.court },
-    { keys: ["manzil", "адрес", "address"], get: (c) => c.address },
+    { keys: ["javobgar manzil", "адрес ответчик", "manzili"], get: (c) => c.address },
   ];
 
   function pickProfile() {
