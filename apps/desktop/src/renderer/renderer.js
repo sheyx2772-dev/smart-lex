@@ -71,8 +71,10 @@ async function fill(item, btn) {
   };
   const r = await window.smartlex.fillCourt(claim);
   if (r.ok) {
-    btn.textContent = `✓ ${r.filled} ta maydon to'ldirildi`;
+    btn.textContent = "✓ Brauzer ochildi";
     btn.classList.add("ghost");
+    // Ko'p bosqichli sihirgar: har qadamda o'ng-pastdagi SmartLex panelidan
+    // «Shu bosqichni to'ldirish» bosiladi. Ro'yxat/sana va E-IMZO — foydalanuvchi.
   } else {
     btn.textContent = "Xato — qayta urinish";
     btn.disabled = false;
