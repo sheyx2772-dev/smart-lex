@@ -1,0 +1,33 @@
+{
+  "name": "@lex/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SmartLex Desktop — autopilot.uz uslubidagi lokal agent: davlat sayti formalarini brauzer avtomatlashtirish orqali to'ldiradi",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "pnpm run build && electron .",
+    "dist": "pnpm run build && electron-builder",
+    "postinstall": "playwright install chromium",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "echo 'lint: desktop ok'"
+  },
+  "dependencies": {
+    "playwright": "^1.49.1"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.5"
+  },
+  "build": {
+    "appId": "uz.lexai.desktop",
+    "productName": "SmartLex Desktop",
+    "files": ["dist/**", "src/renderer/**"],
+    "directories": { "output": "release" },
+    "mac": { "target": ["dmg"], "category": "public.app-category.business" },
+    "win": { "target": ["nsis"] },
+    "linux": { "target": ["AppImage"] }
+  }
+}

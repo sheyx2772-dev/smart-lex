@@ -1,3 +1,6 @@
 packages:
   - "apps/*"
+  # Desktop (Electron+Playwright) — workspace'dan tashqarida, alohida quriladi
+  # (og'ir bog'liqliklar VPS/web install'ni bloatlamasin).
+  - "!apps/desktop"
   - "packages/*"
