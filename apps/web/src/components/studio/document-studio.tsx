@@ -183,6 +183,24 @@ const CATS: { key: "all" | CatKey; label: Loc }[] = [
   { key: "other", label: { uz: "Hujjatlar", ru: "Документы" } },
 ];
 
+// ── Professional shartnoma quruvchisi (takrorlanuvchi bo'limlar bir joyda) ──
+const cReq = (a: string, b: string) =>
+  `<h3>9. TOMONLARNING REKVIZITLARI VA IMZOLARI</h3>` +
+  `<p><strong>${a}:</strong> «[Kreditor nomi]»<br>Manzil: [Kreditor manzili] · STIR: [Kreditor STIR]<br>H/r: [Kreditor h/r] · Bank: [Kreditor bank] · MFO: [Kreditor MFO] · Tel: [Kreditor telefoni]<br>_________________ [Kreditor direktori]&nbsp;&nbsp; M.O'.</p>` +
+  `<p><strong>${b}:</strong> «[Qarzdor nomi]»<br>Manzil: [Qarzdor manzili] · STIR: [Qarzdor STIR]<br>H/r: [Qarzdor h/r] · Bank: [Qarzdor bank] · MFO: [Qarzdor MFO] · Tel: [Qarzdor telefoni]<br>_________________ [Qarzdor direktori]&nbsp;&nbsp; M.O'.</p>`;
+const cTail = (payer: string, a: string, b: string) =>
+  `<h3>4. TOMONLARNING JAVOBGARLIGI</h3><p>4.1. To'lov muddati buzilganda, ${payer} har bir kechiktirilgan kalendar kun uchun [Foiz]% miqdorida penya to'laydi.</p><p>4.2. Penya to'lash Tomonlarni asosiy majburiyatni bajarishdan ozod etmaydi; yetkazilgan real zarar O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq qoplanadi.</p>` +
+  `<h3>5. FORS-MAJOR (YENGIB BO'LMAS KUCH)</h3><p>5.1. Yengib bo'lmas kuch holatlari (tabiiy ofat, urush, favqulodda vaziyat, vakolatli davlat organlarining qarorlari va shu kabilar) yuzaga kelganda, Tomonlar majburiyatlarni bajarmaganlik uchun javobgarlikdan ozod etiladi. Bunday holatlar tugagach, majburiyatlarni bajarish tiklanadi.</p>` +
+  `<h3>6. NIZOLARNI HAL QILISH</h3><p>6.1. Nizolar avval muzokara va sudgacha (pretenziya) tartibida hal etiladi; pretenziyaga javob berish muddati — 30 kalendar kun.</p><p>6.2. Kelishuvga erishilmasa, nizo O'zbekiston Respublikasi Iqtisodiy protsessual kodeksiga muvofiq iqtisodiy sud tomonidan ko'rib chiqiladi.</p>` +
+  `<h3>7. SHARTNOMA MUDDATI VA UNI BEKOR QILISH</h3><p>7.1. Shartnoma imzolangan kundan kuchga kiradi va Tomonlar o'z majburiyatlarini to'liq bajargunga qadar amal qiladi.</p><p>7.2. Shartnoma Tomonlar kelishuviga binoan yoki qonunchilikda nazarda tutilgan hollarda bekor qilinishi mumkin.</p>` +
+  `<h3>8. YAKUNIY QOIDALAR</h3><p>8.1. Shartnomaga o'zgartirish va qo'shimchalar yozma shaklda, Tomonlar imzolagan qo'shimcha kelishuv bilan kiritiladi.</p><p>8.2. Shartnoma teng yuridik kuchga ega ikki nusxada, har bir Tomon uchun bittadan tuzildi.</p>` +
+  cReq(a, b);
+const contractDoc = (o: { title: string; aRole: string; bRole: string; payer: string; body: string }) =>
+  `<h2 style="text-align:center">${o.title} № [Shartnoma raqami]</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p>` +
+  `<p>«[Kreditor nomi]» (bundan buyon — «${o.aRole}»), [Kreditor direktori] shaxsida Ustav asosida ish yurituvchi, bir tomondan, va «[Qarzdor nomi]» (STIR: [Qarzdor STIR]; bundan buyon — «${o.bRole}»), [Qarzdor direktori] shaxsida ish yurituvchi, ikkinchi tomondan, birgalikda «Tomonlar» deb ataluvchi, quyidagilar to'g'risida ushbu shartnomani (bundan buyon — «Shartnoma») tuzdilar:</p>` +
+  o.body +
+  cTail(o.payer, o.aRole, o.bRole);
+
 const CATALOG: Template[] = [
   // ── Undiruv (qarz undirish hujjatlari) ──
   {
@@ -192,7 +210,7 @@ const CATALOG: Template[] = [
     title: { uz: "Talabnoma", ru: "Требование" },
     desc: { uz: "Qarzdorga muddati o'tgan qarz to'g'risida rasmiy talab", ru: "Требование должнику о погашении просроченного долга" },
     kw: "talabnoma qarz undiruv trebovanie dolg pretenziya",
-    html: `<h2>TALABNOMA</h2><p>Hurmatli [Qarzdor nomi]!</p><p>"[Kreditor nomi]" Siz bilan tuzilgan shartnoma bo'yicha muddati o'tgan qarzdorlik yuzaga kelganini ma'lum qiladi.</p><p><strong>Shartnoma:</strong> № [Shartnoma raqami]<br><strong>Hisob-faktura:</strong> [Faktura raqami]</p><p><strong>Asosiy qarz:</strong> [Asosiy qarz]<br><strong>Penya ([Kechikish kunlari] kun):</strong> [Penya]<br><strong>Jami to'lanishi lozim:</strong> [Jami summa]</p><p>Ushbu talabnoma olingan kundan boshlab [Muddat] kalendar kun ichida qarzni to'liq to'lashingizni talab qilamiz. Aks holda kreditor O'zbekiston Respublikasi qonunchiligiga muvofiq iqtisodiy sudga da'vo arizasi bilan murojaat qilish huquqini o'zida saqlaydi.</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+    html: `<h2 style="text-align:center">TALABNOMA</h2><p style="text-align:right">[Sana] · № [Chiquvchi raqam]</p><p><strong>Kimga:</strong> «[Qarzdor nomi]»<br><strong>STIR:</strong> [Qarzdor STIR] · <strong>Manzil:</strong> [Qarzdor manzili]<br><strong>Rahbar:</strong> [Qarzdor direktori]</p><p>Hurmatli [Qarzdor direktori]!</p><p>«[Kreditor nomi]» (STIR: [Kreditor STIR]) Sizning tashkilotingiz bilan tuzilgan № [Shartnoma raqami] shartnoma (bundan buyon — «Shartnoma») asosida o'z majburiyatlarini to'liq va lozim darajada bajardi. Biroq Siz tomoningizdan to'lov majburiyati belgilangan muddatda bajarilmadi va muddati o'tgan qarzdorlik yuzaga keldi.</p><h3>1. Qarzdorlik tafsiloti</h3><p>Shartnoma: № [Shartnoma raqami]<br>Hisob-faktura: № [Faktura raqami]<br>Asosiy qarz: <strong>[Asosiy qarz]</strong><br>Penya ([Kechikish kunlari] kun kechikish uchun): <strong>[Penya]</strong><br>Jami to'lanishi lozim: <strong>[Jami summa]</strong></p><h3>2. Huquqiy asos</h3><p>O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq majburiyatlar shartnoma shartlariga va qonun hujjatlariga muvofiq lozim darajada hamda o'z vaqtida bajarilishi shart; majburiyatni bir tomonlama bajarishdan bosh tortishga yo'l qo'yilmaydi.</p><h3>3. Talab</h3><p>Yuqoridagilarga asosan, ushbu talabnoma qo'lga tekkan kundan boshlab <strong>[Muddat] kalendar kun</strong> ichida <strong>[Jami summa]</strong> miqdoridagi qarzdorlikni quyidagi hisob raqamiga to'liq to'lashingizni talab qilamiz:<br>H/r: [Kreditor h/r] · Bank: [Kreditor bank] · MFO: [Kreditor MFO].</p><p>Belgilangan muddatda to'lov amalga oshirilmasa, «[Kreditor nomi]» qo'shimcha ogohlantirishsiz O'zbekiston Respublikasi Iqtisodiy protsessual kodeksiga muvofiq iqtisodiy sudga da'vo arizasi bilan murojaat qilish, shuningdek yetkazilgan zararni undirish huquqini o'zida saqlaydi. Bunda barcha sud xarajatlari qarzdor zimmasiga yuklatiladi.</p><p><strong>Ilova:</strong> shartnoma nusxasi; hisob-fakturalar; solishtirma dalolatnoma (akt-sverka).</p><p>Hurmat bilan,<br>«[Kreditor nomi]»<br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "pretenzia",
@@ -201,7 +219,7 @@ const CATALOG: Template[] = [
     title: { uz: "Pretenziya", ru: "Претензия" },
     desc: { uz: "Sudgacha (pretenziya) tartibida rasmiy da'vo xati", ru: "Досудебная претензия перед подачей иска" },
     kw: "pretenziya sudgacha dosudebnaya pretenzia da'vo",
-    html: `<h2>PRETENZIYA</h2><p>[Sana], № [Chiquvchi raqam]</p><p>Kimga: "[Qarzdor nomi]" (STIR [Qarzdor STIR])</p><p>"[Kreditor nomi]" № [Shartnoma raqami] shartnoma va [Faktura raqami] hisob-faktura bo'yicha yuzaga kelgan qarzdorlik yuzasidan ushbu pretenziyani yo'llaydi.</p><p><strong>Asosiy qarz:</strong> [Asosiy qarz]<br><strong>Penya ([Kechikish kunlari] kun):</strong> [Penya]<br><strong>Jami:</strong> [Jami summa]</p><p>O'zbekiston Respublikasi Iqtisodiy protsessual kodeksining sudgacha (pretenziya) tartibi talablariga muvofiq, ushbu pretenziya olingan kundan boshlab [Muddat] kun ichida qarzni to'lashingizni talab qilamiz. Aks holda da'vo iqtisodiy sudga taqdim etiladi.</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+    html: `<h2 style="text-align:center">PRETENZIYA</h2><p style="text-align:right">[Sana] · № [Chiquvchi raqam]</p><p><strong>Kimga:</strong> «[Qarzdor nomi]» (STIR: [Qarzdor STIR])<br><strong>Manzil:</strong> [Qarzdor manzili]</p><p>«[Kreditor nomi]» (STIR: [Kreditor STIR]) № [Shartnoma raqami] shartnoma va № [Faktura raqami] hisob-faktura bo'yicha yuzaga kelgan qarzdorlik yuzasidan ushbu pretenziyani (sudgacha talab) yo'llaydi.</p><h3>1. Holat</h3><p>«[Kreditor nomi]» Shartnoma bo'yicha o'z majburiyatlarini to'liq bajardi. Javob beruvchi tomon to'lovni belgilangan muddatda amalga oshirmadi.</p><h3>2. Qarzdorlik</h3><p>Asosiy qarz: <strong>[Asosiy qarz]</strong><br>Penya ([Kechikish kunlari] kun): <strong>[Penya]</strong><br>Jami: <strong>[Jami summa]</strong></p><h3>3. Talab va huquqiy asos</h3><p>O'zbekiston Respublikasi Iqtisodiy protsessual kodeksining sudgacha (pretenziya) tartibi talablariga muvofiq, ushbu pretenziya olingan kundan boshlab <strong>[Muddat] kalendar kun</strong> ichida yuqoridagi summani quyidagi rekvizitlarga to'lashingizni talab qilamiz:<br>H/r: [Kreditor h/r] · Bank: [Kreditor bank] · MFO: [Kreditor MFO].</p><p>Talab bajarilmasa, «[Kreditor nomi]» qarzni, penyani va sud xarajatlarini undirish uchun iqtisodiy sudga da'vo arizasi bilan murojaat qiladi.</p><p><strong>Ilova:</strong> shartnoma va hisob-fakturalar nusxasi; akt-sverka.</p><p>Hurmat bilan,<br>«[Kreditor nomi]»<br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "lawsuit",
@@ -210,7 +228,7 @@ const CATALOG: Template[] = [
     title: { uz: "Da'vo arizasi", ru: "Исковое заявление" },
     desc: { uz: "Iqtisodiy sudga qarz undirish uchun da'vo arizasi", ru: "Исковое заявление о взыскании долга в экономический суд" },
     kw: "da'vo ariza sud isk iskovoe zayavlenie undiruv",
-    html: `<h2>IQTISODIY SUDGA DA'VO ARIZASI</h2><p><strong>Da'vogar:</strong> "[Kreditor nomi]", STIR: [Da'vogar STIR]<br><strong>Javobgar:</strong> "[Qarzdor nomi]", STIR: [Qarzdor STIR]<br><strong>Da'vo narxi:</strong> [Jami summa]<br><strong>Davlat boji:</strong> [Davlat boji]</p><p>Da'vogar va javobgar o'rtasida [Shartnoma raqami] shartnoma tuzilgan. [Faktura raqami] hisob-faktura bo'yicha javobgar zimmasiga to'lov majburiyati yuklatilgan.</p><p>Javobgar to'lovni belgilangan muddatda bajarmagan. Asosiy qarz [Asosiy qarz], [Kechikish kunlari] kun kechikish uchun penya [Penya].</p><p><strong>Huquqiy asos:</strong> O'zbekiston Respublikasi Fuqarolik kodeksi va Iqtisodiy protsessual kodeksi.</p><p><strong>SO'RAYMAN:</strong> Javobgardan da'vogar foydasiga jami [Jami summa] undirilsin. Davlat boji javobgar zimmasiga yuklatilsin.</p><p>Da'vogar nomidan: [Imzolovchi] _________________ (imzo, sana)</p>`,
+    html: `<h2 style="text-align:center">IQTISODIY SUDGA DA'VO ARIZASI</h2><p style="text-align:right">[Shahar] tumanlararo iqtisodiy sudiga</p><p><strong>Da'vogar:</strong> «[Kreditor nomi]», STIR: [Kreditor STIR]<br>Manzil: [Kreditor manzili] · Tel: [Kreditor telefoni]<br><strong>Javobgar:</strong> «[Qarzdor nomi]», STIR: [Qarzdor STIR]<br>Manzil: [Qarzdor manzili]<br><strong>Da'vo narxi:</strong> [Jami summa]<br><strong>Davlat boji:</strong> [Davlat boji] (qonunda belgilangan stavka bo'yicha)</p><h3>1. Ishning holati</h3><p>1.1. Da'vogar va Javobgar o'rtasida № [Shartnoma raqami] shartnoma tuzilgan. Da'vogar shartnoma bo'yicha o'z majburiyatlarini to'liq bajardi, bu № [Faktura raqami] hisob-faktura hamda tovar/xizmat topshirilganini tasdiqlovchi hujjatlar bilan tasdiqlanadi.</p><p>1.2. Javobgar to'lov majburiyatini belgilangan muddatda bajarmadi. Asosiy qarz — [Asosiy qarz], [Kechikish kunlari] kun kechikish uchun penya — [Penya].</p><p>1.3. Da'vogar Javobgarga [Talabnoma sanasi] da № [Chiquvchi raqam] talabnoma (pretenziya) yubordi, biroq qarz to'lanmadi — sudgacha (pretenziya) tartibi bajarilgan.</p><h3>2. Huquqiy asos</h3><p>2.1. O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq majburiyatlar lozim darajada va o'z vaqtida bajarilishi shart; buzilganda kreditor asosiy qarz, penya va zararni undirish huquqiga ega. Ish O'zbekiston Respublikasi Iqtisodiy protsessual kodeksiga muvofiq ko'rib chiqiladi.</p><h3>3. So'rov</h3><p><strong>SO'RAYMAN:</strong></p><p>1) Javobgardan Da'vogar foydasiga asosiy qarz [Asosiy qarz] undirilsin;<br>2) penya [Penya] undirilsin;<br>3) jami: <strong>[Jami summa]</strong>;<br>4) to'langan davlat boji [Davlat boji] Javobgar zimmasiga yuklatilsin.</p><p><strong>Ilovalar:</strong> shartnoma nusxasi; hisob-fakturalar; talabnoma va u yuborilganini tasdiqlovchi hujjat; akt-sverka; davlat boji to'langanligi to'g'risidagi hujjat; da'vo nusxasi Javobgarga yuborilgani tasdig'i; vakolatni tasdiqlovchi hujjat.</p><p>Da'vogar nomidan: [Kreditor direktori] _________________ (imzo, sana)&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "reconciliation",
@@ -219,7 +237,7 @@ const CATALOG: Template[] = [
     title: { uz: "Akt-sverka", ru: "Акт сверки" },
     desc: { uz: "Tomonlar o'rtasidagi o'zaro hisob-kitob solishtirmasi", ru: "Акт сверки взаиморасчётов между сторонами" },
     kw: "akt sverka solishtirma dalolatnoma hisob-kitob saldo",
-    html: `<h2>SOLISHTIRMA DALOLATNOMA (AKT-SVERKA)</h2><p>"[Kreditor nomi]" va "[Qarzdor nomi]" (STIR [Qarzdor STIR]) o'rtasida [Sana] holatiga tuzildi.</p><p>Shartnoma: [Shartnoma raqami] · Hisob-faktura: [Faktura raqami]</p><p><strong>Asosiy qarz:</strong> [Asosiy qarz]<br><strong>Penya:</strong> [Penya]<br><strong>Yakuniy qoldiq (saldo):</strong> [Jami summa]</p><p>Kreditor nomidan: _________________ (imzo, sana)<br>Qarzdor nomidan: _________________ (imzo, sana)</p>`,
+    html: `<h2 style="text-align:center">SOLISHTIRMA DALOLATNOMA (AKT-SVERKA)</h2><p style="text-align:center">[Shahar] sh., [Sana] holatiga</p><p>Biz, quyida imzo chekuvchilar — «[Kreditor nomi]» (STIR: [Kreditor STIR]) nomidan [Kreditor direktori], bir tomondan, va «[Qarzdor nomi]» (STIR: [Qarzdor STIR]) nomidan [Qarzdor direktori], ikkinchi tomondan — № [Shartnoma raqami] shartnoma bo'yicha o'zaro hisob-kitob holatini solishtirib, ushbu dalolatnomani tuzdik.</p><h3>Hisob-kitob holati</h3><p>Shartnoma: № [Shartnoma raqami] · Hisob-faktura: № [Faktura raqami]<br>Davr boshiga qoldiq: [Boshlang'ich qoldiq]<br>Hisoblangan (yetkazilgan tovar/xizmat): [Hisoblangan]<br>To'langan: [To'langan]<br>Asosiy qarz: <strong>[Asosiy qarz]</strong><br>Penya: [Penya]<br><strong>Yakuniy qoldiq (saldo): [Jami summa]</strong></p><p>Tomonlar yuqoridagi ma'lumotlarni tasdiqlaydilar. Kelishmovchiliklar mavjud emas (mavjud bo'lsa — quyida bayon etiladi): _______________________________</p><p><strong>«[Kreditor nomi]»</strong><br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p><p><strong>«[Qarzdor nomi]»</strong><br>[Qarzdor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "reply",
@@ -228,7 +246,7 @@ const CATALOG: Template[] = [
     title: { uz: "Javob xati", ru: "Ответное письмо" },
     desc: { uz: "Kelib tushgan xat yoki da'voga rasmiy javob", ru: "Официальный ответ на входящее письмо или претензию" },
     kw: "javob xati pismo otvet rasmiy xat",
-    html: `<h2>JAVOB XATI</h2><p>[Sana], № [Chiquvchi raqam]</p><p>Kimga: "[Qarzdor nomi]"</p><p>Hurmatli [F.I.Sh]!</p><p>Sizning [Sana] dagi № [Kiruvchi raqam] xatingizga javoban quyidagilarni ma'lum qilamiz:</p><p>[Javob matnini shu yerga yozing]</p><p>Hurmat bilan,<br>[Kreditor nomi]<br>[Imzolovchi F.I.Sh, lavozim]</p>`,
+    html: `<h2 style="text-align:center">JAVOB XATI</h2><p style="text-align:right">[Sana] · № [Chiquvchi raqam]</p><p><strong>Kimga:</strong> «[Qarzdor nomi]»<br><strong>Manzil:</strong> [Qarzdor manzili]</p><p>Hurmatli [Qarzdor direktori]!</p><p>Sizning [Kiruvchi sana] dagi № [Kiruvchi raqam] xatingiz (murojaatingiz) ko'rib chiqildi. Bayon etilgan masala yuzasidan quyidagilarni ma'lum qilamiz:</p><p>[Javob mazmunini shu yerga batafsil yozing — faktlar, huquqiy asos, tomonning pozitsiyasi va takliflar]</p><p>Bildirilgan pozitsiya O'zbekiston Respublikasi amaldagi qonunchiligiga asoslanadi. Qo'shimcha savollar yuzasidan biz bilan bog'lanishingizni so'raymiz.</p><p>Hurmat bilan,<br>«[Kreditor nomi]»<br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   // ── Shartnomalar ──
   {
@@ -237,8 +255,17 @@ const CATALOG: Template[] = [
     icon: Handshake,
     title: { uz: "Oldi-sotdi shartnomasi", ru: "Договор купли-продажи" },
     desc: { uz: "Tovar (xizmat) oldi-sotdisi bo'yicha umumiy shartnoma", ru: "Общий договор купли-продажи товара (услуги)" },
-    kw: "oldi-sotdi shartnoma kupля продажа dogovor tovar",
-    html: `<h2>OLDI-SOTDI SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (bundan buyon "Sotuvchi"), bir tomondan, va "[Qarzdor nomi]" (STIR [Qarzdor STIR], bundan buyon "Xaridor"), ikkinchi tomondan, quyidagilar haqida ushbu shartnomani tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni (xizmatni) topshirish, Xaridor esa uni qabul qilib, [Jami summa] to'lash majburiyatini oladi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [Foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
+    kw: "oldi-sotdi shartnoma kuplya prodaja dogovor tovar",
+    html: contractDoc({
+      title: "OLDI-SOTDI SHARTNOMASI",
+      aRole: "Sotuvchi",
+      bRole: "Xaridor",
+      payer: "Xaridor",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Sotuvchi tovarni Xaridor mulkiga o'tkazadi, Xaridor esa tovarni qabul qilib olib, uning qiymatini to'laydi.</p><p>1.2. Tovarning nomi, assortimenti va miqdori Tomonlar imzolagan spetsifikatsiya hamda hisob-fakturalarda belgilanadi.</p>` +
+        `<h3>2. SHARTNOMA SUMMASI VA TO'LOV TARTIBI</h3><p>2.1. Shartnoma umumiy summasi: <strong>[Jami summa]</strong> (QQS hisobga olingan holda).</p><p>2.2. To'lov shartnoma imzolangach [Muddat] ichida, Xaridorning hisob raqamidan Sotuvchi hisob raqamiga pul o'tkazish yo'li bilan amalga oshiriladi.</p>` +
+        `<h3>3. TOVARNI TOPSHIRISH VA TOMONLAR MAJBURIYATLARI</h3><p>3.1. Sotuvchi tovarni sifatli holatda, hujjatlari bilan birga kelishilgan muddatda topshiradi.</p><p>3.2. Xaridor tovarni qabul qilib oladi va to'lovni o'z vaqtida amalga oshiradi. Tovar qabul qilinganda dalolatnoma (akt) yoki yuk xati imzolanadi.</p>`,
+    }),
   },
   {
     key: "nasiya",
@@ -247,7 +274,16 @@ const CATALOG: Template[] = [
     title: { uz: "Nasiya (bo'lib to'lash)", ru: "Договор рассрочки" },
     desc: { uz: "Tovarni bo'lib-bo'lib to'lash sharti bilan sotish", ru: "Продажа товара с оплатой в рассрочку" },
     kw: "nasiya bo'lib to'lash rassrochka bolib tolash kredit",
-    html: `<h2>NASIYA (BO'LIB TO'LASH) OLDI-SOTDI SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Sotuvchi), bir tomondan, va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Xaridor), ikkinchi tomondan, quyidagilar haqida shartnoma tuzdilar:</p><h3>1. Shartnoma predmeti</h3><p>1.1. Sotuvchi tovarni bo'lib-bo'lib to'lash sharti bilan Xaridorga sotadi. Umumiy narx: [Jami summa].</p><h3>2. To'lov jadvali</h3><p>2.1. Boshlang'ich to'lov: [Boshlang'ich to'lov]. Qolgan summa [Muddat] oy davomida teng ulushlarda to'lanadi (to'lov jadvali ilova qilinadi).</p><h3>3. Tomonlar javobgarligi</h3><p>3.1. To'lov kechiktirilsa, har kun uchun [Foiz]% penya hisoblanadi.</p><p>Sotuvchi: _________________  Xaridor: _________________</p>`,
+    html: contractDoc({
+      title: "NASIYA (BO'LIB TO'LASH) OLDI-SOTDI SHARTNOMASI",
+      aRole: "Sotuvchi",
+      bRole: "Xaridor",
+      payer: "Xaridor",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Sotuvchi tovarni Xaridorga bo'lib-bo'lib (nasiyaga) to'lash sharti bilan sotadi, mulk huquqi to'liq to'lov amalga oshirilgach o'tadi (agar Tomonlar boshqacha kelishmagan bo'lsa).</p><p>1.2. Tovarning umumiy qiymati: <strong>[Jami summa]</strong>.</p>` +
+        `<h3>2. TO'LOV JADVALI</h3><p>2.1. Boshlang'ich to'lov: [Boshlang'ich to'lov] — shartnoma imzolanganda to'lanadi.</p><p>2.2. Qolgan summa [Muddat] oy davomida teng ulushlarda, har oyning [To'lov kuni]-sanasigacha to'lanadi. Batafsil to'lov jadvali ushbu shartnomaga ilova qilinadi.</p>` +
+        `<h3>3. TOMONLAR MAJBURIYATLARI</h3><p>3.1. Sotuvchi tovarni topshiradi. Xaridor to'lov jadvaliga qat'iy rioya qiladi.</p><p>3.2. Ketma-ket ikki oy to'lov amalga oshirilmasa, Sotuvchi qolgan qarzni muddatidan oldin to'liq undirishni talab qilishi mumkin.</p>`,
+    }),
   },
   {
     key: "supply",
@@ -256,7 +292,16 @@ const CATALOG: Template[] = [
     title: { uz: "Yetkazib berish", ru: "Договор поставки" },
     desc: { uz: "Tovarni kelishilgan muddatda yetkazib berish shartnomasi", ru: "Договор поставки товара в согласованные сроки" },
     kw: "yetkazib berish postavka supply logistika",
-    html: `<h2>YETKAZIB BERISH SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Yetkazib beruvchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Xaridor) o'rtasida tuzildi.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Yetkazib beruvchi tovarni kelishilgan muddatda va assortimentda yetkazib beradi. Umumiy qiymat: [Jami summa].</p><h3>2. Yetkazib berish va to'lov</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Yetkazib beruvchi: _________________  Xaridor: _________________</p>`,
+    html: contractDoc({
+      title: "YETKAZIB BERISH SHARTNOMASI",
+      aRole: "Yetkazib beruvchi",
+      bRole: "Xaridor",
+      payer: "Xaridor",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Yetkazib beruvchi tovarni kelishilgan muddat, miqdor va assortimentda Xaridorga yetkazib beradi, Xaridor esa uni qabul qilib to'laydi.</p><p>1.2. Tovar nomenklaturasi va narxi spetsifikatsiya hamda hisob-fakturalarda belgilanadi. Umumiy qiymat: <strong>[Jami summa]</strong>.</p>` +
+        `<h3>2. YETKAZIB BERISH SHARTLARI</h3><p>2.1. Yetkazib berish [Muddat] ichida, [Yetkazib berish manzili] manzili bo'yicha amalga oshiriladi.</p><p>2.2. Tovar bilan birga hisob-faktura va yuk xati taqdim etiladi. Tovar qabul qilinganda dalolatnoma imzolanadi.</p>` +
+        `<h3>3. TO'LOV TARTIBI</h3><p>3.1. To'lov tovar yetkazib berilgach [Muddat] ichida pul ko'chirish yo'li bilan amalga oshiriladi.</p>`,
+    }),
   },
   {
     key: "service",
@@ -265,7 +310,16 @@ const CATALOG: Template[] = [
     title: { uz: "Xizmat ko'rsatish", ru: "Договор оказания услуг" },
     desc: { uz: "Pullik xizmat ko'rsatish bo'yicha shartnoma", ru: "Договор возмездного оказания услуг" },
     kw: "xizmat ko'rsatish usluga service ijrochi",
-    html: `<h2>XIZMAT KO'RSATISH SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ijrochi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Buyurtmachi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Ijrochi xizmatni ko'rsatadi, Buyurtmachi esa [Jami summa] to'laydi.</p><h3>2. To'lov tartibi</h3><p>2.1. To'lov [Muddat] ichida amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Ijrochi: _________________  Buyurtmachi: _________________</p>`,
+    html: contractDoc({
+      title: "XIZMAT KO'RSATISH SHARTNOMASI",
+      aRole: "Ijrochi",
+      bRole: "Buyurtmachi",
+      payer: "Buyurtmachi",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Ijrochi Buyurtmachining topshirig'iga binoan [Xizmat turi] xizmatlarini ko'rsatadi, Buyurtmachi esa ularni qabul qilib haqini to'laydi.</p><p>1.2. Xizmatlar hajmi va talablari Tomonlar imzolagan texnik topshiriq (ilova)da belgilanadi.</p>` +
+        `<h3>2. XIZMAT NARXI VA TO'LOV TARTIBI</h3><p>2.1. Xizmatlar qiymati: <strong>[Jami summa]</strong>.</p><p>2.2. To'lov ko'rsatilgan xizmatlar dalolatnomasi (akt) imzolangach [Muddat] ichida amalga oshiriladi.</p>` +
+        `<h3>3. XIZMATNI TOPSHIRISH VA QABUL QILISH</h3><p>3.1. Xizmatlar ko'rsatilgach, Ijrochi bajarilgan ishlar dalolatnomasini taqdim etadi.</p><p>3.2. Buyurtmachi 5 ish kuni ichida dalolatnomani imzolaydi yoki asoslantirilgan e'tirozini bildiradi.</p>`,
+    }),
   },
   {
     key: "rent",
@@ -274,7 +328,16 @@ const CATALOG: Template[] = [
     title: { uz: "Ijara shartnomasi", ru: "Договор аренды" },
     desc: { uz: "Mol-mulkni vaqtinchalik foydalanishga berish", ru: "Передача имущества во временное пользование" },
     kw: "ijara arenda rent turar-joy kvartira",
-    html: `<h2>IJARA SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ijaraga beruvchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Ijarachi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Ijaraga beruvchi mol-mulkni vaqtinchalik foydalanishga beradi. Oylik ijara haqi: [Jami summa].</p><h3>2. Muddat va to'lov</h3><p>2.1. Ijara muddati: [Muddat] oy. To'lov har oy amalga oshiriladi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Ijaraga beruvchi: _________________  Ijarachi: _________________</p>`,
+    html: contractDoc({
+      title: "IJARA SHARTNOMASI",
+      aRole: "Ijaraga beruvchi",
+      bRole: "Ijarachi",
+      payer: "Ijarachi",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Ijaraga beruvchi quyidagi mol-mulkni Ijarachiga vaqtinchalik egalik qilish va foydalanishga beradi: [Ijara obyekti] (manzil/tavsif: [Obyekt manzili]).</p><p>1.2. Mol-mulk ijaraga beruvchining mulki bo'lib, uchinchi shaxslar huquqidan xoli.</p>` +
+        `<h3>2. IJARA HAQI VA TO'LOV TARTIBI</h3><p>2.1. Oylik ijara haqi: <strong>[Jami summa]</strong>.</p><p>2.2. To'lov har oy uchun oldindan, har oyning [To'lov kuni]-sanasigacha amalga oshiriladi.</p>` +
+        `<h3>3. MUDDAT VA FOYDALANISH SHARTLARI</h3><p>3.1. Ijara muddati: [Muddat] oy, mol-mulk topshirilgan kundan (topshirish dalolatnomasi bo'yicha).</p><p>3.2. Ijarachi mol-mulkdan maqsadli foydalanadi, uni saqlab qoladi va muddat tugagach yaroqli holatda qaytaradi. Kommunal to'lovlar [Kommunal to'lov tomoni] zimmasida.</p>`,
+    }),
   },
   {
     key: "pudrat",
@@ -283,7 +346,16 @@ const CATALOG: Template[] = [
     title: { uz: "Pudrat shartnomasi", ru: "Договор подряда" },
     desc: { uz: "Ish (qurilish, ta'mir) bajarish bo'yicha pudrat", ru: "Договор подряда на выполнение работ" },
     kw: "pudrat podryad qurilish ta'mir ish bajarish",
-    html: `<h2>PUDRAT SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Pudratchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Buyurtmachi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Pudratchi [Ish nomi] ishlarini bajaradi, Buyurtmachi natijani qabul qilib [Jami summa] to'laydi.</p><h3>2. Muddat</h3><p>2.1. Ishlar [Muddat] ichida bajariladi.</p><h3>3. To'lov va javobgarlik</h3><p>3.1. To'lov ish topshirilgach amalga oshiriladi. Kechikish uchun har kun [Foiz]% penya.</p><p>Pudratchi: _________________  Buyurtmachi: _________________</p>`,
+    html: contractDoc({
+      title: "PUDRAT SHARTNOMASI",
+      aRole: "Pudratchi",
+      bRole: "Buyurtmachi",
+      payer: "Buyurtmachi",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Pudratchi Buyurtmachining topshirig'iga binoan [Ish nomi] ishlarini o'z kuchi va vositalari bilan bajaradi, Buyurtmachi esa natijani qabul qilib haqini to'laydi.</p><p>1.2. Ishlar hajmi, tarkibi va talablari smeta hamda texnik topshiriq (ilova)da belgilanadi.</p>` +
+        `<h3>2. ISH NARXI VA TO'LOV TARTIBI</h3><p>2.1. Ishlar qiymati: <strong>[Jami summa]</strong>.</p><p>2.2. To'lov bajarilgan ishlar dalolatnomasi (akt) imzolangach [Muddat] ichida amalga oshiriladi. Zarur bo'lganda avans [Avans] miqdorida beriladi.</p>` +
+        `<h3>3. MUDDAT VA ISHNI TOPSHIRISH</h3><p>3.1. Ishlar [Boshlanish sanasi]dan boshlab [Muddat] ichida bajariladi.</p><p>3.2. Ish tugagach Pudratchi natijani topshiradi; Buyurtmachi qabul qilib dalolatnomani imzolaydi yoki kamchiliklarni yozma bildiradi.</p>`,
+    }),
   },
   {
     key: "loan",
@@ -292,7 +364,16 @@ const CATALOG: Template[] = [
     title: { uz: "Qarz (zayom) shartnomasi", ru: "Договор займа" },
     desc: { uz: "Pul mablag'ini qarzga berish shartnomasi", ru: "Договор денежного займа между сторонами" },
     kw: "qarz zayom zaym loan pul qarzga berish",
-    html: `<h2>QARZ (ZAYOM) SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Qarz beruvchi) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Qarz oluvchi) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Qarz beruvchi Qarz oluvchiga [Jami summa] miqdorida pul mablag'ini qarzga beradi.</p><h3>2. Qaytarish muddati</h3><p>2.1. Qarz [Muddat] ichida to'liq qaytariladi.</p><h3>3. Foiz va javobgarlik</h3><p>3.1. Qarzga [Foiz]% ustama qo'llaniladi. Kechiktirilsa, har kun uchun [Foiz]% penya hisoblanadi.</p><p>Qarz beruvchi: _________________  Qarz oluvchi: _________________</p>`,
+    html: contractDoc({
+      title: "QARZ (ZAYOM) SHARTNOMASI",
+      aRole: "Qarz beruvchi",
+      bRole: "Qarz oluvchi",
+      payer: "Qarz oluvchi",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Qarz beruvchi Qarz oluvchiga <strong>[Jami summa]</strong> miqdorida pul mablag'ini qarzga beradi, Qarz oluvchi esa uni belgilangan muddatda qaytarish majburiyatini oladi.</p><p>1.2. Qarz mablag'i o'tkazilgani to'lov hujjati (yoki tilxat) bilan tasdiqlanadi.</p>` +
+        `<h3>2. FOIZLAR</h3><p>2.1. Qarzdan foydalanganlik uchun yillik [Foiz]% ustama hisoblanadi (agar Tomonlar foizsiz deb kelishmagan bo'lsa).</p>` +
+        `<h3>3. QAYTARISH MUDDATI VA TARTIBI</h3><p>3.1. Qarz [Muddat] ichida, [Qaytarish jadvali] bo'yicha to'liq qaytariladi.</p><p>3.2. Qarz oluvchi qarzni muddatidan oldin ham qaytarishi mumkin.</p>`,
+    }),
   },
   {
     key: "employment",
@@ -301,7 +382,7 @@ const CATALOG: Template[] = [
     title: { uz: "Mehnat shartnomasi", ru: "Трудовой договор" },
     desc: { uz: "Xodim bilan tuziladigan mehnat shartnomasi", ru: "Трудовой договор с работником" },
     kw: "mehnat trudovoy xodim ish beruvchi lavozim",
-    html: `<h2>MEHNAT SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Ish beruvchi) va [Qarzdor nomi] (Xodim) o'rtasida.</p><h3>1. Lavozim</h3><p>1.1. Xodim [Lavozim] lavozimiga qabul qilinadi.</p><h3>2. Mehnat haqi</h3><p>2.1. Oylik ish haqi: [Jami summa]. To'lov oyiga bir marta.</p><h3>3. Ish vaqti</h3><p>3.1. Ish vaqti qonunchilikka muvofiq belgilanadi.</p><p>Ish beruvchi: _________________  Xodim: _________________</p>`,
+    html: `<h2 style="text-align:center">MEHNAT SHARTNOMASI № [Shartnoma raqami]</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>«[Kreditor nomi]» (bundan buyon — «Ish beruvchi»), [Kreditor direktori] shaxsida, bir tomondan, va [Qarzdor nomi] (bundan buyon — «Xodim»), ikkinchi tomondan, O'zbekiston Respublikasi Mehnat kodeksiga muvofiq quyidagilar to'g'risida ushbu mehnat shartnomasini tuzdilar:</p><h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Xodim [Lavozim] lavozimiga (kasbiga) [Bo'lim] bo'linmasiga ishga qabul qilinadi.</p><p>1.2. Ish [Ish joyi manzili] manzilida bajariladi. Ushbu ish Xodim uchun asosiy ish hisoblanadi.</p><h3>2. SHARTNOMA MUDDATI VA SINOV</h3><p>2.1. Xodim ishga [Ishga chiqish sanasi]dan kirishadi. Shartnoma [Muddat]ga (yoki muddatsiz) tuziladi.</p><p>2.2. Sinov muddati: [Sinov muddati] (belgilangan bo'lsa).</p><h3>3. MEHNAT HAQI</h3><p>3.1. Xodimga lavozim maoshi (tarif stavkasi) <strong>[Jami summa]</strong> belgilanadi.</p><p>3.2. Mehnat haqi oyiga kamida ikki marta, qonunchilikda belgilangan muddatlarda to'lanadi.</p><h3>4. ISH VA DAM OLISH VAQTI</h3><p>4.1. Xodimga haftasiga [Ish soati] soatlik ish vaqti belgilanadi.</p><p>4.2. Xodim mehnat qonunchiligiga muvofiq yillik haq to'lanadigan mehnat ta'tiliga haqli.</p><h3>5. TOMONLARNING HUQUQ VA MAJBURIYATLARI</h3><p>5.1. Ish beruvchi xavfsiz mehnat sharoitini yaratadi va mehnat haqini o'z vaqtida to'laydi.</p><p>5.2. Xodim mehnat vazifalarini va ichki mehnat tartibi qoidalarini halol bajaradi.</p><h3>6. SHARTNOMANI BEKOR QILISH</h3><p>6.1. Mehnat shartnomasi O'zbekiston Respublikasi Mehnat kodeksida nazarda tutilgan asoslar va tartibda bekor qilinadi.</p><h3>7. YAKUNIY QOIDALAR</h3><p>7.1. Shartnoma teng yuridik kuchga ega ikki nusxada tuzildi. Nizolar qonunchilikka muvofiq hal etiladi.</p><p><strong>Ish beruvchi:</strong> «[Kreditor nomi]», STIR: [Kreditor STIR]<br>Manzil: [Kreditor manzili] · Tel: [Kreditor telefoni]<br>_________________ [Kreditor direktori]&nbsp;&nbsp; M.O'.</p><p><strong>Xodim:</strong> [Qarzdor nomi]<br>PINFL: [Xodim PINFL] · Manzil: [Xodim manzili] · Tel: [Xodim telefoni]<br>_________________ (imzo)</p>`,
   },
   {
     key: "commission",
@@ -310,7 +391,16 @@ const CATALOG: Template[] = [
     title: { uz: "Komissiya shartnomasi", ru: "Договор комиссии" },
     desc: { uz: "Komissioner Komitent nomidan bitim tuzadi", ru: "Комиссионер совершает сделки для комитента" },
     kw: "komissiya komissioner komitent commission vositachi",
-    html: `<h2>KOMISSIYA SHARTNOMASI № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" (Komissioner) va "[Qarzdor nomi]" (STIR [Qarzdor STIR], Komitent) o'rtasida.</p><h3>1. Shartnoma predmeti</h3><p>1.1. Komissioner Komitent nomidan, lekin o'z hisobidan bitimlar tuzadi. Komissiya haqi: [Jami summa].</p><h3>2. To'lov</h3><p>2.1. Komissiya haqi [Muddat] ichida to'lanadi.</p><h3>3. Javobgarlik</h3><p>3.1. Kechikish uchun har kun [Foiz]% penya.</p><p>Komissioner: _________________  Komitent: _________________</p>`,
+    html: contractDoc({
+      title: "KOMISSIYA SHARTNOMASI",
+      aRole: "Komissioner",
+      bRole: "Komitent",
+      payer: "Komitent",
+      body:
+        `<h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Komissioner Komitentning topshirig'iga binoan, o'z nomidan, lekin Komitent hisobidan [Bitim predmeti] bo'yicha bitim(lar) tuzadi.</p><p>1.2. Bitim shartlari (narx, miqdor, muddat) Komitentning topshirig'ida belgilanadi.</p>` +
+        `<h3>2. KOMISSIYA HAQI VA HISOB-KITOB</h3><p>2.1. Komissiya haqi: <strong>[Jami summa]</strong> (yoki bitim summasining [Foiz]%i).</p><p>2.2. Komissioner topshiriq bajarilgach hisobot taqdim etadi; hisob-kitob [Muddat] ichida amalga oshiriladi.</p>` +
+        `<h3>3. TOMONLAR MAJBURIYATLARI</h3><p>3.1. Komissioner topshiriqni Komitent manfaatlariga muvofiq, eng qulay shartlarda bajaradi.</p><p>3.2. Komitent Komissionerni zarur mablag' va hujjatlar bilan ta'minlaydi.</p>`,
+    }),
   },
   {
     key: "multiparty",
@@ -319,7 +409,7 @@ const CATALOG: Template[] = [
     title: { uz: "Ko'p tomonlama shartnoma", ru: "Многосторонний договор" },
     desc: { uz: "Uch va undan ortiq tomon o'rtasidagi shartnoma", ru: "Договор между тремя и более сторонами" },
     kw: "ko'p tomonlama multiparty uch tomon mnogostoronniy",
-    html: `<h2>KO'P TOMONLAMA SHARTNOMA № [Shartnoma raqami]</h2><p>[Shahar], [Sana]</p><p>Quyidagi tomonlar o'rtasida tuzildi:<br>Tomon 1: "[Kreditor nomi]"<br>Tomon 2: "[Qarzdor nomi]" (STIR [Qarzdor STIR])<br>Tomon 3: [Uchinchi tomon]</p><h3>1. Shartnoma predmeti</h3><p>1.1. Tomonlar quyidagi majburiyatlar bo'yicha kelishdilar. Umumiy qiymat: [Jami summa].</p><h3>2. Har tomon majburiyati</h3><p>2.1. [Majburiyatlarni shu yerga yozing]</p><p>Tomon 1: _________  Tomon 2: _________  Tomon 3: _________</p>`,
+    html: `<h2 style="text-align:center">KO'P TOMONLAMA SHARTNOMA № [Shartnoma raqami]</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>Quyidagi Tomonlar:<br>1) «[Kreditor nomi]» (STIR: [Kreditor STIR]), [Kreditor direktori] shaxsida;<br>2) «[Qarzdor nomi]» (STIR: [Qarzdor STIR]), [Qarzdor direktori] shaxsida;<br>3) «[Uchinchi tomon]» (STIR: [Uchinchi tomon STIR]), [Uchinchi tomon rahbari] shaxsida —<br>birgalikda «Tomonlar» deb ataluvchi, quyidagilar to'g'risida ushbu shartnomani tuzdilar:</p><h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Tomonlar [Hamkorlik predmeti] bo'yicha birgalikda harakat qilish to'g'risida kelishdilar. Umumiy qiymat (yoki hissalar): <strong>[Jami summa]</strong>.</p><h3>2. HAR BIR TOMONNING MAJBURIYATLARI</h3><p>2.1. Tomon 1: [1-tomon majburiyati].</p><p>2.2. Tomon 2: [2-tomon majburiyati].</p><p>2.3. Tomon 3: [3-tomon majburiyati].</p><h3>3. TOMONLARNING JAVOBGARLIGI</h3><p>3.1. Majburiyatni buzgan Tomon boshqa Tomonlarga yetkazilgan real zararni O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq qoplaydi.</p><h3>4. NIZOLARNI HAL QILISH</h3><p>4.1. Nizolar muzokara va sudgacha (pretenziya) tartibida hal etiladi; kelishuvga erishilmasa, nizo Iqtisodiy protsessual kodeksga muvofiq iqtisodiy sudda ko'rib chiqiladi.</p><h3>5. YAKUNIY QOIDALAR</h3><p>5.1. Shartnoma Tomonlar soniga teng nusxada, har biri teng yuridik kuchga ega holda tuzildi.</p><p>5.2. O'zgartirishlar barcha Tomonlar imzolagan yozma kelishuv bilan kiritiladi.</p><p><strong>Tomon 1:</strong> «[Kreditor nomi]» _________________&nbsp; M.O'.<br><strong>Tomon 2:</strong> «[Qarzdor nomi]» _________________&nbsp; M.O'.<br><strong>Tomon 3:</strong> «[Uchinchi tomon]» _________________&nbsp; M.O'.</p>`,
   },
   // ── Boshqa hujjatlar ──
   {
@@ -329,7 +419,7 @@ const CATALOG: Template[] = [
     title: { uz: "Ishonchnoma", ru: "Доверенность" },
     desc: { uz: "Vakolat berish (ishonchnoma) hujjati", ru: "Доверенность на представление интересов" },
     kw: "ishonchnoma doverennost vakolat vakil",
-    html: `<h2>ISHONCHNOMA</h2><p>[Shahar], [Sana]</p><p>Men, [Ishonch bildiruvchi F.I.Sh] (STIR/PINFL [Qarzdor STIR]), ushbu ishonchnoma bilan [Ishonchli vakil F.I.Sh]ga quyidagi vakolatlarni beraman:</p><p>[Vakolatlar ro'yxatini shu yerga yozing] — jumladan hujjatlarni imzolash, davlat organlarida vakillik qilish, arizalar topshirish.</p><p>Ishonchnoma [Muddat] muddatga beriladi. Vakolatlar boshqa shaxsga topshirilmaydi.</p><p>Ishonch bildiruvchi: _________________ (imzo)</p>`,
+    html: `<h2 style="text-align:center">ISHONCHNOMA</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>«[Kreditor nomi]» (STIR: [Kreditor STIR], manzil: [Kreditor manzili]) nomidan Ustav asosida ish yurituvchi rahbar [Kreditor direktori] ushbu ishonchnoma bilan quyidagi shaxsni vakil qilib tayinlaydi:</p><p><strong>Vakil:</strong> [Ishonchli vakil F.I.Sh]; PINFL: [Vakil PINFL]; pasport: [Vakil pasport].</p><h3>Beriladigan vakolatlar</h3><p>Vakilga tashkilot manfaatlarini davlat organlari, sud, banklar va uchinchi shaxslar oldida ifodalash; ariza, da'vo va boshqa hujjatlarni imzolash hamda topshirish; kerakli ma'lumotlarni olish; shuningdek [Qo'shimcha vakolatlar] vakolatlari beriladi.</p><h3>Muddat</h3><p>Ishonchnoma [Sana]dan boshlab [Muddat] muddatga beriladi. Vakolatlarni boshqa shaxsga o'tkazish huquqi berilmaydi (agar alohida ko'rsatilmagan bo'lsa).</p><p>Rahbar: [Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "nda",
@@ -338,7 +428,7 @@ const CATALOG: Template[] = [
     title: { uz: "Konfidensiallik (NDA)", ru: "Соглашение о конфиденциальности" },
     desc: { uz: "Maxfiy ma'lumotlarni sir saqlash kelishuvi", ru: "Соглашение о неразглашении (NDA)" },
     kw: "nda konfidensiallik maxfiylik nerazglashenie sir",
-    html: `<h2>KONFIDENSIALLIK TO'G'RISIDA KELISHUV (NDA)</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" va "[Qarzdor nomi]" (STIR [Qarzdor STIR]) o'rtasida.</p><h3>1. Predmet</h3><p>1.1. Tomonlar hamkorlik davomida bir-biriga oshkor qilgan maxfiy ma'lumotlarni sir saqlash majburiyatini oladilar.</p><h3>2. Maxfiylik muddati</h3><p>2.1. Majburiyat kelishuv tugagach ham [Muddat] davomida amal qiladi.</p><h3>3. Javobgarlik</h3><p>3.1. Maxfiylik buzilsa, aybdor tomon yetkazilgan zararni to'liq qoplaydi.</p><p>Tomon 1: _________________  Tomon 2: _________________</p>`,
+    html: `<h2 style="text-align:center">KONFIDENSIALLIK TO'G'RISIDA KELISHUV (NDA)</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>«[Kreditor nomi]» (STIR: [Kreditor STIR]) va «[Qarzdor nomi]» (STIR: [Qarzdor STIR]), birgalikda «Tomonlar» deb ataluvchi, quyidagilar to'g'risida ushbu kelishuvni tuzdilar:</p><h3>1. MAXFIY MA'LUMOT</h3><p>1.1. Maxfiy ma'lumot deganda Tomonlar hamkorlik davomida bir-biriga oshkor qilgan tijoriy, moliyaviy, texnik va boshqa maxfiy xarakterdagi har qanday ma'lumot tushuniladi.</p><h3>2. TOMONLARNING MAJBURIYATLARI</h3><p>2.1. Tomonlar maxfiy ma'lumotni sir saqlaydilar, uni uchinchi shaxslarga oshkor qilmaydilar va faqat hamkorlik maqsadida ishlatadilar.</p><h3>3. MUDDAT</h3><p>3.1. Majburiyat kelishuv amal qilgan davrda va u tugagach ham [Muddat] davomida saqlanadi.</p><h3>4. JAVOBGARLIK</h3><p>4.1. Maxfiylik buzilsa, aybdor Tomon yetkazilgan real zararni O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq to'liq qoplaydi.</p><h3>5. YAKUNIY QOIDALAR</h3><p>5.1. Nizolar muzokara, kelishilmasa iqtisodiy sud orqali hal etiladi. Kelishuv teng yuridik kuchga ega ikki nusxada tuzildi.</p><p><strong>Tomon 1:</strong> «[Kreditor nomi]» _________________&nbsp;&nbsp; M.O'.<br><strong>Tomon 2:</strong> «[Qarzdor nomi]» _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "termination",
@@ -347,7 +437,7 @@ const CATALOG: Template[] = [
     title: { uz: "Shartnomani bekor qilish", ru: "Расторжение договора" },
     desc: { uz: "Amaldagi shartnomani bekor qilish kelishuvi", ru: "Соглашение о расторжении договора" },
     kw: "bekor qilish rastorzhenie termination shartnomani tugatish",
-    html: `<h2>SHARTNOMANI BEKOR QILISH TO'G'RISIDA KELISHUV</h2><p>[Shahar], [Sana]</p><p>"[Kreditor nomi]" va "[Qarzdor nomi]" (STIR [Qarzdor STIR]) o'rtasida tuzilgan № [Shartnoma raqami] shartnomaga nisbatan.</p><h3>1. Tomonlar № [Shartnoma raqami] shartnomani [Sana] dan boshlab bekor qilishga kelishdilar.</h3><h3>2. O'zaro hisob-kitob</h3><p>2.1. Bekor qilish sanasiga o'zaro moliyaviy da'volar: [Jami summa]. Hisob-kitob [Muddat] ichida yakunlanadi.</p><p>Tomon 1: _________________  Tomon 2: _________________</p>`,
+    html: `<h2 style="text-align:center">SHARTNOMANI BEKOR QILISH TO'G'RISIDA KELISHUV</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>«[Kreditor nomi]» (STIR: [Kreditor STIR]) va «[Qarzdor nomi]» (STIR: [Qarzdor STIR]), birgalikda «Tomonlar» deb ataluvchi, o'rtasida tuzilgan № [Shartnoma raqami] shartnomaga (bundan buyon — «Shartnoma») nisbatan quyidagilar to'g'risida kelishdilar:</p><h3>1. BEKOR QILISH</h3><p>1.1. Tomonlar № [Shartnoma raqami] Shartnomani [Sana]dan boshlab o'zaro kelishuv asosida bekor qiladilar. Ushbu sanadan e'tiboran Shartnoma bo'yicha kelgusi majburiyatlar to'xtatiladi.</p><h3>2. O'ZARO HISOB-KITOB</h3><p>2.1. Bekor qilish sanasiga o'zaro moliyaviy holat: [Jami summa]. Hisob-kitob [Muddat] ichida to'liq yakunlanadi.</p><p>2.2. Hisob-kitob yakunlangach Tomonlar bir-biriga da'voga ega emaslar (aks holda quyida ko'rsatiladi): _______________________________</p><h3>3. YAKUNIY QOIDALAR</h3><p>3.1. Ushbu kelishuv Shartnomaning ajralmas qismi bo'lib, teng yuridik kuchga ega ikki nusxada tuzildi.</p><p><strong>Tomon 1:</strong> «[Kreditor nomi]» _________________&nbsp;&nbsp; M.O'.<br><strong>Tomon 2:</strong> «[Qarzdor nomi]» _________________&nbsp;&nbsp; M.O'.</p>`,
   },
   {
     key: "blank",
@@ -594,7 +684,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
     else setDocHtml((h) => h + html);
   }
 
-  // ── Versiyalash: joriy holatni tarixга saqlaydi (oxirgi 20 ta). ──
+  // ── Versiyalash: joriy holatni tarixga saqlaydi (oxirgi 20 ta). ──
   function snapshot(label: string) {
     const html = docHtml;
     if (!plainText(html)) return; // bo'sh hujjatni saqlamaymiz
@@ -616,7 +706,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
     setPicker(false);
   }
 
-  // ── Fayl yuklab tahlil: matn ajratib, editorга yuklaydi va AI tahlilини boshlaydi. ──
+  // ── Fayl yuklab tahlil: matn ajratib, editorga yuklaydi va AI tahlilini boshlaydi. ──
   async function onFilePicked(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // bir xil faylni qayta tanlash mumkin bo'lsin
@@ -633,7 +723,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
       return;
     }
     if (!extracted) {
-      setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? "В файле нет текста." : "Faylда matn topilmadi." }]);
+      setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? "В файле нет текста." : "Faylda matn topilmadi." }]);
       return;
     }
     if (plainText(docHtml)) snapshot(locale === "ru" ? "до загрузки" : "yuklashdan oldin");
@@ -695,10 +785,38 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   ];
 
   return (
-    <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[1fr_360px]">
-      {/* ── Hujjat muharriri ─────────────────────────── */}
-      <div className="flex min-h-0 flex-col">
-        <div className="mb-3 flex items-center gap-3">
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      {/* ── Rejim tanlash: AI asosida / Namuna asosida ── */}
+      <div className="flex items-center">
+        <div className="inline-flex rounded-xl border border-border bg-card p-1 text-sm font-medium">
+          <button
+            onClick={() => setPicker(false)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-colors",
+              !picker ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <MagicWand weight={!picker ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "С помощью AI" : "AI asosida tayyorlash"}
+          </button>
+          <button
+            onClick={() => setPicker(true)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-colors",
+              picker ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <SquaresFour weight={picker ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "Из шаблона" : "Namuna asosida tayyorlash"}
+          </button>
+        </div>
+      </div>
+
+      {picker ? (
+        <TemplateLibrary locale={locale} t={t} onPick={chooseTemplate} />
+      ) : (
+        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_360px]">
+          {/* ── Hujjat muharriri ─────────────────────────── */}
+          <div className="flex min-h-0 min-w-0 flex-col">
+            <div className="mb-3 flex flex-wrap items-center gap-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -818,15 +936,11 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
             )}
           </div>
         </div>
-        {picker ? (
-          <TemplateLibrary locale={locale} t={t} onPick={chooseTemplate} />
-        ) : (
-          <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" />
-        )}
-      </div>
+            <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" />
+          </div>
 
-      {/* ── AI Yordamchi paneli ──────────────────────── */}
-      <aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
+          {/* ── AI Yordamchi paneli ──────────────────────── */}
+          <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
             <Sparkle weight="fill" className="size-4" />
@@ -924,7 +1038,9 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
             <WarningCircle className="size-3" /> {t("disclaimer")}
           </p>
         </form>
-      </aside>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }
