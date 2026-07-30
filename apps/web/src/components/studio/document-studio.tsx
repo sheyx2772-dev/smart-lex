@@ -3,9 +3,11 @@
 import {
   ArrowRight,
   Briefcase,
+  ArrowCounterClockwise,
   CaretDown,
   CircleNotch,
   ClipboardText,
+  ClockCounterClockwise,
   Coins,
   DownloadSimple,
   Envelope,
@@ -31,13 +33,14 @@ import {
   Sparkle,
   SquaresFour,
   Truck,
+  UploadSimple,
   UsersThree,
   WarningCircle,
 } from "@phosphor-icons/react";
 import type { Editor } from "@tiptap/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +65,101 @@ function plainText(html: string): string {
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// ── Fayl yuklab tahlil: matn ajratish (dependency'siz) ──
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+}
+/** Word document.xml → tekis matn (paragraf/tab/tab bo'linishlarini saqlaydi). */
+function docxXmlToText(xml: string): string {
+  const body = xml.replace(/^[\s\S]*?<w:body\b[^>]*>/, "").replace(/<\/w:body>[\s\S]*$/, "");
+  return decodeEntities(
+    body
+      .replace(/<w:tab\b[^>]*\/?>/g, "\t")
+      .replace(/<w:br\b[^>]*\/?>/g, "\n")
+      .replace(/<\/w:p>/g, "\n")
+      .replace(/<[^>]+>/g, ""),
+  )
+    .replace(/\r/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+/** .docx (ZIP) ichidan word/document.xml ni topib, deflate-raw bilan ochadi. */
+async function extractDocx(buf: ArrayBuffer): Promise<string> {
+  const dv = new DataView(buf);
+  const bytes = new Uint8Array(buf);
+  const td = new TextDecoder();
+  // EOCD (End Of Central Directory) ni oxiridan qidiramiz.
+  let eocd = -1;
+  const min = Math.max(0, buf.byteLength - 22 - 65536);
+  for (let i = buf.byteLength - 22; i >= min; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0) throw new Error("docx: ZIP emas");
+  const cdCount = dv.getUint16(eocd + 10, true);
+  const cdOff = dv.getUint32(eocd + 16, true);
+  let target: { method: number; compSize: number; localOff: number } | null = null;
+  let p = cdOff;
+  for (let n = 0; n < cdCount && p + 46 <= buf.byteLength; n++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const compSize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const commentLen = dv.getUint16(p + 32, true);
+    const localOff = dv.getUint32(p + 42, true);
+    const name = td.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    if (name === "word/document.xml") {
+      target = { method, compSize, localOff };
+      break;
+    }
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  if (!target) throw new Error("docx: document.xml topilmadi");
+  const lo = target.localOff;
+  if (dv.getUint32(lo, true) !== 0x04034b50) throw new Error("docx: lokal sarlavha xato");
+  const dataStart = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true);
+  const comp = bytes.subarray(dataStart, dataStart + target.compSize);
+  let xmlBytes: Uint8Array;
+  if (target.method === 0) {
+    xmlBytes = comp;
+  } else {
+    const ds = new DecompressionStream("deflate-raw");
+    const stream = new Response(comp).body!.pipeThrough(ds);
+    xmlBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+  return docxXmlToText(td.decode(xmlBytes));
+}
+/** RTF → tekis matn (boshqaruv so'zlarini olib tashlaydi). */
+function rtfToText(rtf: string): string {
+  return rtf
+    .replace(/\\par[d]?\b/g, "\n")
+    .replace(/\\'[0-9a-fA-F]{2}/g, " ")
+    .replace(/\\[a-zA-Z]+-?\d*\s?/g, "")
+    .replace(/[{}]/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+/** Yuklangan fayldan tekis matn (docx/rtf/html/txt/md). */
+async function extractFileText(file: File): Promise<string> {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".docx")) return extractDocx(await file.arrayBuffer());
+  const raw = await file.text();
+  if (name.endsWith(".html") || name.endsWith(".htm")) return plainText(raw);
+  if (name.endsWith(".rtf")) return rtfToText(raw);
+  return raw; // txt, md, csv, ...
 }
 
 // ── Shablon hujjatlar kutubxonasi (trustme.uz uslubi: qidiruv + kategoriya) ──
@@ -409,6 +507,18 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const [loading, setLoading] = useState(false);
   const editorRef = useRef<Editor | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Versiyalar (hujjat tarixi) — snapshotlar, tiklash imkoni bilan.
+  interface DocVersion {
+    id: number;
+    label: string;
+    html: string;
+    at: string;
+  }
+  const [versions, setVersions] = useState<DocVersion[]>([]);
+  const [versionsOpen, setVersionsOpen] = useState(false);
+  const verId = useRef(0);
 
   // Sud (yoki boshqa bo'lim) "Da'voni tahrirlash" bilan yuborgan hujjatni ochish.
   useEffect(() => {
@@ -431,10 +541,10 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const hasDoc = words > 0;
 
   // Studio AI — STREAMING: javob harfma-harf keladi va oxirgi AI xabariga yoziladi.
-  async function ask(prompt: string) {
+  async function ask(prompt: string, docOverride?: string) {
     const q = prompt.trim();
     if (!q || loading) return;
-    const docText = text;
+    const docText = docOverride ?? text;
     setInput("");
     // Foydalanuvchi savoli + bo'sh AI "joy" (oqim shunga to'ldiriladi).
     setMessages((m) => [...m, { role: "user", text: q }, { role: "ai", text: "" }]);
@@ -478,16 +588,60 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   }
 
   function insertToDoc(aiText: string) {
+    if (plainText(docHtml)) snapshot(locale === "ru" ? "до вставки AI" : "AI qo'shishdan oldin");
     const html = toHtml(aiText);
     if (editorRef.current) editorRef.current.chain().focus().insertContent(html).run();
     else setDocHtml((h) => h + html);
   }
 
+  // ── Versiyalash: joriy holatni tarixга saqlaydi (oxirgi 20 ta). ──
+  function snapshot(label: string) {
+    const html = docHtml;
+    if (!plainText(html)) return; // bo'sh hujjatni saqlamaymiz
+    verId.current += 1;
+    const at = new Date().toLocaleString(locale === "ru" ? "ru-RU" : "uz-UZ", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" });
+    setVersions((v) => [{ id: verId.current, label, html, at }, ...v].slice(0, 20));
+  }
+  function restoreVersion(v: DocVersion) {
+    snapshot(locale === "ru" ? "перед откатом" : "tiklashdan oldin");
+    setDocHtml(v.html);
+    setVersionsOpen(false);
+  }
+
   function chooseTemplate(tpl: Template) {
+    if (plainText(docHtml)) snapshot(locale === "ru" ? "до шаблона" : "shablon oldidan");
     const d = debtors.find((x) => x.id === debtorId);
     setDocHtml(d ? applyDebtor(tpl.html, d) : tpl.html);
     if (!title.trim() && tpl.key !== "blank") setTitle(Lc(tpl.title));
     setPicker(false);
+  }
+
+  // ── Fayl yuklab tahlil: matn ajratib, editorга yuklaydi va AI tahlilини boshlaydi. ──
+  async function onFilePicked(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // bir xil faylni qayta tanlash mumkin bo'lsin
+    if (!file || loading) return;
+    if (file.size > 8 * 1024 * 1024) {
+      setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? "Файл слишком большой (макс. 8 МБ)." : "Fayl juda katta (maks. 8 MB)." }]);
+      return;
+    }
+    let extracted = "";
+    try {
+      extracted = (await extractFileText(file)).trim();
+    } catch {
+      setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? "Не удалось прочитать файл. Поддерживаются .docx, .txt, .rtf, .html." : "Faylni o'qib bo'lmadi. .docx, .txt, .rtf, .html qo'llab-quvvatlanadi." }]);
+      return;
+    }
+    if (!extracted) {
+      setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? "В файле нет текста." : "Faylда matn topilmadi." }]);
+      return;
+    }
+    if (plainText(docHtml)) snapshot(locale === "ru" ? "до загрузки" : "yuklashdan oldin");
+    setDocHtml(toHtml(extracted));
+    setTitle((tt) => tt.trim() || file.name.replace(/\.[^.]+$/, ""));
+    setPicker(false);
+    // Yuklangan matnni to'g'ridan-to'g'ri AI'ga (docOverride) berib tahlil qildiramiz.
+    ask(t("qRisks"), extracted);
   }
 
   // Tanlangan qarzdor ma'lumotini joriy hujjatga to'ldiradi (RichEditor value orqali
@@ -573,6 +727,70 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
           >
             <SquaresFour className="size-4" /> {t("templates")}
           </button>
+
+          {/* Yashirin fayl input — fayl yuklab tahlil */}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".docx,.txt,.md,.rtf,.html,.htm,.csv"
+            className="hidden"
+            onChange={onFilePicked}
+          />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={loading}
+            title={locale === "ru" ? "Загрузить документ (.docx, .txt, .rtf) и проанализировать" : "Hujjat yuklash (.docx, .txt, .rtf) va tahlil qilish"}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30 disabled:opacity-40"
+          >
+            <UploadSimple className="size-4" /> <span className="hidden sm:inline">{locale === "ru" ? "Загрузить" : "Yuklash"}</span>
+          </button>
+
+          {/* Versiyalar (hujjat tarixi) */}
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setVersionsOpen((o) => !o)}
+              title={locale === "ru" ? "Версии документа" : "Hujjat versiyalari"}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-muted-foreground/30"
+            >
+              <ClockCounterClockwise className="size-4" />
+              {versions.length > 0 && <span className="text-xs text-muted-foreground">{versions.length}</span>}
+              <CaretDown className={cn("size-3.5 transition-transform", versionsOpen && "rotate-180")} />
+            </button>
+            {versionsOpen && (
+              <>
+                <button type="button" aria-label="close" className="fixed inset-0 z-10 cursor-default" onClick={() => setVersionsOpen(false)} />
+                <div className="absolute right-0 z-20 mt-1 max-h-80 w-64 overflow-y-auto rounded-lg border border-border bg-card py-1 shadow-lg scroll-clean">
+                  <button
+                    onClick={() => {
+                      snapshot(locale === "ru" ? "ручное сохранение" : "qo'lda saqlash");
+                      setVersionsOpen(false);
+                    }}
+                    disabled={!hasDoc}
+                    className="flex w-full items-center gap-2 border-b border-border px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-muted disabled:opacity-40"
+                  >
+                    <ClockCounterClockwise weight="fill" className="size-4 text-primary" /> {locale === "ru" ? "Сохранить версию" : "Versiyani saqlash"}
+                  </button>
+                  {versions.length === 0 ? (
+                    <p className="px-3 py-3 text-center text-xs text-muted-foreground">{locale === "ru" ? "Пока нет версий" : "Hozircha versiya yo'q"}</p>
+                  ) : (
+                    versions.map((v) => (
+                      <button
+                        key={v.id}
+                        onClick={() => restoreVersion(v)}
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          <span className="text-muted-foreground">{v.at}</span> · {v.label}
+                        </span>
+                        <ArrowCounterClockwise className="size-3.5 shrink-0 text-primary" />
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
           <div className="relative shrink-0">
             <button
               onClick={() => setExportOpen((o) => !o)}
