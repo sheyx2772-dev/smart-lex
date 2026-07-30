@@ -17,7 +17,7 @@ export function getModel(): LanguageModelV1 | null {
     return anthropic("claude-sonnet-5");
   }
   if (provider === "google" && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return google("gemini-2.0-flash");
+    return google(process.env.GEMINI_MODEL ?? "gemini-flash-latest");
   }
   if (provider === "groq" && process.env.GROQ_API_KEY) {
     return groq(process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile");
