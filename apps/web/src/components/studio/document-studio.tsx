@@ -26,7 +26,7 @@ import type { Editor } from "@tiptap/react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { sendChat } from "@/app/(app)/chat/actions";
+import { studioAi } from "@/app/(app)/chat/actions";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { cn } from "@/lib/utils";
 
@@ -222,7 +222,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
     setMessages((m) => [...m, { role: "user", text: q }]);
     setLoading(true);
     try {
-      const res = await sendChat(q);
+      const res = await studioAi(q, text);
       setMessages((m) => [...m, { role: "ai", text: res.reply }]);
     } catch {
       setMessages((m) => [...m, { role: "ai", text: t("aiError") }]);
@@ -232,9 +232,9 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
     }
   }
 
-  // Hujjat matni bilan birga so'raladigan tez amallar.
+  // Tez amallar — hujjat matni AI'ga kontekst sifatida (ask ichida) uzatiladi.
   function docAction(instruction: string) {
-    ask(`${instruction}\n\n"""\n${text}\n"""`);
+    ask(instruction);
   }
 
   function insertToDoc(aiText: string) {
