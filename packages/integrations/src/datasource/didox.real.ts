@@ -187,6 +187,51 @@ export class DidoxDataSource implements DataSource {
     };
   }
 
+  // ── WRITE — qarzdorga eslatma (talabnoma) Didox'ga yuborish ─────────────────
+  // Endpointlar jonli tasdiqlangan (api2.didox.uz/v1). Imzo HAR DOIM foydalanuvchi
+  // mashinasida (E-IMZO) — server imzolamaydi. Javob shakllari mudofaaviy tahlil qilinadi.
+  private v1(path: string): string {
+    return `${this.cfg.baseUrl.replace(/\/+$/, "")}/v1${path}`;
+  }
+
+  /** Berilgan (chiquvchi) invoyslar bo'yicha talabnoma base64'ini oladi. */
+  async getDebtorNotification(invoiceIds: string[]): Promise<string> {
+    const q = new URLSearchParams({ invoicesId: invoiceIds.join(",") });
+    const res = await fetch(`${this.v1("/debtor/notification")}?${q.toString()}`, { headers: this.headers() });
+    if (!res.ok) throw new Error(`Didox debtor/notification HTTP ${res.status}`);
+    const data = (await res.json().catch(() => null)) as unknown;
+    if (typeof data === "string") return data;
+    const o = (data ?? {}) as Record<string, unknown>;
+    return str(o.data) ?? str(o.document) ?? str(o.base64) ?? "";
+  }
+
+  /** Talabnomani yaratadi → imzolanadigan hujjat (JSON matn) va pending obyektni qaytaradi. */
+  async createDebtorNotification(documentBase64: string): Promise<{ pending: unknown; toSign: string }> {
+    const res = await fetch(this.v1("/debtor/notification/create"), {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ document: documentBase64 }),
+    });
+    if (!res.ok) throw new Error(`Didox notification/create HTTP ${res.status}`);
+    const data = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    const pending = (data?.pending_document ??
+      (data?.data as Record<string, unknown>)?.pending_document ??
+      data) as Record<string, unknown>;
+    const doc = pending?.document_json ?? pending?.document ?? pending;
+    return { pending, toSign: JSON.stringify(doc) };
+  }
+
+  /** E-IMZO PKCS7 imzoni yuboradi → talabnoma jo'natiladi. */
+  async signDebtorNotification(signaturePkcs7: string): Promise<unknown> {
+    const res = await fetch(this.v1("/debtor/notification/sign"), {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify({ signature: signaturePkcs7 }),
+    });
+    if (!res.ok) throw new Error(`Didox notification/sign HTTP ${res.status}`);
+    return res.json().catch(() => ({}));
+  }
+
   private toMinor(v?: string): string | undefined {
     if (!v) return undefined;
     const n = v.replace(/[^\d.]/g, "");
