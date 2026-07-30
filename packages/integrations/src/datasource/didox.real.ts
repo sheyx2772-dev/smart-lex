@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { type Currency, type DocumentType } from "@lex/shared";
 import {
   type DataSource,
@@ -10,44 +11,54 @@ import {
 } from "./types";
 
 /**
- * REAL Didox partner adapteri.
+ * REAL Didox partner adapteri — JONLI API bilan tasdiqlangan (2026-07).
  *
- * Endpoint (tasdiqlangan): GET {base}/v2/documents?status=1  (imzolangan hujjatlar)
- *   Prod:  https://api-partners.didox.uz
- *   Test:  https://testapi3.didox.uz
- * Token: partner token (account manager orqali olinadi) — env DIDOX_PARTNER_TOKEN.
+ * Endpoint:  GET https://api2.didox.uz/v2/documents?owner={0|1}&page=1&limit=N
+ *   owner=0 => kiruvchi (incoming), owner=1 => chiquvchi (outgoing).
+ * Auth (ikkita header):
+ *   User-Key: <foydalanuvchi kaliti> — ECP (E-IMZO) login orqali olinadi (Didox web: localStorage.user.token).
+ *   Partner-Authorization: base64( RSA-OAEP-SHA256( DIDOX_PUBLIC_KEY, JSON.stringify({token, iat}) ) )
+ *     bu yerda token = partner JWT (MC LEGAL), iat = new Date().toUTCString().
+ *   X-Requested-From: website  (majburiy).
  *
- * MUHIM: Didox hujjatining aniq JSON maydon nomlari va tur kodlari partner hujjatlarida
- * (token bilan) beriladi. Shuning uchun barcha xaritalash (mapping) `mapRaw*` funksiyalarida
- * IZOLYATSIYALANGAN — token kelganda faqat shu joyni yakunlash kifoya, qolgan kod tegilmaydi.
+ * Javob shakli:  { data: [ { doc_id, name, doc_date, doctype, partnerTin, partnerCompany,
+ *   contract_number, contract_date, total_delivery_sum_with_vat, total_sum, ... } ] }
+ *
  * Pul/sana hech qachon o'ylab topilmaydi — faqat Didox bergan qiymatlar normallashtiriladi.
  */
-export interface DidoxConfig {
-  baseUrl: string;
-  token: string;
-  authHeader?: string; // default "Authorization"
-  authScheme?: string; // default "" (xom token). Kerak bo'lsa "Bearer".
-}
 
-/** Didox hujjat turi kodi -> bizning DocumentType. Token kelganda tasdiqlanadi/to'ldiriladi. */
-const TYPE_MAP: Record<string, DocumentType> = {
-  contract: "contract",
-  dogovor: "contract",
-  invoice: "invoice",
-  esf: "invoice", // elektron schyot-faktura
-  schet_faktura: "invoice",
-  akt: "act",
-  reconciliation: "reconciliation_act",
-  akt_sverki: "reconciliation_act",
-  ttn: "ttn",
-  waybill: "ttn",
+/** Didox ochiq RSA kaliti (Partner-Authorization shifrlash uchun). Bu — ommaviy kalit, maxfiy emas. */
+const DIDOX_PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAydhu02KeiDhZGB8dtgaxkcd7qfPs9Xt7
+G08NEPSbrWoDMvHS6odLm9IimDK8TuWcSE3z+QQQNvCiloo0R9ZqOsd1VkNrBs5Bzo70icrQOEvg
+AVb7mJsVs3tE8jghHcySttKbT23Ev5ZOKKjKOI6gs9oMQrp9mQsDL2i2zarde6mzo5s+VIq2LnIf
+AnBndSkwHxehyvKN54iI/jEMmE/6vCtkfkpCmbSTShanDJMYhWLkkUqRgcftw9u36mop8osYhsoB
+5/fAO/aJuPQ+Obn59Dg0mj6V3ma8Fc7g9YyhOZbvnMWxh3TCL9/C/CXVIxqw5JF90OwzXMjZh0Lz
+mort3dkxfF1JAjZ3vkd9PfIkr/b300X+JcfFyaqQk5msezm2Fs3WNw9MvsxUHpQ2K4nsPmr7pn6L
+G7O/NkHKqKySq4DMc8nCDQDWSPaveKzeHtghgF4bXC2Ke094OqoNhLVBdB2MJCJqbf/FNfiUC1/b
+X20mBe9odCxJBehGdbGTXB5zHSxo097ysWqTowhTuS1MrPSgdqt3rqjeJntbjeKe1QFiQMQSp5AU
+6tw95uGfPYv31Not+1ulBRhHMN241Insk+WlZvmPtPQkGmW1hFvhOCO7KODfSr3HQ3pSqOovdEIq
+jgvTAyOWN9cqpZtHoL7W6P4XbhP/73865SMMfIlU2lsCAwEAAQ==
+-----END PUBLIC KEY-----`;
+
+/** Didox doctype kodi -> bizning DocumentType. (002=ЭСФ/faktura, 005=akt — jonli tasdiqlangan.) */
+const DOCTYPE_MAP: Record<string, DocumentType> = {
+  "000": "invoice",
+  "001": "invoice",
+  "002": "invoice", // hisob-faktura (ЭСФ)
+  "003": "invoice",
+  "004": "invoice",
+  "005": "act", // akt
+  "006": "reconciliation_act",
+  "007": "ttn",
 };
 
 interface RawDidoxDoc {
   [k: string]: unknown;
 }
 
-const str = (v: unknown): string | undefined => (typeof v === "string" && v ? v : typeof v === "number" ? String(v) : undefined);
+const str = (v: unknown): string | undefined =>
+  typeof v === "string" && v ? v : typeof v === "number" ? String(v) : undefined;
 const first = (o: RawDidoxDoc, keys: string[]): string | undefined => {
   for (const k of keys) {
     const v = str(o[k]);
@@ -56,24 +67,50 @@ const first = (o: RawDidoxDoc, keys: string[]): string | undefined => {
   return undefined;
 };
 
+export interface DidoxConfig {
+  /** Default: https://api2.didox.uz */
+  baseUrl: string;
+  /** Partner JWT (env DIDOX_PARTNER_TOKEN). */
+  partnerToken: string;
+  /** Foydalanuvchi kaliti — ECP login natijasi (tenant sozlamasidan yoki env DIDOX_USER_KEY). */
+  userKey: string;
+  /** Didox ochiq kaliti (default: ichki). */
+  publicKeyPem?: string;
+}
+
 export class DidoxDataSource implements DataSource {
   readonly name = "didox";
+  private readonly pubKey: crypto.KeyObject;
 
-  constructor(private readonly cfg: DidoxConfig) {}
-
-  private headers(): Record<string, string> {
-    const h = this.cfg.authHeader ?? "Authorization";
-    const scheme = this.cfg.authScheme ? `${this.cfg.authScheme} ` : "";
-    return { [h]: `${scheme}${this.cfg.token}`, "Content-Type": "application/json" };
+  constructor(private readonly cfg: DidoxConfig) {
+    this.pubKey = crypto.createPublicKey({ key: cfg.publicKeyPem ?? DIDOX_PUBLIC_KEY_PEM, format: "pem" });
   }
 
-  private async getDocuments(): Promise<RawDidoxDoc[]> {
-    const base = this.cfg.baseUrl.replace(/\/$/, "");
-    // status=1 => imzolangan (STATUS_SIGNED). Kerak bo'lsa "0,1,2".
-    const res = await fetch(`${base}/v2/documents?status=1`, { headers: this.headers() });
-    if (!res.ok) throw new Error(`Didox /v2/documents HTTP ${res.status}`);
+  /** Partner-Authorization = base64(RSA-OAEP-SHA256(pubkey, {token, iat})). */
+  private partnerAuth(): string {
+    const payload = JSON.stringify({ token: this.cfg.partnerToken, iat: new Date().toUTCString() });
+    const enc = crypto.publicEncrypt(
+      { key: this.pubKey, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha256" },
+      Buffer.from(payload, "utf8"),
+    );
+    return enc.toString("base64");
+  }
+
+  private headers(): Record<string, string> {
+    return {
+      Accept: "application/json",
+      "Accept-Language": "uz",
+      "X-Requested-From": "website",
+      "User-Key": this.cfg.userKey,
+      "Partner-Authorization": this.partnerAuth(),
+    };
+  }
+
+  private async getDocuments(owner: 0 | 1): Promise<RawDidoxDoc[]> {
+    const base = this.cfg.baseUrl.replace(/\/+$/, "");
+    const res = await fetch(`${base}/v2/documents?owner=${owner}&page=1&limit=500`, { headers: this.headers() });
+    if (!res.ok) throw new Error(`Didox /v2/documents (owner=${owner}) HTTP ${res.status}`);
     const data = (await res.json().catch(() => null)) as unknown;
-    // Javob shakli: {data:[...]} yoki {documents:[...]} yoki to'g'ridan-to'g'ri massiv.
     if (Array.isArray(data)) return data as RawDidoxDoc[];
     const obj = (data ?? {}) as Record<string, unknown>;
     const arr = obj.data ?? obj.documents ?? obj.items ?? [];
@@ -81,52 +118,73 @@ export class DidoxDataSource implements DataSource {
   }
 
   async fetchSnapshot(): Promise<DataSourceSnapshot> {
-    const raw = await this.getDocuments();
+    const [incoming, outgoing] = await Promise.all([this.getDocuments(0), this.getDocuments(1)]);
+    const raw = [...incoming, ...outgoing];
 
     const contractors = new Map<string, ExternalContractor>();
-    const contracts: ExternalContract[] = [];
+    const contractsMap = new Map<string, ExternalContract>();
     const invoices: ExternalInvoice[] = [];
     const payments: ExternalPayment[] = [];
     const documents: ExternalDocument[] = [];
 
     for (const d of raw) {
-      const tin = first(d, ["contragent_tin", "buyer_tin", "partner_tin", "tin"]);
-      const name = first(d, ["contragent_name", "buyer_name", "partner_name", "name"]);
-      const number = first(d, ["doc_number", "number", "facture_no"]) ?? "—";
+      const tin = first(d, ["partnerTin", "contragent_tin", "partner_tin", "tin"]);
+      const name = first(d, ["partnerCompany", "contragent_name", "partner_name", "name"]);
+      const number = first(d, ["name", "doc_number", "number", "facture_no"]) ?? "—";
       const didoxId = first(d, ["doc_id", "id", "uuid"]) ?? number;
-      const typeKey = (first(d, ["doc_type", "type", "document_type"]) ?? "").toLowerCase();
-      const type = TYPE_MAP[typeKey] ?? "other";
+      const typeKey = String(d.doctype ?? first(d, ["doc_type", "type", "document_type"]) ?? "").trim();
+      const type = DOCTYPE_MAP[typeKey] ?? "other";
+      const contractNumber = first(d, ["contract_number", "dogovor_no"]);
+      const contractDate = first(d, ["contract_date", "signed_at"]);
+      const phone = first(d, ["partnerPhone", "phone"]);
 
-      if (tin && name && !contractors.has(tin)) contractors.set(tin, { name, tin });
+      if (tin && name && !contractors.has(tin)) contractors.set(tin, { name, tin, phone });
 
-      documents.push({ didoxId, type, title: `${type} ${number}`.trim(), contractorTin: tin, contractNumber: type === "invoice" ? number : undefined });
+      documents.push({
+        didoxId,
+        type,
+        title: `${type} ${number}`.trim(),
+        contractorTin: tin,
+        contractNumber,
+      });
 
       if (type === "invoice") {
-        const amountMinor = first(d, ["total_amount_minor", "amount_minor"]) ?? this.toMinor(first(d, ["total", "amount", "sum"]));
+        const amountMinor =
+          this.toMinor(first(d, ["total_delivery_sum_with_vat", "total_sum", "amount", "sum"])) ?? "0";
         invoices.push({
           number,
-          contractNumber: first(d, ["contract_number", "dogovor_no"]) ?? number,
+          contractNumber: contractNumber ?? number,
           contractorTin: tin ?? "",
-          amountMinor: amountMinor ?? "0",
+          amountMinor,
           currency: (first(d, ["currency"]) as Currency) ?? "UZS",
-          issuedAt: this.toISO(first(d, ["doc_date", "date", "created_at"])),
-          dueDate: this.toISO(first(d, ["due_date", "payment_date"])),
+          issuedAt: this.toISO(first(d, ["doc_date", "date", "created"])),
+          // Didox hujjat ro'yxatida to'lov muddati yo'q — Document Agent shartnoma matnidan aniqlaydi.
+          dueDate: this.toISO(first(d, ["due_date", "payment_date", "doc_date"])),
           didoxId,
         });
-      } else if (type === "contract") {
-        contracts.push({
-          number,
-          contractorTin: tin ?? "",
-          signedAt: this.toISO(first(d, ["doc_date", "signed_at", "date"])),
+      }
+
+      // Shartnoma — hujjatlardagi contract_number bo'yicha dedupe qilib yig'amiz.
+      if (contractNumber && tin && !contractsMap.has(contractNumber)) {
+        contractsMap.set(contractNumber, {
+          number: contractNumber,
+          contractorTin: tin,
+          signedAt: this.toISO(contractDate ?? first(d, ["doc_date"])),
           penaltyDailyBps: 0, // penya shartnoma matnida — Document Agent tahlil qiladi
           didoxId,
         });
       }
-      // Akt/TTN/reconciliation — documents ro'yxatiga tushadi (yuqorida qo'shildi).
+
       void payments; // Didox to'lovlarni bermaydi — to'lov bank/manba orqali (alohida adapter).
     }
 
-    return { contractors: [...contractors.values()], contracts, invoices, payments, documents };
+    return {
+      contractors: [...contractors.values()],
+      contracts: [...contractsMap.values()],
+      invoices,
+      payments,
+      documents,
+    };
   }
 
   private toMinor(v?: string): string | undefined {

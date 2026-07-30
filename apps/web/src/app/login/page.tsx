@@ -104,10 +104,10 @@ export default function LoginPage() {
         @keyframes lxDrift {0%,100%{transform:translate(0,0)}33%{transform:translate(5vw,-4vh)}66%{transform:translate(-4vw,4vh)}}
         @keyframes lxFloatY {0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
         @keyframes lxSpin {to{transform:rotate(360deg)}}
-        [data-reveal]{opacity:0;transform:translateY(46px) scale(.965);transition:opacity .85s cubic-bezier(.2,.7,.2,1),transform .85s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
+        [data-reveal]{opacity:0;transform:translateY(50px) scale(.965);filter:blur(14px);transition:opacity .9s cubic-bezier(.16,.84,.24,1),transform .9s cubic-bezier(.16,.84,.24,1),filter .9s cubic-bezier(.16,.84,.24,1);will-change:opacity,transform,filter}
         [data-reveal="left"]{transform:translateX(-64px)}
         [data-reveal="right"]{transform:translateX(64px)}
-        [data-reveal].in{opacity:1;transform:none}
+        [data-reveal].in{opacity:1;transform:none;filter:blur(0)}
         .lx-marquee{animation:lxMarquee 30s linear infinite}
         .lx-marquee-r{animation:lxMarqueeR 46s linear infinite}
         .lx-in{animation:lxIn .3s ease}
@@ -198,9 +198,9 @@ export default function LoginPage() {
             <span className="text-[11px] font-bold uppercase tracking-[0.32em] text-white/60">{t("trustBadge")}</span>
           </div>
 
-          <h1 data-reveal className="lx-cond mt-8 font-display font-extrabold uppercase leading-[0.86] tracking-tight" style={{ fontSize: "clamp(2.75rem,10vw,8.5rem)" }}>
+          <h1 data-reveal className="lx-cond mt-8 font-display font-extrabold uppercase leading-[0.86] tracking-tight text-white [text-shadow:0_2px_40px_rgba(0,0,0,0.55)]" style={{ fontSize: "clamp(2.75rem,10vw,8.5rem)" }}>
             <span className="block">{t("heroTitle1")}</span>
-            <span className="lx-stroke block">{t("heroTitle2")}</span>
+            <span className="block">{t("heroTitle2")}</span>
           </h1>
 
           <div className="mt-10 flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
@@ -434,29 +434,10 @@ export default function LoginPage() {
  * ga joylashtiring; tashqi saytdan avtomatik yuklab olinmaydi.
  */
 function HeroBg() {
-  const [videoOk, setVideoOk] = useState(false);
-  return (
-    <>
-      {!videoOk && <SmokeField />}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        aria-hidden
-        onCanPlay={() => setVideoOk(true)}
-        onError={() => setVideoOk(false)}
-        className={cn("pointer-events-none fixed inset-0 z-0 h-full w-full object-cover transition-opacity duration-700", videoOk ? "opacity-45" : "opacity-0")}
-      >
-        <source src="/home-bg.mp4" type="video/mp4" />
-      </video>
-      {videoOk && <div className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-black/50 via-black/35 to-black/70" />}
-    </>
-  );
+  return <SmokeField />;
 }
 
-/** Yumshoq tutun/tuман — sekin suzuvchi radial gradient bulutlari (oq/qora). */
+/** evnt.uz uslubidagi jonli fon: oqadigan tutun bulutlari + ipaksimon to'lqin chiziqlar. */
 function SmokeField() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -470,22 +451,23 @@ function SmokeField() {
     let w = 0;
     let h = 0;
 
-    type Puff = { ax: number; ay: number; bx: number; by: number; r: number; sp: number; ph: number; al: number };
+    type Puff = { ax: number; ay: number; bx: number; by: number; r: number; sp: number; ph: number; al: number; drift: number };
     const puffs: Puff[] = [];
 
     function build() {
       puffs.length = 0;
-      const N = 13;
+      const N = 15;
       for (let i = 0; i < N; i++) {
         puffs.push({
-          ax: 0.12 + Math.random() * 0.76, // markaz (ulush)
-          ay: 0.1 + Math.random() * 0.8,
-          bx: 0.06 + Math.random() * 0.18, // suzish amplitudasi
+          ax: 0.06 + Math.random() * 0.88,
+          ay: 0.05 + Math.random() * 0.9,
+          bx: 0.08 + Math.random() * 0.24,
           by: 0.06 + Math.random() * 0.18,
-          r: 0.24 + Math.random() * 0.32, // radius (max o'lchamdan ulush)
-          sp: 0.35 + Math.random() * 0.75, // tezlik
-          ph: Math.random() * Math.PI * 2, // faza
-          al: 0.09 + Math.random() * 0.11, // shaffoflik (sezilarli tutun)
+          r: 0.26 + Math.random() * 0.36,
+          sp: 0.3 + Math.random() * 0.7,
+          ph: Math.random() * Math.PI * 2,
+          al: 0.13 + Math.random() * 0.17, // ancha ko'rinarli tutun
+          drift: (0.02 + Math.random() * 0.05) * (Math.random() < 0.5 ? -1 : 1), // sekin oqim
         });
       }
     }
@@ -499,25 +481,55 @@ function SmokeField() {
     }
 
     function render(now: number, loop: boolean) {
-      const t = now * 0.00015;
+      const t = now * 0.00016;
       ctx!.globalCompositeOperation = "source-over";
       ctx!.fillStyle = "#000";
       ctx!.fillRect(0, 0, w, h);
-      ctx!.globalCompositeOperation = "lighter";
       const M = Math.max(w, h);
+
+      // 1-qatlam: oqadigan tutun bulutlari
+      ctx!.globalCompositeOperation = "lighter";
       for (const p of puffs) {
-        const cx = (p.ax + Math.cos(t * p.sp + p.ph) * p.bx) * w;
+        const fx = ((p.ax + p.drift * t) % 1.2 + 1.2) % 1.2 - 0.1; // gorizontal oqim (wrap)
+        const cx = (fx + Math.cos(t * p.sp + p.ph) * p.bx) * w;
         const cy = (p.ay + Math.sin(t * p.sp * 0.9 + p.ph * 1.3) * p.by) * h;
-        const r = p.r * M * (0.9 + 0.12 * Math.sin(t * p.sp + p.ph));
+        const r = p.r * M * (0.9 + 0.14 * Math.sin(t * p.sp + p.ph));
         const g = ctx!.createRadialGradient(cx, cy, 0, cx, cy, r);
         g.addColorStop(0, `rgba(255,255,255,${p.al})`);
-        g.addColorStop(0.35, `rgba(225,228,236,${p.al * 0.5})`);
+        g.addColorStop(0.35, `rgba(218,222,234,${p.al * 0.5})`);
         g.addColorStop(1, "rgba(255,255,255,0)");
         ctx!.fillStyle = g;
         ctx!.beginPath();
         ctx!.arc(cx, cy, r, 0, Math.PI * 2);
         ctx!.fill();
       }
+
+      // 2-qatlam: ipaksimon oqadigan to'lqin chiziqlar
+      ctx!.globalCompositeOperation = "screen";
+      const bands = 7;
+      for (let b = 0; b < bands; b++) {
+        const yBase = h * (0.14 + b * 0.11);
+        const amp = h * (0.05 + (b % 3) * 0.025);
+        const speed = 0.35 + b * 0.1;
+        const grad = ctx!.createLinearGradient(0, 0, w, 0);
+        const a = 0.11 - b * 0.008;
+        grad.addColorStop(0, "rgba(255,255,255,0)");
+        grad.addColorStop(0.5, `rgba(255,255,255,${a > 0 ? a : 0.02})`);
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+        ctx!.strokeStyle = grad;
+        ctx!.lineWidth = 1.1;
+        ctx!.beginPath();
+        for (let x = 0; x <= w; x += 8) {
+          const y =
+            yBase +
+            Math.sin(x * 0.0038 + t * speed + b) * amp +
+            Math.sin(x * 0.011 - t * speed * 0.7 + b * 1.7) * amp * 0.4;
+          if (x === 0) ctx!.moveTo(x, y);
+          else ctx!.lineTo(x, y);
+        }
+        ctx!.stroke();
+      }
+
       ctx!.globalCompositeOperation = "source-over";
       if (loop) raf = requestAnimationFrame((n) => render(n, true));
     }

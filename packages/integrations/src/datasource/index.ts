@@ -18,14 +18,16 @@ export { BankMockDataSource } from "./bank.mock";
 export function createDataSource(tenantType: TenantType): DataSource {
   if (tenantType === "bank") return new BankMockDataSource();
 
-  // Didox oilasi (company / marketplace / government)
-  const token = process.env.DIDOX_PARTNER_TOKEN;
-  if (token) {
+  // Didox oilasi (company / marketplace / government).
+  // REAL adapter uchun ikkalasi ham kerak: partner token + user-key (ECP login natijasi).
+  // user-key hozircha env orqali; keyinchalik har tenant sozlamasidan (E-IMZO login).
+  const partnerToken = process.env.DIDOX_PARTNER_TOKEN;
+  const userKey = process.env.DIDOX_USER_KEY;
+  if (partnerToken && userKey) {
     return new DidoxDataSource({
-      baseUrl: process.env.DIDOX_API_URL ?? "https://api-partners.didox.uz",
-      token,
-      authHeader: process.env.DIDOX_AUTH_HEADER,
-      authScheme: process.env.DIDOX_AUTH_SCHEME,
+      baseUrl: process.env.DIDOX_API_URL ?? "https://api2.didox.uz",
+      partnerToken,
+      userKey,
     });
   }
   return new DidoxMockDataSource();
