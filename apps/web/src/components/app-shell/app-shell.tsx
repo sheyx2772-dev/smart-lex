@@ -2,25 +2,14 @@
 
 import {
   Bell,
-  Buildings,
-  ChartBar,
-  ChatCircleDots,
-  FileText,
-  Gauge,
   Gavel,
   GearSix,
-  Handshake,
   type Icon,
   NotePencil,
-  ListChecks,
-  PaperPlaneTilt,
-  Pulse,
   Robot,
   SealCheck,
   SignOut,
   Sparkle,
-  SquaresFour,
-  Timer,
   Truck,
   Wallet,
 } from "@phosphor-icons/react";
@@ -31,15 +20,14 @@ import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
-// AI-birinchi tartib: yuqorida Agent + Chat + Tasdiqlar (asosiy sirt).
-// CRM modullari (dashboard, kontragentlar, sud ...) pastga — "Ish" guruhiga.
+// AI-birinchi, sodda tartib (7 menyu). Agent — markaziy sirt (chat + tasks + undiruv
+// mantig'i shu yerda). CRM/analitika ekranlari navigatsiyadan olib tashlandi (route'lar
+// saqlanadi — kerak bo'lsa qaytariladi). Undiruvning huquqiy bosqichlari (Sud/Ijro) ko'rinadi.
 const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
   {
     label: "groupMain",
     items: [
       { href: "/agent", key: "agent", icon: Robot },
-      { href: "/agent/tasks", key: "tasks", icon: ListChecks },
-      { href: "/chat", key: "chat", icon: ChatCircleDots },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
     ],
@@ -47,25 +35,14 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
   {
     label: "groupWork",
     items: [
-      { href: "/", key: "dashboard", icon: SquaresFour },
-      { href: "/companies", key: "companies", icon: Buildings },
       { href: "/receivables", key: "receivables", icon: Wallet },
-      { href: "/overdue", key: "overdue", icon: Timer },
-      { href: "/scoring", key: "scoring", icon: Gauge },
       { href: "/court", key: "court", icon: Gavel },
       { href: "/enforcement", key: "enforcement", icon: Truck },
-      { href: "/contracts", key: "contracts", icon: Handshake },
     ],
   },
   {
     label: "groupSystem",
-    items: [
-      { href: "/documents", key: "documents", icon: FileText },
-      { href: "/reminders", key: "reminders", icon: PaperPlaneTilt },
-      { href: "/reports", key: "reports", icon: ChartBar },
-      { href: "/audit", key: "audit", icon: Pulse },
-      { href: "/settings", key: "settings", icon: GearSix },
-    ],
+    items: [{ href: "/settings", key: "settings", icon: GearSix }],
   },
 ];
 
