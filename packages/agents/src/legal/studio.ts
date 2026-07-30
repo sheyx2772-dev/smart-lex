@@ -1,5 +1,5 @@
 import { type Locale } from "@lex/shared";
-import { generateText } from "ai";
+import { generateText, streamText } from "ai";
 import { getModel } from "../llm";
 
 /**
@@ -32,4 +32,29 @@ export async function studioReply(opts: { locale: Locale; instruction: string; d
   } catch {
     return opts.locale === "ru" ? "Ошибка AI. Повторите." : opts.locale === "en" ? "AI error. Try again." : "AI xatosi. Qayta urinib ko'ring.";
   }
+}
+
+/** Kalit yo'q holati uchun xabar (streaming yo'lida route matn qaytarishi uchun). */
+export function studioNoKeyMessage(locale: Locale): string {
+  return locale === "ru"
+    ? "AI пока не настроен (нет ключа LLM)."
+    : locale === "en"
+      ? "AI is not configured yet (no LLM key)."
+      : "AI hozircha sozlanmagan (LLM kaliti yo'q).";
+}
+
+/**
+ * Studio AI — STREAMING variant (javob harfma-harf keladi).
+ * `ai` importi shu paketda qoladi; API route qaytgan AsyncIterable'ni o'qib uzatadi.
+ * Kalit yo'q bo'lsa null qaytaradi (route studioNoKeyMessage yozadi).
+ */
+export function studioReplyStream(opts: { locale: Locale; instruction: string; document?: string }): AsyncIterable<string> | null {
+  const model = getModel();
+  if (!model) return null;
+  const doc = (opts.document ?? "").trim();
+  const prompt = doc
+    ? `Hujjat / Document:\n"""\n${doc.slice(0, 12000)}\n"""\n\nVazifa / Task: ${opts.instruction}`
+    : opts.instruction;
+  const result = streamText({ model, system: SYS[opts.locale] ?? SYS.uz, prompt });
+  return result.textStream;
 }

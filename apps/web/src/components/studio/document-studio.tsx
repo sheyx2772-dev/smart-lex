@@ -38,7 +38,6 @@ import type { Editor } from "@tiptap/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { studioAi } from "@/app/(app)/chat/actions";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { cn } from "@/lib/utils";
 
@@ -431,17 +430,42 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const words = text ? text.split(" ").length : 0;
   const hasDoc = words > 0;
 
+  // Studio AI — STREAMING: javob harfma-harf keladi va oxirgi AI xabariga yoziladi.
   async function ask(prompt: string) {
     const q = prompt.trim();
     if (!q || loading) return;
+    const docText = text;
     setInput("");
-    setMessages((m) => [...m, { role: "user", text: q }]);
+    // Foydalanuvchi savoli + bo'sh AI "joy" (oqim shunga to'ldiriladi).
+    setMessages((m) => [...m, { role: "user", text: q }, { role: "ai", text: "" }]);
     setLoading(true);
+    const setLast = (val: string) =>
+      setMessages((m) => {
+        const n = m.slice();
+        n[n.length - 1] = { role: "ai", text: val };
+        return n;
+      });
+    const toBottom = () => requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }));
     try {
-      const res = await studioAi(q, text);
-      setMessages((m) => [...m, { role: "ai", text: res.reply }]);
+      const res = await fetch("/api/studio/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction: q, document: docText }),
+      });
+      if (!res.ok || !res.body) throw new Error("stream");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setLast(acc);
+        toBottom();
+      }
+      if (!acc.trim()) setLast(t("aiError"));
     } catch {
-      setMessages((m) => [...m, { role: "ai", text: t("aiError") }]);
+      setLast(t("aiError"));
     } finally {
       setLoading(false);
       requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }));
@@ -627,8 +651,11 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
                 )}
               >
                 {m.text}
+                {m.role === "ai" && loading && i === messages.length - 1 && (
+                  <span className="ml-0.5 inline-block w-1.5 animate-pulse text-primary">▍</span>
+                )}
               </div>
-              {m.role === "ai" && (
+              {m.role === "ai" && m.text.trim() && (
                 <button
                   onClick={() => insertToDoc(m.text)}
                   className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary-soft"
@@ -638,7 +665,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
               )}
             </div>
           ))}
-          {loading && (
+          {loading && !messages[messages.length - 1]?.text && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <CircleNotch className="size-4 animate-spin" /> {t("thinking")}
             </div>
