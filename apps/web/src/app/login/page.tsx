@@ -520,6 +520,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState<string | null>(oneidError ? t(`oneid.err.${KNOWN_ONEID_ERR.has(oneidError) ? oneidError : "generic"}`) : null);
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
 
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
@@ -533,6 +534,10 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!agreed) {
+      setError("Iltimos, ommaviy oferta shartlariga rozilik bering.");
+      return;
+    }
     if (!validate()) return;
     setLoading(true);
     const res = await fetch("/api/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
@@ -581,6 +586,12 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             </div>
             {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
           </div>
+          <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-white/60">
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#ff0000]" />
+            <span>
+              <a href="/oferta" target="_blank" rel="noopener noreferrer" className="text-white/85 underline hover:text-white">Ommaviy oferta</a> shartlari bilan tanishdim va roziman
+            </span>
+          </label>
           {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
           <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff0000] px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.02] disabled:opacity-60">
             {loading ? t("signingIn") : t("submit")}
@@ -593,7 +604,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           {t("oneid.or")}
           <span className="h-px flex-1 bg-white/10" />
         </div>
-        <a href="/api/oneid" className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-white/50 hover:bg-white/10">
+        <a href="/api/oneid" onClick={(e) => { if (!agreed) { e.preventDefault(); setError("Iltimos, ommaviy oferta shartlariga rozilik bering."); } }} className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-white/50 hover:bg-white/10">
           <ShieldCheck weight="fill" className="size-5 text-emerald-400" />
           {t("oneid.button")}
         </a>
