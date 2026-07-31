@@ -587,12 +587,13 @@ function LoginModal({ onClose }: { onClose: () => void }) {
             </div>
             {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
           </div>
-          <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-white/60">
-            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#ff0000]" />
+          <div className="flex items-start gap-2.5 text-xs leading-relaxed text-white/60">
+            <input id="agree-oferta" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#ff0000]" />
             <span>
-              <button type="button" onClick={() => setShowOferta(true)} className="text-white/85 underline hover:text-white">Ommaviy oferta</button> shartlari bilan tanishdim va roziman
+              <button type="button" onClick={() => setShowOferta(true)} className="text-white/85 underline hover:text-white">Ommaviy oferta</button>{" "}
+              <label htmlFor="agree-oferta" className="cursor-pointer">shartlari bilan tanishdim va roziman</label>
             </span>
-          </label>
+          </div>
           {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
           <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff0000] px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.02] disabled:opacity-60">
             {loading ? t("signingIn") : t("submit")}
