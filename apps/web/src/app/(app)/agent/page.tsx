@@ -1,7 +1,7 @@
-import { AgentConsoleClient, type ConsoleData } from "@/components/agent/agent-console-client";
-import { apiServer } from "@/lib/api";
+import { AgentChat } from "@/components/agent/agent-chat";
 
-export default async function AgentPage() {
-  const res = await apiServer<ConsoleData>("/api/agent/console");
-  return <AgentConsoleClient initial={res.data ?? { currency: "UZS", summary: null, items: [] }} />;
+// Lex AI Agent — suhbat + tool-calling (qarzlarni o'qiydi, hujjat tuzadi).
+// Eski qoidalar-konsoli (AgentConsoleClient) saqlangan — kerak bo'lsa qaytariladi.
+export default function AgentPage() {
+  return <AgentChat />;
 }
