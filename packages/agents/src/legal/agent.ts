@@ -79,19 +79,44 @@ export async function runAgent(opts: {
     ]),
   );
 
+  // QO'LDA tool-calling halqasi: har qadamda maxSteps=1 (bitta model chaqiruvi).
+  // Asbob natijasini modelning XOM functionCall qismi sifatida EMAS, oddiy MATN
+  // sifatida qaytaramiz — shunda Gemini "thought_signature" talab qilmaydi.
+  const msgs: { role: "user" | "assistant"; content: string }[] = opts.messages.map((m) => ({ role: m.role, content: m.content }));
+  const maxRounds = Math.max(1, Math.min(opts.maxSteps ?? 5, 8));
+  const sys = SYS[opts.locale] ?? SYS.uz;
+  let finalText = "";
   try {
-    const { text } = await generateText({
-      model,
-      system: SYS[opts.locale] ?? SYS.uz,
-      messages: opts.messages,
-      tools: aiTools,
-      maxSteps: opts.maxSteps ?? 6,
-    });
-    return { text: text.trim(), steps };
+    for (let round = 0; round < maxRounds; round++) {
+      const lastRound = round === maxRounds - 1;
+      const r = await generateText({
+        model,
+        system: sys,
+        messages: msgs,
+        tools: lastRound ? undefined : aiTools, // oxirgi aylanada matn javobga majburlaymiz
+        maxSteps: 1,
+      });
+      const calls = r.toolCalls ?? [];
+      if (lastRound || calls.length === 0) {
+        finalText = r.text;
+        break;
+      }
+      // Asbob natijalarini oddiy matn sifatida kontekstga qo'shamiz.
+      const summary = (r.toolResults ?? [])
+        .map((tr) => {
+          const t = tr as { toolName?: string; result?: unknown };
+          return `Asbob "${t.toolName}" natijasi:\n${JSON.stringify(t.result ?? null).slice(0, 6000)}`;
+        })
+        .join("\n\n");
+      msgs.push({ role: "assistant", content: `[asboblar chaqirildi: ${calls.map((c) => (c as { toolName?: string }).toolName).join(", ")}]` });
+      msgs.push({ role: "user", content: `${summary}\n\nShu HAQIQIY natijalar asosida javobni yakunla yoki kerak bo'lsa boshqa asbobni chaqir. Raqam va nomlarni o'zgartirma, o'ylab topma.` });
+      finalText = r.text;
+    }
+    return { text: (finalText || "").trim(), steps };
   } catch (e) {
     console.error("[runAgent] error:", (e as Error)?.stack ?? e);
     return {
-      text: `__AGENT_ERR__ ${String((e as Error)?.message ?? e)}`.slice(0, 400),
+      text: opts.locale === "ru" ? "Ошибка AI. Повторите." : opts.locale === "en" ? "AI error. Try again." : "AI xatosi. Qayta urinib ko'ring.",
       steps,
     };
   }
