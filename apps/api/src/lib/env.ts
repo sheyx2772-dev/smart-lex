@@ -33,4 +33,6 @@ export const env = {
   // Web login cookie nomi (web /api/session bilan bir xil).
   tokenCookie: process.env.TOKEN_COOKIE ?? "LEX_TOKEN",
   isProd: process.env.NODE_ENV === "production",
+  // Platforma egasi (super-admin) tenant IDsi — admin panel faqat shunga ochiq.
+  platformTenantId: process.env.PLATFORM_TENANT_ID ?? "",
 };

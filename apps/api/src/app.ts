@@ -9,6 +9,7 @@ import { auditRoutes } from "./routes/audit";
 import { authRoutes } from "./routes/auth";
 import { chatRoutes } from "./routes/chat";
 import { didoxNotifyRoutes } from "./routes/didox-notify";
+import { platformRoutes } from "./routes/platform";
 import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
 import { companyRoutes } from "./routes/companies";
@@ -49,6 +50,7 @@ export function createApp() {
   api.route("/", chatRoutes);
   api.route("/", studioRoutes);
   api.route("/", didoxNotifyRoutes);
+  api.route("/", platformRoutes);
   api.route("/", agentChatRoutes);
   api.route("/", contractRoutes);
   api.route("/", courtRoutes);
