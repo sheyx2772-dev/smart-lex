@@ -9,6 +9,7 @@ import { auditRoutes } from "./routes/audit";
 import { authRoutes } from "./routes/auth";
 import { chatRoutes } from "./routes/chat";
 import { didoxNotifyRoutes } from "./routes/didox-notify";
+import { paymentRoutes, paymentWebhookRoutes } from "./routes/payment";
 import { platformRoutes } from "./routes/platform";
 import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
@@ -40,6 +41,8 @@ export function createApp() {
   // One-ID (SSO) callback ro'yxatdan o'tgan redirect_uri bilan mos bo'lishi uchun
   // `/auth/oneid/callback` yo'lida (api.tijoraat.uz), `/api` prefiksisiz.
   app.route("/auth", oneIdRoutes);
+  // Click to'lov webhook'lari — kabinetdagi /click/prepare, /click/complete (ochiq, imzo bilan).
+  app.route("/", paymentWebhookRoutes);
 
   // Himoyalangan yo'llar.
   const api = new Hono<{ Variables: Variables }>();
@@ -51,6 +54,7 @@ export function createApp() {
   api.route("/", studioRoutes);
   api.route("/", didoxNotifyRoutes);
   api.route("/", platformRoutes);
+  api.route("/", paymentRoutes);
   api.route("/", agentChatRoutes);
   api.route("/", contractRoutes);
   api.route("/", courtRoutes);
