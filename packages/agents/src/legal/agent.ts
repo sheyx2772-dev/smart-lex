@@ -86,6 +86,10 @@ export async function runAgent(opts: {
       messages: opts.messages,
       tools: aiTools,
       maxSteps: opts.maxSteps ?? 6,
+      // Gemini "thinking"ni o'chiramiz — aks holda ko'p-qadamli tool-callingда
+      // thought_signature talab qilinadi va SDK uni qaytara olmay xato beradi.
+      // (Boshqa providerlar bu namespace'ni e'tiborsiz qoldiradi.)
+      providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
     });
     return { text: text.trim(), steps };
   } catch (e) {
