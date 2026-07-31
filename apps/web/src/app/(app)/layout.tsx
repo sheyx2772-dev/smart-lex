@@ -6,6 +6,7 @@ import { apiServer } from "@/lib/api";
 interface Me {
   user: { fullName: string; role: string; email: string } | null;
   tenant: { name: string; type: string } | null;
+  isPlatformAdmin?: boolean;
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const pendingApprovals = approvalsRes.success ? (approvalsRes.data?.length ?? 0) : 0;
 
   return (
-    <AppShell user={meRes.data.user} tenant={meRes.data.tenant} pendingApprovals={pendingApprovals}>
+    <AppShell user={meRes.data.user} tenant={meRes.data.tenant} pendingApprovals={pendingApprovals} isPlatformAdmin={Boolean(meRes.data.isPlatformAdmin)}>
       {children}
       <SiteWindowHost />
     </AppShell>

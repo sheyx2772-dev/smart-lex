@@ -3,6 +3,7 @@ import { ok } from "@lex/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
+import { env } from "../lib/env";
 
 export const miscRoutes = new Hono<{ Variables: Variables }>();
 
@@ -20,6 +21,7 @@ miscRoutes.get("/me", async (c) => {
       {
         user: data ? { id: data.id, fullName: data.fullName, email: data.email, role, locale: data.locale } : null,
         tenant: tenant ? { id: tenant.id, name: tenant.name, type: tenant.type, tin: tenant.tin, defaultLocale: tenant.defaultLocale } : null,
+        isPlatformAdmin: Boolean(env.platformTenantId) && tenantId === env.platformTenantId && (role === "owner" || role === "admin"),
       },
       "common.ok",
       c.get("locale"),
