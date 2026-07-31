@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  CreditCard,
   Gavel,
   GearSix,
   type Icon,
@@ -45,7 +46,10 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
   },
   {
     label: "groupSystem",
-    items: [{ href: "/settings", key: "settings", icon: GearSix }],
+    items: [
+      { href: "/billing", key: "billing", icon: CreditCard },
+      { href: "/settings", key: "settings", icon: GearSix },
+    ],
   },
 ];
 
