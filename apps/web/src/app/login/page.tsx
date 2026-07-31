@@ -521,6 +521,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(oneidError ? t(`oneid.err.${KNOWN_ONEID_ERR.has(oneidError) ? oneidError : "generic"}`) : null);
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [showOferta, setShowOferta] = useState(false);
 
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
@@ -589,7 +590,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-white/60">
             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[#ff0000]" />
             <span>
-              <a href="/oferta" target="_blank" rel="noopener noreferrer" className="text-white/85 underline hover:text-white">Ommaviy oferta</a> shartlari bilan tanishdim va roziman
+              <button type="button" onClick={() => setShowOferta(true)} className="text-white/85 underline hover:text-white">Ommaviy oferta</button> shartlari bilan tanishdim va roziman
             </span>
           </label>
           {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
@@ -610,6 +611,24 @@ function LoginModal({ onClose }: { onClose: () => void }) {
         </a>
         <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">{t("oneid.hint")}</p>
       </div>
+
+      {/* Ommaviy oferta — sahifani tark etmasdan, ichki modal (login/parol saqlanadi) */}
+      {showOferta && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-3 sm:p-6" onClick={() => setShowOferta(false)}>
+          <div className="relative flex h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/15 bg-black shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-3">
+              <span className="text-sm font-bold uppercase tracking-widest text-white">Ommaviy oferta</span>
+              <button type="button" onClick={() => setShowOferta(false)} aria-label="Yopish" className="grid size-9 place-items-center rounded-lg text-lg text-white/50 transition-colors hover:bg-white/10 hover:text-white">✕</button>
+            </div>
+            <iframe src="/oferta" title="Ommaviy oferta" className="min-h-0 w-full flex-1 border-0 bg-black" />
+            <div className="border-t border-white/10 px-5 py-3">
+              <button type="button" onClick={() => { setAgreed(true); setShowOferta(false); }} className="inline-flex w-full items-center justify-center rounded-xl bg-[#ff0000] px-4 py-3 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.01]">
+                Roziman va yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
