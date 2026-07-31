@@ -1,5 +1,5 @@
 import { format, money } from "@lex/core";
-import { contractors, invoices, receivables, withTenant } from "@lex/db";
+import { approvalRequests, contractors, invoices, receivables, withTenant } from "@lex/db";
 import { runAgent, studioReply, type AgentToolDef } from "@lex/agents";
 import { ok } from "@lex/shared";
 import { desc, eq, sql } from "drizzle-orm";
@@ -84,6 +84,54 @@ agentChatRoutes.post("/agent/chat", async (c) => {
         });
         return { document: text };
       },
+    },
+    {
+      name: "queueApproval",
+      description:
+        "TASHQI yoki QAYTMAS amalni (talabnomani rasmiy YUBORISH, sudga DA'VO berish, qarzni HISOBDAN CHIQARISH) bevosita bajarmaydi — uni foydalanuvchi TASDIG'iga qo'yadi (Tasdiqlar bo'limi). Hujjat tayyor bo'lgach va foydalanuvchi yuborish/sudga berishni so'raganda chaqir. Chaqirgach foydalanuvchiga 'Tasdiqlar bo'limida tasdiqlang' deб ayt.",
+      parameters: {
+        type: "object",
+        properties: {
+          type: { type: "string", enum: ["demand_letter", "court_claim", "write_off"], description: "demand_letter=talabnoma yuborish, court_claim=sudga da'vo, write_off=hisobdan chiqarish" },
+          debtorName: { type: "string", description: "Qaysi qarzdor (listReceivables'dagi nom bilan bir xil)" },
+          documentText: { type: "string", description: "Tasdiqqa qo'yiladigan hujjat matni" },
+          note: { type: "string", description: "Qisqa izoh (ixtiyoriy)" },
+        },
+        required: ["type"],
+      },
+      execute: async (args) =>
+        withTenant(tenantId, async (tx) => {
+          const rawType = String(args.type ?? "");
+          const type = (["demand_letter", "court_claim", "write_off"].includes(rawType) ? rawType : "demand_letter") as "demand_letter" | "court_claim" | "write_off";
+          const debtorName = String(args.debtorName ?? "").trim();
+          let receivableId: string | null = null;
+          if (debtorName) {
+            const [row] = await tx
+              .select({ id: receivables.id })
+              .from(receivables)
+              .innerJoin(contractors, eq(receivables.contractorId, contractors.id))
+              .where(sql`${receivables.status} <> 'paid' and ${contractors.name} ilike ${"%" + debtorName + "%"}`)
+              .orderBy(desc(receivables.overdueDays))
+              .limit(1);
+            receivableId = row?.id ?? null;
+          }
+          const [ins] = await tx
+            .insert(approvalRequests)
+            .values({
+              tenantId,
+              type,
+              receivableId,
+              payload: { body: String(args.documentText ?? ""), note: String(args.note ?? ""), source: "ai_agent" },
+            })
+            .returning({ id: approvalRequests.id });
+          return {
+            queued: true,
+            id: ins?.id ?? null,
+            type,
+            linkedReceivable: Boolean(receivableId),
+            message: "Amal Tasdiqlar bo'limiga qo'yildi. Foydalanuvchi u yerda tasdiqlashi kerak — o'zim bajarmadim.",
+          };
+        }),
     },
   ];
 

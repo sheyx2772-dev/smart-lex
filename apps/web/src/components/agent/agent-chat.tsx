@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CircleNotch, FileText, type Icon, MagnifyingGlass, Robot, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight, CircleNotch, FileText, type Icon, MagnifyingGlass, Robot, SealCheck, Sparkle } from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 import { agentChat, type AgentStep } from "@/app/(app)/chat/actions";
@@ -12,7 +12,7 @@ interface Msg {
   steps?: AgentStep[];
 }
 
-const STEP_ICON: Record<string, Icon> = { listReceivables: MagnifyingGlass, draftDocument: FileText };
+const STEP_ICON: Record<string, Icon> = { listReceivables: MagnifyingGlass, draftDocument: FileText, queueApproval: SealCheck };
 
 export function AgentChat() {
   const locale = useLocale();
@@ -35,7 +35,11 @@ export function AgentChat() {
         ? ru
           ? "составил документ"
           : "hujjat tuzdi"
-        : s.tool;
+        : s.tool === "queueApproval"
+          ? ru
+            ? "поставил на подтверждение"
+            : "tasdiqqa qo'ydi"
+          : s.tool;
 
   async function send(text: string) {
     const q = text.trim();
