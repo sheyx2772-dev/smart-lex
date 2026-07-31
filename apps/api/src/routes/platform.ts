@@ -99,6 +99,52 @@ platformRoutes.get("/platform/overview", async (c) => {
   );
 });
 
+/** Bitta mijozning hujjatlari + oferta holati (ko'rish/yuklab olish uchun). */
+platformRoutes.get("/platform/tenants/:id/documents", async (c) => {
+  const locale = c.get("locale");
+  if (!isPlatformAdmin(c)) return c.json(fail(ERROR_CODE.UNAUTHORIZED, "auth.unauthorized", locale), 403);
+  const id = c.req.param("id");
+
+  const rows = await withTenant(id, async (tx) =>
+    tx
+      .select({ id: documents.id, type: documents.type, title: documents.title, createdAt: documents.createdAt, extracted: documents.extracted })
+      .from(documents)
+      .orderBy(desc(documents.createdAt))
+      .limit(300),
+  );
+  const items = rows.map((r) => {
+    const ex = (r.extracted ?? {}) as Record<string, unknown>;
+    return {
+      id: r.id,
+      type: r.type,
+      title: r.title,
+      createdAt: r.createdAt,
+      signed: Boolean(ex.signature),
+      body: typeof ex.body === "string" ? ex.body : "",
+    };
+  });
+
+  const [t] = await getDb().select({ name: tenants.name, tin: tenants.tin, settings: tenants.settings }).from(tenants).where(eq(tenants.id, id)).limit(1);
+  const s = (t?.settings ?? {}) as Record<string, unknown>;
+
+  return c.json(
+    ok(
+      {
+        tenant: { name: t?.name ?? "", tin: t?.tin ?? "" },
+        oferta: {
+          accepted: Boolean(s.ofertaAcceptedAt),
+          acceptedAt: typeof s.ofertaAcceptedAt === "string" ? s.ofertaAcceptedAt : null,
+          signer: typeof s.ofertaSigner === "string" ? s.ofertaSigner : null,
+          method: typeof s.ofertaMethod === "string" ? s.ofertaMethod : null,
+        },
+        documents: items,
+      },
+      "common.ok",
+      locale,
+    ),
+  );
+});
+
 /** Mijoz (tenant) tarifi va limitini o'rnatish (platforma admini). */
 platformRoutes.post("/platform/tenants/:id/plan", async (c) => {
   const locale = c.get("locale");

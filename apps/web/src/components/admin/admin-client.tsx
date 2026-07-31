@@ -1,8 +1,19 @@
 "use client";
 
-import { Buildings, CheckCircle, FileText, PaperPlaneTilt, SealCheck, ShieldCheck, UsersThree, Wallet, XCircle } from "@phosphor-icons/react";
+import { Buildings, CheckCircle, CircleNotch, DownloadSimple, FileText, PaperPlaneTilt, SealCheck, ShieldCheck, UsersThree, Wallet, X, XCircle } from "@phosphor-icons/react";
 import { useState } from "react";
-import { setTenantPlan } from "@/app/(app)/admin/actions";
+import { fetchTenantDetail, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
+
+function downloadWord(title: string, body: string) {
+  const name = (title || "hujjat").replace(/[^\p{L}\p{N} _-]/gu, "");
+  const html = `<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body style="font-family:'Times New Roman',serif;font-size:14px">${body || ""}</body></html>`;
+  const url = URL.createObjectURL(new Blob(["﻿", html], { type: "application/msword" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export interface AdminTenant {
   id: string;
@@ -35,6 +46,19 @@ export function AdminClient({ data }: { data: AdminData }) {
   const [plan, setPlan] = useState("");
   const [limit, setLimit] = useState("");
   const [saving, setSaving] = useState(false);
+  // Drill-down: mijoz hujjatlari + oferta
+  const [detail, setDetail] = useState<TenantDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [viewDoc, setViewDoc] = useState<TenantDoc | null>(null);
+
+  async function openDetail(id: string) {
+    setLoadingDetail(true);
+    setDetail(null);
+    setViewDoc(null);
+    const d = await fetchTenantDetail(id);
+    setDetail(d);
+    setLoadingDetail(false);
+  }
 
   const t = data.totals;
   const fmt = (d: string | null) => (d ? new Intl.DateTimeFormat("uz-UZ", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(d)) : "—");
@@ -145,7 +169,11 @@ export function AdminClient({ data }: { data: AdminData }) {
                   <td className="tabular px-4 py-3 text-center">{tn.users}</td>
                   <td className="tabular px-4 py-3 text-center">{tn.receivables}</td>
                   <td className="tabular px-4 py-3 text-right font-medium">{tn.outstanding}</td>
-                  <td className="tabular px-4 py-3 text-center">{tn.documents}</td>
+                  <td className="tabular px-4 py-3 text-center">
+                    <button onClick={() => openDetail(tn.id)} className="rounded px-2 py-0.5 font-medium text-primary underline-offset-2 hover:underline" title="Hujjatlarni ko'rish">
+                      {tn.documents}
+                    </button>
+                  </td>
                   <td className="tabular px-4 py-3 text-center">{tn.reminders}</td>
                   <td className="tabular px-4 py-3 text-center">{tn.pendingApprovals > 0 ? <span className="text-danger">{tn.pendingApprovals}</span> : "0"}</td>
                   <td className="px-4 py-3">
@@ -162,6 +190,79 @@ export function AdminClient({ data }: { data: AdminData }) {
           </table>
         </div>
       </div>
+
+      {/* Drill-down: mijoz hujjatlari + oferta */}
+      {(loadingDetail || detail) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setDetail(null); setLoadingDetail(false); }}>
+          <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border px-5 py-3">
+              <h3 className="font-display text-base font-semibold">{detail ? detail.tenant.name : "Yuklanmoqda…"}</h3>
+              <button onClick={() => setDetail(null)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
+            </div>
+            {loadingDetail ? (
+              <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><CircleNotch className="size-5 animate-spin" /> Yuklanmoqda…</div>
+            ) : detail ? (
+              <div className="scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+                {/* Oferta */}
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ommaviy oferta</p>
+                  {detail.oferta.accepted ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm text-success">
+                        <ShieldCheck weight="fill" className="size-4" /> Imzolangan
+                        <span className="text-muted-foreground">· {detail.oferta.signer} · {fmt(detail.oferta.acceptedAt)} · {detail.oferta.method ?? "One-ID"}</span>
+                      </div>
+                      <a href="/oferta" target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline">ofertani ochish →</a>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Hali imzolanmagan</p>
+                  )}
+                </div>
+
+                {/* Hujjatlar */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Hujjatlar ({detail.documents.length})</p>
+                  {detail.documents.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-muted-foreground">Hujjat yo&apos;q</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {detail.documents.map((d) => (
+                        <div key={d.id} className="flex items-center gap-3 rounded-lg border border-border bg-background p-2.5">
+                          <FileText weight="fill" className="size-4 shrink-0 text-primary" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium">{d.title}</p>
+                            <p className="text-xs text-muted-foreground">{d.type} · {fmt(d.createdAt)} {d.signed && <span className="text-success">· imzolangan</span>}</p>
+                          </div>
+                          <button onClick={() => setViewDoc(d)} className="rounded-lg border border-border px-2.5 py-1 text-xs font-medium hover:bg-muted">Ko&apos;rish</button>
+                          <button onClick={() => downloadWord(d.title, d.body)} className="grid size-8 place-items-center rounded-lg border border-border text-primary hover:bg-primary-soft" title="Word yuklab olish"><DownloadSimple className="size-4" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+
+      {/* Hujjatni ko'rish */}
+      {viewDoc && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onClick={() => setViewDoc(null)}>
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border px-5 py-3">
+              <h3 className="truncate font-display text-sm font-semibold">{viewDoc.title}</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={() => downloadWord(viewDoc.title, viewDoc.body)} className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary-soft"><DownloadSimple className="size-4" /> Word</button>
+                <button onClick={() => setViewDoc(null)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
+              </div>
+            </div>
+            <div className="scroll-clean min-h-0 flex-1 overflow-y-auto bg-white p-8">
+              <div className="prose prose-sm mx-auto max-w-none text-black [&_h2]:text-center" dangerouslySetInnerHTML={{ __html: viewDoc.body || "<p>Matn yo'q</p>" }} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

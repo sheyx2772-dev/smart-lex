@@ -1,5 +1,6 @@
-import { auditLogs, createOneIdUser, findTenantByTin, findUserByOneId, linkOneIdByEmail, type OneIdSessionUser, withTenant } from "@lex/db";
+import { auditLogs, createOneIdUser, findTenantByTin, findUserByOneId, getDb, linkOneIdByEmail, type OneIdSessionUser, tenants, withTenant } from "@lex/db";
 import { type UserRole } from "@lex/shared";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { setCookie } from "hono/cookie";
 import { type Variables } from "../lib/context";
@@ -128,6 +129,22 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
       );
     } catch (e) {
       console.error("[oneid:audit]", e);
+    }
+
+    // Ommaviy oferta: One-ID (E-IMZO) bilan kirish = shartlarni qabul qilish.
+    // Birinchi kirishda tenant sozlamalariga imzolash sanasi + imzolovchi yoziladi.
+    try {
+      const u = user;
+      const [tRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, u.tenantId)).limit(1);
+      const s = { ...((tRow?.settings ?? {}) as Record<string, unknown>) };
+      if (!s.ofertaAcceptedAt) {
+        s.ofertaAcceptedAt = new Date().toISOString();
+        s.ofertaSigner = id.full_name?.trim() || pin;
+        s.ofertaMethod = auth.method;
+        await getDb().update(tenants).set({ settings: s }).where(eq(tenants.id, u.tenantId));
+      }
+    } catch (e) {
+      console.error("[oneid:oferta]", e);
     }
 
     // Ilova sessiyasi (JWT) — mavjud login bilan bir xil.
