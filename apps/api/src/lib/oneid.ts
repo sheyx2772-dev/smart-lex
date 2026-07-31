@@ -113,19 +113,39 @@ export async function oneIdLogout(accessToken: string): Promise<void> {
 
 const STATE_TTL = 60 * 10; // 10 daqiqa
 
-/** Imzolangan `state` yaratadi (nonce + expiry). */
-export async function signState(): Promise<string> {
-  return sign({ purpose: "oneid_state", nonce: randomUUID(), exp: Math.floor(Date.now() / 1000) + STATE_TTL }, env.jwtSecret, "HS256");
+/** Imzolangan `state` (nonce + expiry + origin). origin — qaysi web domen boshladi (masalan "lex-ai.uz"). */
+export async function signState(origin = ""): Promise<string> {
+  return sign({ purpose: "oneid_state", origin, nonce: randomUUID(), exp: Math.floor(Date.now() / 1000) + STATE_TTL }, env.jwtSecret, "HS256");
 }
 
-/** `state`ni tekshiradi — yaroqsiz/muddati o'tgan bo'lsa false. */
-export async function verifyState(state: string): Promise<boolean> {
+/** `state`ni tekshiradi — yaroqli bo'lsa { origin } qaytaradi, aks holda null. */
+export async function verifyState(state: string): Promise<{ origin: string } | null> {
   try {
-    const p = (await verify(state, env.jwtSecret, "HS256")) as { purpose?: string };
-    return p.purpose === "oneid_state";
+    const p = (await verify(state, env.jwtSecret, "HS256")) as { purpose?: string; origin?: string };
+    if (p.purpose !== "oneid_state") return null;
+    return { origin: typeof p.origin === "string" ? p.origin : "" };
   } catch {
-    return false;
+    return null;
   }
+}
+
+// ── Cross-domen handoff: bir martalik kod (in-memory; lex-api single fork process) ──
+// lex-ai.uz'da One-ID: callback baribir api.lexai.com.uz'da bo'ladi va cookie'ni
+// .lex-ai.uz'ga o'rnata olmaydi. Shu bois app tokenni qisqa muddatli KOD bilan
+// lex-ai.uz web'iga topshiramiz (web o'zi host-only cookie o'rnatadi). One-ID
+// kabinetida yangi redirect_uri SHART EMAS — mavjud callback ishlatiladi.
+const OTC_TTL_MS = 90 * 1000;
+const otcStore = new Map<string, { token: string; exp: number }>();
+export function putOtc(token: string): string {
+  const code = (randomUUID() + randomUUID()).replace(/-/g, "");
+  otcStore.set(code, { token, exp: Date.now() + OTC_TTL_MS });
+  return code;
+}
+export function takeOtc(code: string): string | null {
+  const e = otcStore.get(code);
+  otcStore.delete(code); // bir martalik ishlatiladi
+  if (!e || e.exp < Date.now()) return null;
+  return e.token;
 }
 
 /**

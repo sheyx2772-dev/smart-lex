@@ -5,31 +5,49 @@ import { setCookie } from "hono/cookie";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
 import { signToken } from "../lib/jwt";
-import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalTin, signState, verifyState } from "../lib/oneid";
+import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalTin, putOtc, signState, takeOtc, verifyState } from "../lib/oneid";
 
 export const oneIdRoutes = new Hono<{ Variables: Variables }>();
 
-/** Web login sahifasiga xato bilan qaytarish. */
-function loginError(code: string): string {
-  const base = env.oneid.postLoginRedirect.replace(/\/$/, "");
+/** Origin uchun web ildizi (ikkinchi domen bo'lsa altWebUrl, aks holda asosiy). */
+function webForOrigin(origin: string): string {
+  return origin && env.oneid.altOrigin && origin === env.oneid.altOrigin && env.oneid.altWebUrl
+    ? env.oneid.altWebUrl
+    : env.oneid.postLoginRedirect;
+}
+
+/** Web login sahifasiga xato bilan qaytarish (origin domeniga). */
+function loginError(code: string, origin = ""): string {
+  const base = webForOrigin(origin).replace(/\/$/, "");
   return `${base}/login?oneid_error=${encodeURIComponent(code)}`;
 }
 
-/** 1-qadam: One-ID sahifasiga yo'naltirish. */
+/** 1-qadam: One-ID sahifasiga yo'naltirish. `?origin=` — qaysi domen boshladi. */
 oneIdRoutes.get("/oneid", async (c) => {
   if (!env.oneid.clientId) return c.redirect(loginError("not_configured"));
-  const state = await signState();
+  const origin = c.req.query("origin") ?? "";
+  const state = await signState(origin);
   return c.redirect(buildAuthorizeUrl(state));
+});
+
+/** Cross-domen handoff: ikkinchi domen web'i bir martalik kodni app tokenga almashtiradi. */
+oneIdRoutes.post("/oneid/otc", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { code?: string };
+  const token = body.code ? takeOtc(String(body.code)) : null;
+  if (!token) return c.json({ success: false, data: null, error: "invalid_code", message: "invalid" }, 400);
+  return c.json({ success: true, data: { token }, error: null, message: "ok" });
 });
 
 /** 2–3 qadam: callback — kod → token → identify → foydalanuvchini bog'lash → JWT cookie. */
 oneIdRoutes.get("/oneid/callback", async (c) => {
   const code = c.req.query("code");
   const state = c.req.query("state");
+  const statePayload = state ? await verifyState(state) : null;
 
-  if (!code || !state || !(await verifyState(state))) {
+  if (!code || !statePayload) {
     return c.redirect(loginError("invalid_state"));
   }
+  const origin = statePayload.origin;
 
   let identityAccessToken: string | null = null;
   try {
@@ -40,22 +58,22 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
     const id = await identify(token.access_token);
 
     if (String(id.ret_cd ?? "") !== "0" || String(id.valid ?? "") === "false") {
-      return c.redirect(loginError("not_valid"));
+      return c.redirect(loginError("not_valid", origin));
     }
     const pin = id.pin?.trim();
-    if (!pin) return c.redirect(loginError("no_pin"));
+    if (!pin) return c.redirect(loginError("no_pin", origin));
 
     // ── E-IMZO (ERI) / tasdiqlanganlik — One-ID ичida kirish usuli ──
     const auth = describeAuth(id);
-    if (env.oneid.requireEri && !auth.eri) return c.redirect(loginError("require_eri"));
-    if (env.oneid.requireVerified && !auth.verified) return c.redirect(loginError("not_verified"));
+    if (env.oneid.requireEri && !auth.eri) return c.redirect(loginError("require_eri", origin));
+    if (env.oneid.requireVerified && !auth.verified) return c.redirect(loginError("not_verified", origin));
 
     // Tashkilotni STIR bo'yicha aniqlash (B2B — foydalanuvchi yuridik shaxsni ifodalashi kerak).
     const legalTin = primaryLegalTin(id);
-    if (!legalTin) return c.redirect(loginError("no_legal_entity"));
+    if (!legalTin) return c.redirect(loginError("no_legal_entity", origin));
 
     const tenant = await findTenantByTin(legalTin);
-    if (!tenant) return c.redirect(loginError("tenant_not_registered"));
+    if (!tenant) return c.redirect(loginError("tenant_not_registered", origin));
 
     // Foydalanuvchini topish → email bilan bog'lash → (yoqilgan bo'lsa) yaratish.
     let user: OneIdSessionUser | null = await findUserByOneId(tenant.id, pin);
@@ -73,7 +91,7 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
         locale: tenant.defaultLocale,
       });
     }
-    if (!user) return c.redirect(loginError("user_not_found"));
+    if (!user) return c.redirect(loginError("user_not_found", origin));
 
     // Kirish usulini audit'ga yozamiz — huquqiy platforma uchun (kim, qanday: E-IMZO/ERI/Mobile-ID).
     try {
@@ -102,6 +120,15 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
 
     // Ilova sessiyasi (JWT) — mavjud login bilan bir xil.
     const appToken = await signToken(user.id, user.tenantId, user.role as UserRole);
+
+    // Ikkinchi domen (mas. lex-ai.uz): callback bu yerda (.lexai.com.uz) cookie'ni
+    // .lex-ai.uz'ga o'rnata olmaydi — tokenni bir martalik kod bilan o'sha web'ga
+    // topshiramiz, u host-only cookie o'rnatadi.
+    if (origin && env.oneid.altOrigin && origin === env.oneid.altOrigin && env.oneid.altWebUrl) {
+      const otc = putOtc(appToken);
+      return c.redirect(`${env.oneid.altWebUrl.replace(/\/$/, "")}/api/oneid/finish?code=${otc}`);
+    }
+
     setCookie(c, env.tokenCookie, appToken, {
       httpOnly: true,
       sameSite: "Lax",
@@ -114,7 +141,7 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
     return c.redirect(env.oneid.postLoginRedirect.replace(/\/$/, "") + "/");
   } catch (err) {
     console.error("[oneid:callback]", err);
-    return c.redirect(loginError("exchange_failed"));
+    return c.redirect(loginError("exchange_failed", origin));
   } finally {
     if (identityAccessToken) await oneIdLogout(identityAccessToken);
   }

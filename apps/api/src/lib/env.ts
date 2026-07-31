@@ -23,6 +23,10 @@ export const env = {
     requireVerified: (process.env.ONEID_REQUIRE_VERIFIED ?? "false") === "true",
     // Faqat E-IMZO (ERI) bilan kirishga ruxsat (Mobile-ID/parol rad etiladi).
     requireEri: (process.env.ONEID_REQUIRE_ERI ?? "false") === "true",
+    // Ikkinchi domen (cross-domen handoff): callback api.lexai.com.uz'da bo'ladi,
+    // lekin origin shu bo'lsa token KOD bilan altWebUrl web'iga topshiriladi.
+    altOrigin: process.env.ONEID_ALT_ORIGIN ?? "",
+    altWebUrl: process.env.ONEID_ALT_WEB_URL ?? "",
   },
   // Web login cookie nomi (web /api/session bilan bir xil).
   tokenCookie: process.env.TOKEN_COOKIE ?? "LEX_TOKEN",
