@@ -7,6 +7,7 @@ import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
 import { signToken } from "../lib/jwt";
 import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalTin, putOtc, signState, takeOtc, verifyState } from "../lib/oneid";
+import { trialUntilIso } from "../lib/subscription";
 
 export const oneIdRoutes = new Hono<{ Variables: Variables }>();
 
@@ -137,12 +138,20 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
       const u = user;
       const [tRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, u.tenantId)).limit(1);
       const s = { ...((tRow?.settings ?? {}) as Record<string, unknown>) };
+      let changed = false;
       if (!s.ofertaAcceptedAt) {
         s.ofertaAcceptedAt = new Date().toISOString();
         s.ofertaSigner = id.full_name?.trim() || pin;
         s.ofertaMethod = auth.method;
-        await getDb().update(tenants).set({ settings: s }).where(eq(tenants.id, u.tenantId));
+        changed = true;
       }
+      // Bepul sinov (trial) — birinchi kirishda beriladi (freemium).
+      const sub = (s.subscription ?? {}) as Record<string, unknown>;
+      if (!sub.trialUntil && !sub.until) {
+        s.subscription = { ...sub, trialUntil: trialUntilIso() };
+        changed = true;
+      }
+      if (changed) await getDb().update(tenants).set({ settings: s }).where(eq(tenants.id, u.tenantId));
     } catch (e) {
       console.error("[oneid:oferta]", e);
     }

@@ -32,3 +32,13 @@ export async function setTenantPlan(id: string, plan: string, limit: number): Pr
   revalidatePath("/admin");
   return { ok: Boolean(res.success) };
 }
+
+/** Obunani faollashtirish/uzaytirish (to'lov tasdiqi) yoki to'xtatish. */
+export async function setSubscription(id: string, opts: { months?: number; plan?: string; action?: "expire" }): Promise<{ ok: boolean }> {
+  const res = await apiServer(`/api/platform/tenants/${id}/subscription`, {
+    method: "POST",
+    body: JSON.stringify(opts),
+  });
+  revalidatePath("/admin");
+  return { ok: Boolean(res.success) };
+}

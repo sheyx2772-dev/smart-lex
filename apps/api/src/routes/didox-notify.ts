@@ -1,9 +1,10 @@
-import { approvalRequests, auditLogs, contractors, invoices, receivables, reminders, withTenant } from "@lex/db";
+import { approvalRequests, auditLogs, contractors, getDb, invoices, receivables, reminders, tenants, withTenant } from "@lex/db";
 import { createDataSource, DidoxDataSource } from "@lex/integrations";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
+import { canUsePaid } from "../lib/subscription";
 
 /**
  * Talabnomani Didox orqali RASMIY yuborish (2 qadam, imzo foydalanuvchi mashinasida):
@@ -25,6 +26,9 @@ didoxNotifyRoutes.post("/approvals/:id/didox/prepare", async (c) => {
   const { tenantId } = c.get("auth");
   const locale = c.get("locale");
   const id = c.req.param("id");
+  // Obuna gate — Didox rasmiy yuborish PULLI amal (trial/active kerak).
+  const [subRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, c.get("auth").tenantId)).limit(1);
+  if (!canUsePaid(subRow?.settings)) return c.json(ok({ available: false, reason: "subscription_required" }, "common.ok", locale));
   const src = didoxSource();
   if (!src) return c.json(ok({ available: false, reason: "not_configured" }, "common.ok", locale));
 

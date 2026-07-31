@@ -2,7 +2,15 @@
 
 import { Buildings, CheckCircle, CircleNotch, DownloadSimple, FileText, PaperPlaneTilt, SealCheck, ShieldCheck, UsersThree, Wallet, X, XCircle } from "@phosphor-icons/react";
 import { useState } from "react";
-import { fetchTenantDetail, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
+import { fetchTenantDetail, setSubscription, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
+
+const SUB_LABEL: Record<string, string> = { none: "yo'q", trial: "sinov", active: "faol", expired: "tugagan" };
+const SUB_CLASS: Record<string, string> = {
+  none: "bg-muted text-muted-foreground",
+  trial: "bg-amber-500/15 text-amber-600",
+  active: "bg-emerald-500/15 text-emerald-600",
+  expired: "bg-red-500/15 text-red-500",
+};
 
 function downloadWord(title: string, body: string) {
   const name = (title || "hujjat").replace(/[^\p{L}\p{N} _-]/gu, "");
@@ -30,6 +38,7 @@ export interface AdminTenant {
   lastActivity: string | null;
   plan: string | null;
   limit: number | null;
+  subscription: { plan: string | null; status: "none" | "trial" | "active" | "expired"; until: string | null; trialUntil: string | null };
   ofertaAccepted: boolean;
   ofertaAcceptedAt: string | null;
   isPlatform: boolean;
@@ -51,6 +60,8 @@ export function AdminClient({ data }: { data: AdminData }) {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [viewDoc, setViewDoc] = useState<TenantDoc | null>(null);
 
+  const [subBusy, setSubBusy] = useState<string | null>(null);
+
   async function openDetail(id: string) {
     setLoadingDetail(true);
     setDetail(null);
@@ -58,6 +69,11 @@ export function AdminClient({ data }: { data: AdminData }) {
     const d = await fetchTenantDetail(id);
     setDetail(d);
     setLoadingDetail(false);
+  }
+  async function doSub(id: string, opts: { months?: number; action?: "expire" }) {
+    setSubBusy(id);
+    await setSubscription(id, opts);
+    setSubBusy(null);
   }
 
   const t = data.totals;
@@ -135,6 +151,7 @@ export function AdminClient({ data }: { data: AdminData }) {
                 <th className="px-4 py-2.5 text-center font-medium">Eslatma</th>
                 <th className="px-4 py-2.5 text-center font-medium">Tasdiq</th>
                 <th className="px-4 py-2.5 font-medium">Oferta</th>
+                <th className="px-4 py-2.5 font-medium">Obuna</th>
                 <th className="px-4 py-2.5 font-medium">Oxirgi faoliyat</th>
               </tr>
             </thead>
@@ -182,6 +199,21 @@ export function AdminClient({ data }: { data: AdminData }) {
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-1">
+                      <span className={`inline-flex w-fit items-center rounded px-1.5 py-0.5 text-[11px] font-medium ${SUB_CLASS[tn.subscription.status]}`}>
+                        {SUB_LABEL[tn.subscription.status]}
+                        {tn.subscription.status === "active" && tn.subscription.until ? ` · ${fmt(tn.subscription.until)}` : ""}
+                        {tn.subscription.status === "trial" && tn.subscription.trialUntil ? ` · ${fmt(tn.subscription.trialUntil)}` : ""}
+                      </span>
+                      <div className="flex gap-1">
+                        <button onClick={() => doSub(tn.id, { months: 1 })} disabled={subBusy === tn.id} className="rounded border border-emerald-500/40 px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 transition-colors hover:bg-emerald-500/10 disabled:opacity-50" title="To'lov tasdiqlandi — +1 oy">+1 oy</button>
+                        {(tn.subscription.status === "active" || tn.subscription.status === "trial") && (
+                          <button onClick={() => doSub(tn.id, { action: "expire" })} disabled={subBusy === tn.id} className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50" title="To'xtatish">to'xtat</button>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{fmt(tn.lastActivity)}</td>
                 </tr>

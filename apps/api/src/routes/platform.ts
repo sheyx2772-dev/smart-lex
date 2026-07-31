@@ -5,6 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
+import { readSub } from "../lib/subscription";
 
 /**
  * PLATFORMA ADMIN paneli — barcha mijozlar (tenant'lar) bo'yicha kesim.
@@ -81,6 +82,7 @@ platformRoutes.get("/platform/overview", async (c) => {
       lastActivity: m.last,
       plan: typeof settings.plan === "string" ? settings.plan : null,
       limit: typeof settings.limit === "number" ? settings.limit : null,
+      subscription: readSub(settings),
       ofertaAccepted: Boolean(settings.ofertaAcceptedAt),
       ofertaAcceptedAt: typeof settings.ofertaAcceptedAt === "string" ? settings.ofertaAcceptedAt : null,
       isPlatform: tr.id === env.platformTenantId,
@@ -162,4 +164,33 @@ platformRoutes.post("/platform/tenants/:id/plan", async (c) => {
   if (limit !== undefined) settings.limit = limit;
   await db.update(tenants).set({ settings }).where(eq(tenants.id, id));
   return c.json(ok({ id, plan: settings.plan ?? null, limit: settings.limit ?? null }, "common.updated", locale));
+});
+
+/** Obunani faollashtirish/uzaytirish (to'lov tasdiqi) yoki to'xtatish (platforma admini). */
+platformRoutes.post("/platform/tenants/:id/subscription", async (c) => {
+  const locale = c.get("locale");
+  if (!isPlatformAdmin(c)) return c.json(fail(ERROR_CODE.UNAUTHORIZED, "auth.unauthorized", locale), 403);
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { plan?: string; months?: number; action?: string };
+
+  const db = getDb();
+  const [row] = await db.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, id)).limit(1);
+  if (!row) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  const settings = { ...((row.settings ?? {}) as Record<string, unknown>) };
+  const sub = { ...((settings.subscription ?? {}) as Record<string, unknown>) };
+
+  if (typeof body.plan === "string") sub.plan = body.plan.slice(0, 40);
+  if (body.action === "expire") {
+    sub.until = new Date(Date.now() - 1000).toISOString();
+  } else {
+    // To'lov tasdiqlandi → obunani `months` oyga uzaytirish (mavjud muddat yoki hozirdan).
+    const months = typeof body.months === "number" && body.months > 0 ? Math.min(Math.floor(body.months), 36) : 1;
+    const curUntil = typeof sub.until === "string" ? Date.parse(sub.until) : 0;
+    const base = curUntil > Date.now() ? curUntil : Date.now();
+    sub.until = new Date(base + months * 30 * 24 * 60 * 60 * 1000).toISOString();
+    sub.lastPaymentAt = new Date().toISOString();
+  }
+  settings.subscription = sub;
+  await db.update(tenants).set({ settings }).where(eq(tenants.id, id));
+  return c.json(ok({ id, subscription: readSub(settings) }, "common.updated", locale));
 });
