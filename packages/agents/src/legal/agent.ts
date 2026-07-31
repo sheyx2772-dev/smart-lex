@@ -25,21 +25,21 @@ const SYS: Record<Locale, string> = {
   uz: `Sen — Lex AI Agent, O'zbekiston qarz undirish va yuridik hujjatlar bo'yicha ish qiladigan agentsan. Vazifang: foydalanuvchi maqsadini ASBOBLAR yordamida amalda bajarish.
 Qoidalar:
 1. Avval kerakli MA'LUMOTNI asbob orqali o'qi (masalan, qarzlar ro'yxati), keyingina javob ber yoki harakat qil. Raqam/summa/nom/sanani O'YLAB TOPMA — faqat asboblardan olingan haqiqiy qiymatlarni ishlat.
-2. Hujjat kerak bo'lsa — draftDocument asbobidan foydalanib to'liq matn tuz.
+2. Hujjat kerak bo'lsa — draftDocument bilan BIR marta to'liq matn tuz. Yuborish/sudga berish uchun tartib: AVVAL draftDocument bilan matnni tayyorla, KEYIN queueApproval'ga o'sha matnni (documentText) berib BIR marta chaqir. Har asbobni odatda faqat bir marta chaqir; yetarli ma'lumot bo'lgach darhol yakuniy javob yoz — takrorlama.
 3. TASHQI yoki QAYTMAS amallarni (talabnomani rasmiy yuborish, sudga da'vo berish, qarzni hisobdan chiqarish) o'zing bajarma. Avval hujjatni tayyorla, so'ng queueApproval asbobi bilan uni Tasdiqlar bo'limiga qo'y va foydalanuvchiga "Tasdiqlar bo'limida tasdiqlang" deb ayt.
 4. Javob o'zbek tilida, aniq, professional va qisqa bo'lsin. Nima qilganingni sodda tushuntir.
 5. Huquqiy asos kerak bo'lsa, kodeks NOMINI yoz (Fuqarolik kodeksi, Iqtisodiy protsessual kodeks); modda raqamini o'ylab topma.`,
   ru: `Ты — Lex AI Agent, агент по взысканию долгов и юридическим документам (право Узбекистана). Задача — реально выполнять цель пользователя с помощью ИНСТРУМЕНТОВ.
 Правила:
 1. Сначала прочитай нужные ДАННЫЕ инструментом (например список долгов), только потом отвечай или действуй. Не выдумывай числа/суммы/имена/даты — используй реальные значения из инструментов.
-2. Нужен документ — составь полный текст инструментом draftDocument.
+2. Нужен документ — составь полный текст инструментом draftDocument ОДИН раз. Для отправки/подачи в суд: СНАЧАЛА draftDocument, ЗАТЕМ queueApproval с этим текстом (documentText) ОДИН раз. Каждый инструмент обычно вызывай один раз; при достатке данных сразу дай финальный ответ, не повторяйся.
 3. ВНЕШНИЕ и НЕОБРАТИМЫЕ действия (официальная отправка требования, подача иска в суд, списание долга) сам не выполняй. Сначала подготовь документ, затем инструментом queueApproval поставь его в раздел «Подтверждения» и скажи пользователю подтвердить там.
 4. Отвечай по-русски, точно, профессионально и кратко. Понятно объясняй, что сделал.
 5. Для правового основания указывай НАЗВАНИЕ кодекса (Гражданский кодекс, ЭПК); номер статьи не выдумывай.`,
   en: `You are the Lex AI Agent for Uzbekistan debt collection and legal documents. Goal: actually accomplish the user's objective using TOOLS.
 Rules:
 1. First read needed DATA with a tool (e.g. list of debts), only then answer or act. Never invent numbers/amounts/names/dates — use real values from tools.
-2. If a document is needed, produce the full text with the draftDocument tool.
+2. If a document is needed, produce the full text with draftDocument ONCE. To send/file to court: FIRST draftDocument, THEN queueApproval with that text (documentText) ONCE. Call each tool usually once; once you have enough, give the final answer, do not repeat.
 3. Do NOT perform EXTERNAL or IRREVERSIBLE actions (officially send a demand, file a court claim, write off a debt) yourself. First prepare the document, then use the queueApproval tool to queue it in the Approvals section and tell the user to confirm there.
 4. Answer concisely and professionally. Clearly explain what you did.
 5. For legal basis cite the code NAME (Civil Code, Economic Procedure Code); never invent an article number.`,
@@ -79,58 +79,19 @@ export async function runAgent(opts: {
     ]),
   );
 
-  // QO'LDA tool-calling halqasi: har qadamda maxSteps=1 (bitta model chaqiruvi).
-  // Gemini "thinking" modeli xom functionCall'ni qaytarishda thought_signature talab
-  // qiladi, shu bois biz asbob natijalarini oxirgi FOYDALANUVCHI xabariga MATN sifatida
-  // qo'shamiz (assistant "echo" QO'YMAYMIZ — aks holda model tool-call'ni matnda taqlid
-  // qiladi). Har aylanada model haqiqiy funksiya-chaqiruvni yangidan yuboradi.
-  const base: { role: "user" | "assistant"; content: string }[] = opts.messages.map((m) => ({ role: m.role, content: m.content }));
-  let lastUserIdx = -1;
-  for (let i = base.length - 1; i >= 0; i--) {
-    if (base[i]!.role === "user") {
-      lastUserIdx = i;
-      break;
-    }
-  }
-  if (lastUserIdx === -1) {
-    base.push({ role: "user", content: "" });
-    lastUserIdx = base.length - 1;
-  }
-  const origLastUser = base[lastUserIdx]!.content;
-  const maxRounds = Math.max(1, Math.min(opts.maxSteps ?? 5, 8));
-  const sys = SYS[opts.locale] ?? SYS.uz;
-  let toolContext = "";
-  let finalText = "";
+  // Native ko'p-qadamli tool-calling (Groq/Anthropic/OpenAI uchun toza ishlaydi).
+  // SDK asbob chaqiruv/natijalarini suhbatga to'g'ri joylaydi va model tugatgach
+  // o'zi to'xtaydi. (Eslatma: Gemini "thinking" modeli bu yerda thought_signature
+  // xatosi beradi — shuning uchun agent Groq'da ishlaydi, getAgentModel'ga qara.)
   try {
-    for (let round = 0; round < maxRounds; round++) {
-      const lastRound = round === maxRounds - 1;
-      const msgs = base.map((m, i) =>
-        i === lastUserIdx && toolContext
-          ? { role: m.role, content: `${origLastUser}\n\n[Asboblardan olingan HAQIQIY ma'lumot — o'zgartirma]\n${toolContext}\n\nShu asosda javobni yakunla yoki kerak bo'lsa boshqa asbobni chaqir.` }
-          : m,
-      );
-      const r = await generateText({
-        model,
-        system: sys,
-        messages: msgs,
-        tools: lastRound ? undefined : aiTools, // oxirgi aylanada matn javobiga majburlaymiz
-        maxSteps: 1,
-      });
-      const calls = r.toolCalls ?? [];
-      if (lastRound || calls.length === 0) {
-        finalText = r.text;
-        break;
-      }
-      const summary = (r.toolResults ?? [])
-        .map((tr) => {
-          const t = tr as { toolName?: string; result?: unknown };
-          return `• ${t.toolName}: ${JSON.stringify(t.result ?? null).slice(0, 6000)}`;
-        })
-        .join("\n");
-      toolContext += (toolContext ? "\n" : "") + summary;
-      finalText = r.text;
-    }
-    return { text: (finalText || "").trim(), steps };
+    const { text } = await generateText({
+      model,
+      system: SYS[opts.locale] ?? SYS.uz,
+      messages: opts.messages,
+      tools: aiTools,
+      maxSteps: opts.maxSteps ?? 6,
+    });
+    return { text: text.trim(), steps };
   } catch (e) {
     console.error("[runAgent] error:", (e as Error)?.stack ?? e);
     return {
