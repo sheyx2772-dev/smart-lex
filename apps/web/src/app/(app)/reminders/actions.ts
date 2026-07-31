@@ -16,3 +16,21 @@ export async function fetchReminders(params: {
   const res = await apiServer<RemindersData>(`/api/reminders?${sp.toString()}`);
   return res.data ?? null;
 }
+
+export interface SendReminderResult {
+  status: "sent" | "failed";
+  channel?: string;
+  address?: string;
+  simulated?: boolean;
+  preview?: string;
+  error?: string | null;
+}
+
+/** Qo'lda eslatma (SMS) yuborish — tanlangan qarzdorga. */
+export async function sendReminder(receivableId: string, stage: "soft_reminder" | "firm_reminder"): Promise<SendReminderResult> {
+  const res = await apiServer<SendReminderResult>("/api/reminders/send", {
+    method: "POST",
+    body: JSON.stringify({ receivableId, stage }),
+  });
+  return res.data ?? { status: "failed", error: "network" };
+}

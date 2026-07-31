@@ -15,7 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { fetchReminders } from "@/app/(app)/reminders/actions";
+import { fetchReminders, sendReminder, type SendReminderResult } from "@/app/(app)/reminders/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
@@ -46,6 +46,12 @@ export interface RemindersData {
   byStatus: Record<string, number>;
   allTotal: number;
 }
+export interface ReminderDebtor {
+  id: string;
+  name: string;
+  invoice: string;
+  overdueDays: number;
+}
 
 const CHANNEL_ICON: Record<string, Icon> = {
   sms: PaperPlaneTilt,
@@ -69,12 +75,13 @@ function statusTone(s: string): BadgeProps["tone"] {
   return "neutral";
 }
 
-export function RemindersClient({ initial }: { initial: RemindersData }) {
+export function RemindersClient({ initial, debtors = [] }: { initial: RemindersData; debtors?: ReminderDebtor[] }) {
   const t = useTranslations("reminders");
   const tChannel = useTranslations("channel");
   const tStage = useTranslations("stage");
   const tStatus = useTranslations("reminderStatus");
   const locale = useLocale();
+  const ru = locale === "ru";
 
   const [data, setData] = useState<RemindersData>(initial);
   const [channel, setChannel] = useState("all");
@@ -83,6 +90,23 @@ export function RemindersClient({ initial }: { initial: RemindersData }) {
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const firstQ = useRef(true);
+
+  // «Yangi eslatma» (SMS) yuborish modali
+  const [sendOpen, setSendOpen] = useState(false);
+  const [sendRecId, setSendRecId] = useState("");
+  const [sendStage, setSendStage] = useState<"soft_reminder" | "firm_reminder">("soft_reminder");
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState<SendReminderResult | null>(null);
+
+  async function doSend() {
+    if (!sendRecId || sending) return;
+    setSending(true);
+    setSendResult(null);
+    const res = await sendReminder(sendRecId, sendStage);
+    setSendResult(res);
+    setSending(false);
+    if (res.status === "sent") load(1, channel, status, q);
+  }
 
   const fmtDateTime = (d: string | null) =>
     d
@@ -119,10 +143,21 @@ export function RemindersClient({ initial }: { initial: RemindersData }) {
           <h1 className="font-display text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2">
-          <PaperPlaneTilt weight="fill" className="size-4 text-primary" />
-          <span className="text-xs text-muted-foreground">{t("total")}</span>
-          <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setSendResult(null);
+              setSendRecId(debtors[0]?.id ?? "");
+              setSendOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-transform hover:scale-[1.02]"
+          >
+            <PaperPlaneTilt weight="fill" className="size-4" /> {ru ? "Новое напоминание (SMS)" : "Yangi eslatma (SMS)"}
+          </button>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2">
+            <span className="text-xs text-muted-foreground">{t("total")}</span>
+            <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
+          </div>
         </div>
       </div>
 
@@ -259,6 +294,97 @@ export function RemindersClient({ initial }: { initial: RemindersData }) {
           )}
         </div>
       </div>
+
+      {/* «Yangi eslatma» (SMS) yuborish modali */}
+      {sendOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !sending && setSendOpen(false)}>
+          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center gap-2">
+              <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-primary">
+                <PaperPlaneTilt weight="fill" className="size-5" />
+              </span>
+              <div>
+                <h3 className="font-display text-base font-semibold">{ru ? "Отправить напоминание (SMS)" : "Eslatma yuborish (SMS)"}</h3>
+                <p className="text-xs text-muted-foreground">{ru ? "Простое SMS-напоминание должнику" : "Qarzdorga oddiy SMS eslatma"}</p>
+              </div>
+            </div>
+
+            {debtors.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">{ru ? "Нет должников" : "Qarzdorlar yo'q"}</p>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{ru ? "Должник" : "Qarzdor"}</label>
+                  <select
+                    value={sendRecId}
+                    onChange={(e) => setSendRecId(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary/50"
+                  >
+                    {debtors.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} · {d.invoice}
+                        {d.overdueDays > 0 ? ` · ${d.overdueDays} ${ru ? "дн" : "kun"}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{ru ? "Тип" : "Turi"}</label>
+                  <div className="flex gap-2">
+                    {(["soft_reminder", "firm_reminder"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setSendStage(s)}
+                        className={cn(
+                          "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                          sendStage === s ? "border-primary bg-primary-soft text-primary" : "border-border text-muted-foreground hover:border-primary/40",
+                        )}
+                      >
+                        {tStage(s as never)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {sendResult && (
+                  <div
+                    className={cn(
+                      "rounded-lg border px-3 py-2 text-xs",
+                      sendResult.status === "sent" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600" : "border-red-500/30 bg-red-500/10 text-red-500",
+                    )}
+                  >
+                    {sendResult.status === "sent"
+                      ? sendResult.simulated
+                        ? ru
+                          ? "✓ Отправлено (симуляция — SMS-ключ Eskiz не подключён)"
+                          : "✓ Yuborildi (simulyatsiya — Eskiz SMS kaliti ulanmagan)"
+                        : ru
+                          ? "✓ SMS реально отправлено"
+                          : "✓ SMS haqiqatan yuborildi"
+                      : ru
+                        ? `Ошибка: ${sendResult.error ?? ""}`
+                        : `Xato: ${sendResult.error ?? ""}`}
+                    {sendResult.preview && <div className="mt-1 line-clamp-3 text-muted-foreground">{sendResult.preview}</div>}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button onClick={() => setSendOpen(false)} disabled={sending} className="rounded-lg border border-border px-3.5 py-2 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50">
+                    {ru ? "Закрыть" : "Yopish"}
+                  </button>
+                  <button
+                    onClick={doSend}
+                    disabled={sending || !sendRecId}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    <PaperPlaneTilt weight="fill" className="size-4" /> {sending ? (ru ? "Отправка…" : "Yuborilmoqda…") : ru ? "Отправить" : "Yuborish"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

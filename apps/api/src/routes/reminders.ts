@@ -1,4 +1,7 @@
+import { generateReminderText } from "@lex/agents";
+import { money } from "@lex/core";
 import { contractors, invoices, receivables, reminders, withTenant } from "@lex/db";
+import { createNotifier } from "@lex/integrations";
 import { ok } from "@lex/shared";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -79,4 +82,76 @@ reminderRoutes.get("/reminders", async (c) => {
       c.get("locale"),
     ),
   );
+});
+
+/**
+ * Qo'lda eslatma yuborish (SMS) — qarzdorga darhol. Eskiz kaliti bo'lsa REAL SMS,
+ * bo'lmasa simulyatsiya (jurnalga yoziladi, `simulated: true`). Talabnoma emas —
+ * bu oddiy eslatma; talabnoma E-IMZO + Didox orqali (Tasdiqlar oqimida).
+ */
+reminderRoutes.post("/reminders/send", async (c) => {
+  const { tenantId } = c.get("auth");
+  const locale = c.get("locale");
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const receivableId = String(body.receivableId ?? "");
+  const stage: "soft_reminder" | "firm_reminder" = body.stage === "firm_reminder" ? "firm_reminder" : "soft_reminder";
+  if (!receivableId) return c.json(ok({ status: "failed", error: "no_receivable" }, "common.ok", locale));
+
+  const out = await withTenant(tenantId, async (tx) => {
+    const [row] = await tx
+      .select({
+        outstandingMinor: receivables.outstandingMinor,
+        currency: receivables.currency,
+        overdueDays: receivables.overdueDays,
+        contractorName: contractors.name,
+        phone: contractors.phone,
+        email: contractors.email,
+        invoiceNumber: invoices.number,
+      })
+      .from(receivables)
+      .innerJoin(contractors, eq(receivables.contractorId, contractors.id))
+      .innerJoin(invoices, eq(receivables.invoiceId, invoices.id))
+      .where(eq(receivables.id, receivableId))
+      .limit(1);
+    if (!row) return { status: "failed" as const, error: "not_found" };
+    const phone = row.phone?.trim() ?? "";
+    const address = phone || row.email?.trim() || "";
+    if (!address) return { status: "failed" as const, error: "no_contact" };
+    const channel: "sms" | "email" = phone ? "sms" : "email";
+
+    const text = generateReminderText({
+      stage,
+      locale,
+      debtorName: row.contractorName,
+      amount: money(row.outstandingMinor, row.currency),
+      invoiceNumbers: [row.invoiceNumber],
+      overdueDays: row.overdueDays,
+    });
+    const res = await createNotifier(channel).send({ channel, address, body: text });
+    const [ins] = await tx
+      .insert(reminders)
+      .values({
+        tenantId,
+        receivableId,
+        stage,
+        channel,
+        status: res.status === "sent" ? "sent" : "failed",
+        address,
+        body: text,
+        sentAt: res.status === "sent" ? new Date() : null,
+      })
+      .returning({ id: reminders.id });
+
+    const smsConfigured = Boolean(process.env.ESKIZ_TOKEN || (process.env.ESKIZ_EMAIL && process.env.ESKIZ_PASSWORD));
+    return {
+      id: ins?.id ?? null,
+      status: res.status,
+      channel,
+      address,
+      simulated: channel === "sms" ? !smsConfigured : true,
+      preview: text.slice(0, 220),
+      error: res.error ?? null,
+    };
+  });
+  return c.json(ok(out, "common.ok", locale));
 });
