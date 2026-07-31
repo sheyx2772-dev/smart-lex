@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 import { clickConfigured, clickPaymentUrl, planPrice, verifyCompleteSign, verifyPrepareSign } from "../lib/click";
 import { env } from "../lib/env";
+import { PAYME_ERR, PAYME_STATE, paymeAuthOk, paymeCheckoutUrl, paymeConfigured, somToTiyin } from "../lib/payme";
 
 interface PayOrder {
   plan: string;
@@ -74,6 +75,24 @@ paymentRoutes.post("/payment/click/create", async (c) => {
 
   const returnUrl = `${env.oneid.postLoginRedirect.replace(/\/$/, "")}/billing`;
   return c.json(ok({ ok: true, url: clickPaymentUrl(mid, amount, returnUrl), amount, plan, months }, "common.ok", locale));
+});
+
+paymentRoutes.post("/payment/payme/create", async (c) => {
+  const { tenantId } = c.get("auth");
+  const locale = c.get("locale");
+  if (!paymeConfigured()) return c.json(ok({ ok: false, error: "not_configured" }, "common.ok", locale));
+  const body = (await c.req.json().catch(() => ({}))) as { plan?: string; months?: number };
+  const plan = typeof body.plan === "string" ? body.plan : "Boshlang'ich";
+  const months = typeof body.months === "number" && body.months > 0 ? Math.min(Math.floor(body.months), 12) : 1;
+  const amount = planPrice(plan) * months;
+
+  const mid = orderId(tenantId);
+  const [row] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  const settings = { ...((row?.settings ?? {}) as Record<string, unknown>) };
+  await saveOrder(tenantId, settings, mid, { plan, months, amount, provider: "payme", status: "pending", createdAt: new Date().toISOString() });
+
+  const returnUrl = `${env.oneid.postLoginRedirect.replace(/\/$/, "")}/billing`;
+  return c.json(ok({ ok: true, url: paymeCheckoutUrl(mid, somToTiyin(amount), returnUrl), amount, plan, months }, "common.ok", locale));
 });
 
 // ── PUBLIC: Click webhooks (kabinetda /click/prepare, /click/complete) ──
@@ -164,4 +183,98 @@ paymentWebhookRoutes.post("/click/complete", async (c) => {
   await saveOrder(tenantId, settings, mid, { ...order, status: "paid", paidAt: new Date().toISOString() });
   await activateSubscription(tenantId, order.plan, order.months);
   return c.json(resp(C_OK, "Success"));
+});
+
+// ── Payme JSON-RPC 2.0 callback (/payme/callback — kabinetdagi yo'l) ──
+interface PaymeTxn {
+  orderId: string;
+  state: number;
+  create_time: number;
+  perform_time: number;
+  cancel_time: number;
+  reason: number | null;
+}
+async function findPaymeTxn(paymeId: string): Promise<{ tenantId: string; settings: Record<string, unknown>; txn: PaymeTxn | null }> {
+  const rows = await getDb().select({ id: tenants.id, settings: tenants.settings }).from(tenants);
+  for (const r of rows) {
+    const s = (r.settings ?? {}) as Record<string, unknown>;
+    const txns = (s.paymeTxns ?? {}) as Record<string, PaymeTxn>;
+    if (txns[paymeId]) return { tenantId: r.id, settings: { ...s }, txn: txns[paymeId] };
+  }
+  return { tenantId: "", settings: {}, txn: null };
+}
+async function savePaymeTxn(tenantId: string, settings: Record<string, unknown>, paymeId: string, txn: PaymeTxn): Promise<void> {
+  const txns = { ...((settings.paymeTxns ?? {}) as Record<string, PaymeTxn>) };
+  txns[paymeId] = txn;
+  await getDb().update(tenants).set({ settings: { ...settings, paymeTxns: txns } }).where(eq(tenants.id, tenantId));
+}
+
+paymentWebhookRoutes.post("/payme/callback", async (c) => {
+  const body = (await c.req.json().catch(() => null)) as { method?: string; params?: Record<string, unknown>; id?: unknown } | null;
+  const id = body?.id ?? null;
+  const msg = (m: string) => ({ ru: m, uz: m, en: m });
+  const errR = (code: number, m: string, data?: string) => c.json({ error: { code, message: msg(m), ...(data ? { data } : {}) }, id });
+  const okR = (result: unknown) => c.json({ result, id });
+
+  if (!paymeAuthOk(c.req.header("authorization"))) return errR(PAYME_ERR.UNAUTHORIZED, "Avtorizatsiya xatosi");
+  if (!body || !body.method) return errR(-32600, "Invalid request");
+  const params = (body.params ?? {}) as Record<string, unknown>;
+  const method = body.method;
+  const accountOrder = (): string => String((params.account as Record<string, unknown> | undefined)?.payment_id ?? "");
+  const amtOk = (som: number) => Math.abs(somToTiyin(som) - Number(params.amount)) <= 100;
+
+  try {
+    if (method === "CheckPerformTransaction") {
+      const { order } = await loadOrder(accountOrder());
+      if (!order) return errR(PAYME_ERR.INVALID_PARAMS, "Buyurtma topilmadi", "payment_id");
+      if (!amtOk(order.amount)) return errR(PAYME_ERR.AMOUNT_WRONG, "Noto'g'ri summa");
+      if (order.status === "paid") return errR(PAYME_ERR.ALREADY_DONE, "Allaqachon to'langan");
+      return okR({ allow: true });
+    }
+    if (method === "CreateTransaction") {
+      const paymeId = String(params.id);
+      const found = await findPaymeTxn(paymeId);
+      if (found.txn) return okR({ create_time: found.txn.create_time, transaction: found.txn.orderId, state: found.txn.state });
+      const { tenantId, settings, order } = await loadOrder(accountOrder());
+      if (!order) return errR(PAYME_ERR.INVALID_PARAMS, "Buyurtma topilmadi", "payment_id");
+      if (!amtOk(order.amount)) return errR(PAYME_ERR.AMOUNT_WRONG, "Noto'g'ri summa");
+      if (order.status === "paid") return errR(PAYME_ERR.ALREADY_DONE, "Allaqachon to'langan");
+      const t: PaymeTxn = { orderId: accountOrder(), state: PAYME_STATE.CREATED, create_time: Number(params.time) || Date.now(), perform_time: 0, cancel_time: 0, reason: null };
+      await savePaymeTxn(tenantId, settings, paymeId, t);
+      return okR({ create_time: t.create_time, transaction: t.orderId, state: t.state });
+    }
+    if (method === "PerformTransaction") {
+      const paymeId = String(params.id);
+      const { tenantId, settings, txn } = await findPaymeTxn(paymeId);
+      if (!txn) return errR(PAYME_ERR.TRANSACTION_WRONG, "Tranzaksiya topilmadi");
+      if (txn.state === PAYME_STATE.COMPLETED) return okR({ transaction: txn.orderId, perform_time: txn.perform_time, state: txn.state });
+      if (txn.state !== PAYME_STATE.CREATED) return errR(PAYME_ERR.UNABLE_TO_PERFORM, "Bajarib bo'lmaydi");
+      const performT = Date.now();
+      await savePaymeTxn(tenantId, settings, paymeId, { ...txn, state: PAYME_STATE.COMPLETED, perform_time: performT });
+      const ord = await loadOrder(txn.orderId);
+      if (ord.order && ord.order.status !== "paid") {
+        await saveOrder(ord.tenantId, ord.settings, txn.orderId, { ...ord.order, status: "paid", paidAt: new Date().toISOString() });
+        await activateSubscription(ord.tenantId, ord.order.plan, ord.order.months);
+      }
+      return okR({ transaction: txn.orderId, perform_time: performT, state: PAYME_STATE.COMPLETED });
+    }
+    if (method === "CancelTransaction") {
+      const paymeId = String(params.id);
+      const { tenantId, settings, txn } = await findPaymeTxn(paymeId);
+      if (!txn) return errR(PAYME_ERR.TRANSACTION_WRONG, "Tranzaksiya topilmadi");
+      const cancelT = txn.cancel_time || Date.now();
+      const newState = txn.state === PAYME_STATE.COMPLETED ? -2 : PAYME_STATE.CANCELLED;
+      await savePaymeTxn(tenantId, settings, paymeId, { ...txn, state: newState, cancel_time: cancelT, reason: Number(params.reason) || null });
+      return okR({ transaction: txn.orderId, cancel_time: cancelT, state: newState });
+    }
+    if (method === "CheckTransaction") {
+      const { txn } = await findPaymeTxn(String(params.id));
+      if (!txn) return errR(PAYME_ERR.TRANSACTION_WRONG, "Tranzaksiya topilmadi");
+      return okR({ create_time: txn.create_time, perform_time: txn.perform_time, cancel_time: txn.cancel_time, transaction: txn.orderId, state: txn.state, reason: txn.reason });
+    }
+    if (method === "GetStatement") return okR({ transactions: [] });
+    return errR(PAYME_ERR.METHOD_NOT_FOUND, `Metod topilmadi: ${method}`);
+  } catch {
+    return errR(PAYME_ERR.UNABLE_TO_PERFORM, "Server xatosi");
+  }
 });
