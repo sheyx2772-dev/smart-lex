@@ -16,6 +16,18 @@ function webForOrigin(origin: string): string {
     : env.oneid.postLoginRedirect;
 }
 
+/**
+ * Cross-domen handoff web (OTC bilan). Callback boshqa domenда (mas. api.tijoraat.uz)
+ * bo'lsa, cookie'ni to'g'ridan o'rnata olmaydi — origin mos bo'lsa shu web'ga OTC
+ * bilan topshiriladi. Mos kelmasa "" (oddiy cookie yo'li).
+ */
+function handoffWebFor(origin: string): string {
+  if (!origin) return "";
+  if (origin === env.oneid.altOrigin && env.oneid.altWebUrl) return env.oneid.altWebUrl;
+  if (env.oneid.primaryOrigin && origin === env.oneid.primaryOrigin) return env.oneid.postLoginRedirect;
+  return "";
+}
+
 /** Web login sahifasiga xato bilan qaytarish (origin domeniga). */
 function loginError(code: string, origin = ""): string {
   const base = webForOrigin(origin).replace(/\/$/, "");
@@ -121,12 +133,13 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
     // Ilova sessiyasi (JWT) — mavjud login bilan bir xil.
     const appToken = await signToken(user.id, user.tenantId, user.role as UserRole);
 
-    // Ikkinchi domen (mas. lex-ai.uz): callback bu yerda (.lexai.com.uz) cookie'ni
-    // .lex-ai.uz'ga o'rnata olmaydi — tokenni bir martalik kod bilan o'sha web'ga
-    // topshiramiz, u host-only cookie o'rnatadi.
-    if (origin && env.oneid.altOrigin && origin === env.oneid.altOrigin && env.oneid.altWebUrl) {
+    // Callback boshqa domenда (mas. api.tijoraat.uz — One-ID kabinetida ro'yxatda)
+    // bo'lgani uchun cookie'ni to'g'ridan o'rnata olmaydi: origin (lexai.com.uz yoki
+    // lex-ai.uz) mos web'ga tokenni bir martalik KOD bilan topshiramiz.
+    const handoffWeb = handoffWebFor(origin);
+    if (handoffWeb) {
       const otc = putOtc(appToken);
-      return c.redirect(`${env.oneid.altWebUrl.replace(/\/$/, "")}/api/oneid/finish?code=${otc}`);
+      return c.redirect(`${handoffWeb.replace(/\/$/, "")}/api/oneid/finish?code=${otc}`);
     }
 
     setCookie(c, env.tokenCookie, appToken, {

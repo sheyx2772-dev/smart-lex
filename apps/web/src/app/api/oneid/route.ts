@@ -10,7 +10,9 @@ import { NextResponse } from "next/server";
 export function GET(req: Request) {
   const base = (process.env.ONEID_PUBLIC_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? process.env.API_URL ?? "http://localhost:3001").replace(/\/$/, "");
   const altOrigin = (process.env.ONEID_ALT_ORIGIN ?? "lex-ai.uz").toLowerCase();
+  const primaryOrigin = (process.env.ONEID_ORIGIN ?? "lexai.com.uz").toLowerCase();
   const host = (req.headers.get("host") ?? "").toLowerCase();
-  const origin = altOrigin && host.includes(altOrigin) ? altOrigin : "";
+  // Callback boshqa domenда bo'lgani uchun origin (qaysi web boshladi) doim uzatiladi.
+  const origin = altOrigin && host.includes(altOrigin) ? altOrigin : primaryOrigin && host.includes(primaryOrigin) ? primaryOrigin : "";
   return NextResponse.redirect(`${base}/auth/oneid${origin ? `?origin=${encodeURIComponent(origin)}` : ""}`);
 }

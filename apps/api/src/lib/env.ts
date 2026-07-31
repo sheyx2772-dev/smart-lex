@@ -23,8 +23,10 @@ export const env = {
     requireVerified: (process.env.ONEID_REQUIRE_VERIFIED ?? "false") === "true",
     // Faqat E-IMZO (ERI) bilan kirishga ruxsat (Mobile-ID/parol rad etiladi).
     requireEri: (process.env.ONEID_REQUIRE_ERI ?? "false") === "true",
-    // Ikkinchi domen (cross-domen handoff): callback api.lexai.com.uz'da bo'ladi,
-    // lekin origin shu bo'lsa token KOD bilan altWebUrl web'iga topshiriladi.
+    // Cross-domen handoff: callback boshqa domenда (mas. api.tijoraat.uz) bo'lса,
+    // cookie'ni to'g'ridan o'rnата olmaydi — token KOD bilan mos web'ga topshiriladi.
+    // primary — asosий domen (lexai.com.uz), alt — ikkinchi (lex-ai.uz).
+    primaryOrigin: process.env.ONEID_ORIGIN ?? "",
     altOrigin: process.env.ONEID_ALT_ORIGIN ?? "",
     altWebUrl: process.env.ONEID_ALT_WEB_URL ?? "",
   },
