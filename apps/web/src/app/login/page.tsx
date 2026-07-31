@@ -522,6 +522,11 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showOferta, setShowOferta] = useState(false);
+  // Parol-kirish faqat xodim/admin uchun (?staff=1) — mijozlar faqat One-ID bilan kiradi.
+  const [staffMode, setStaffMode] = useState(false);
+  useEffect(() => {
+    setStaffMode(new URLSearchParams(window.location.search).has("staff"));
+  }, []);
 
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
@@ -571,43 +576,46 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
         </div>
 
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
-          <div className="space-y-1.5">
-            <label htmlFor="lm-email" className="text-xs font-semibold uppercase tracking-widest text-white/55">{t("email")}</label>
-            <input id="lm-email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-500/70")} />
-            {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
-          </div>
-          <div className="space-y-1.5">
-            <label htmlFor="lm-pw" className="text-xs font-semibold uppercase tracking-widest text-white/55">{t("password")}</label>
-            <div className="relative">
-              <input id="lm-pw" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-500/70")} />
-              <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-white/40 hover:text-white" title={show ? t("hidePassword") : t("showPassword")}>
-                {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
-              </button>
+        {/* Xodim/admin parol-kirishi — faqat ?staff=1 bilan ko'rinadi (mijozlarga emas). */}
+        {staffMode && (
+          <form onSubmit={onSubmit} noValidate className="mb-5 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40">Xodim kirishi</p>
+            <div className="space-y-1.5">
+              <label htmlFor="lm-email" className="text-xs font-semibold uppercase tracking-widest text-white/55">{t("email")}</label>
+              <input id="lm-email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-500/70")} />
+              {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
             </div>
-            {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
-          </div>
-          <div className="flex items-start gap-2.5 text-xs leading-relaxed text-white/60">
-            <input id="agree-oferta" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#ff0000]" />
-            <span>
-              <button type="button" onClick={() => setShowOferta(true)} className="text-white/85 underline hover:text-white">Ommaviy oferta</button>{" "}
-              <label htmlFor="agree-oferta" className="cursor-pointer">shartlari bilan tanishdim va roziman</label>
-            </span>
-          </div>
-          {error && <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
-          <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#ff0000] px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.02] disabled:opacity-60">
-            {loading ? t("signingIn") : t("submit")}
-            {!loading && <ArrowRight weight="bold" className="size-4" />}
-          </button>
-        </form>
+            <div className="space-y-1.5">
+              <label htmlFor="lm-pw" className="text-xs font-semibold uppercase tracking-widest text-white/55">{t("password")}</label>
+              <div className="relative">
+                <input id="lm-pw" type={show ? "text" : "password"} autoComplete="current-password" placeholder={t("passwordPlaceholder")} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => errors.password && validate()} className={cn(field, "pr-12", errors.password && "border-red-500/70")} />
+                <button type="button" onClick={() => setShow((s) => !s)} className="absolute right-2 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-lg text-white/40 hover:text-white" title={show ? t("hidePassword") : t("showPassword")}>
+                  {show ? <EyeSlash className="size-5" /> : <Eye className="size-5" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
+            </div>
+            <button type="submit" disabled={loading} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:bg-white/15 disabled:opacity-60">
+              {loading ? t("signingIn") : t("submit")}
+              {!loading && <ArrowRight weight="bold" className="size-4" />}
+            </button>
+          </form>
+        )}
 
-        <div className="my-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-widest text-white/30">
-          <span className="h-px flex-1 bg-white/10" />
-          {t("oneid.or")}
-          <span className="h-px flex-1 bg-white/10" />
+        {/* Oferta rozilik (One-ID uchun) */}
+        <div className="mb-4 flex items-start gap-2.5 text-xs leading-relaxed text-white/60">
+          <input id="agree-oferta" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-0.5 size-4 shrink-0 cursor-pointer accent-[#ff0000]" />
+          <span>
+            <button type="button" onClick={() => setShowOferta(true)} className="text-white/85 underline hover:text-white">Ommaviy oferta</button>{" "}
+            <label htmlFor="agree-oferta" className="cursor-pointer">shartlari bilan tanishdim va roziman</label>
+          </span>
         </div>
-        <a href="/api/oneid" onClick={(e) => { if (!agreed) { e.preventDefault(); setError("Iltimos, ommaviy oferta shartlariga rozilik bering."); } }} className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-white/15 bg-white/5 px-4 py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-colors hover:border-white/50 hover:bg-white/10">
-          <ShieldCheck weight="fill" className="size-5 text-emerald-400" />
+
+        {error && <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
+
+        {/* One-ID — mijozlar uchun asosiy (yagona) kirish */}
+        <a href="/api/oneid" onClick={(e) => { if (!agreed) { e.preventDefault(); setError("Iltimos, ommaviy oferta shartlariga rozilik bering."); } }} className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#ff0000] px-4 py-4 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.02]">
+          <ShieldCheck weight="fill" className="size-5" />
           {t("oneid.button")}
         </a>
         <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">{t("oneid.hint")}</p>
