@@ -3,7 +3,7 @@
 import { CheckCircle, Clock, FileText, Gavel, PenNib, SealCheck, ShieldCheck, XCircle } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
-import { decideApproval } from "@/app/(app)/approvals/actions";
+import { decideApproval, didoxPrepare, didoxSign } from "@/app/(app)/approvals/actions";
 import { type EimzoSignature, signWithEimzo } from "@/lib/eimzo";
 import { toDisplayHtml } from "@/lib/doc-html";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +64,8 @@ export function ApprovalsClient({
   const [signature, setSignature] = useState<EimzoSignature | null>(null);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState<string | null>(null);
+  const [didoxBusy, setDidoxBusy] = useState(false);
+  const [didoxMsg, setDidoxMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const list = lists[status];
@@ -74,7 +76,41 @@ export function ApprovalsClient({
     setEditBody(typeof selected?.payload.body === "string" ? toDisplayHtml(selected.payload.body) : "");
     setSignature(null);
     setSignError(null);
+    setDidoxMsg(null);
   }, [selected?.id]);
+
+  // Talabnoma → Didox: 1) prepare(toSign) → 2) E-IMZO imzo → 3) sign (jo'natish).
+  async function sendViaDidox(id: string) {
+    if (didoxBusy) return;
+    setDidoxBusy(true);
+    setDidoxMsg(null);
+    try {
+      const prep = await didoxPrepare(id);
+      if (!prep.available || !prep.toSign) {
+        const reasons: Record<string, string> = {
+          not_configured: "Didox kaliti sozlanmagan",
+          no_didox_invoice: "Bu hisob-faktura Didox'da topilmadi (Didox ID yo'q)",
+          empty_notification: "Didox talabnoma qaytarmadi",
+          didox_error: `Didox xatosi: ${prep.detail ?? ""}`,
+          network: "Tarmoq xatosi",
+        };
+        setDidoxMsg(reasons[prep.reason ?? ""] ?? "Didox orqali yuborish hozircha mavjud emas");
+        return;
+      }
+      const sig = await signWithEimzo(prep.toSign, "Rahbar"); // toSign'ni E-IMZO bilan imzolaymiz
+      const res = await didoxSign(id, sig.pkcs7);
+      if (res.status === "sent") {
+        setDidoxMsg("✓ Talabnoma Didox orqali yuborildi");
+        startTransition(() => setSelectedId(null));
+      } else {
+        setDidoxMsg(`Yuborilmadi: ${res.error ?? ""}`);
+      }
+    } catch (e) {
+      setDidoxMsg(e instanceof Error ? e.message : "E-IMZO xatosi");
+    } finally {
+      setDidoxBusy(false);
+    }
+  }
 
   async function sign() {
     if (signing) return;
@@ -295,6 +331,29 @@ export function ApprovalsClient({
                       <XCircle className="size-4" />
                       {t("reject")}
                     </Button>
+                    {selected.type === "demand_letter" && (
+                      <Button
+                        variant="outline"
+                        onClick={() => sendViaDidox(selected.id)}
+                        disabled={didoxBusy || (isPending && decidingId === selected.id)}
+                        className="ml-auto border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10"
+                      >
+                        <ShieldCheck weight="fill" className="size-4" />
+                        {didoxBusy ? "Didox'ga yuborilmoqda…" : "Didox orqali yuborish (E-IMZO)"}
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {didoxMsg && (
+                  <div
+                    className={
+                      "shrink-0 rounded-lg border px-3 py-2 text-xs " +
+                      (didoxMsg.startsWith("✓")
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                        : "border-amber-500/30 bg-amber-500/10 text-amber-600")
+                    }
+                  >
+                    {didoxMsg}
                   </div>
                 )}
               </CardContent>

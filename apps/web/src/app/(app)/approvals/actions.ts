@@ -22,3 +22,20 @@ export async function decideApproval(id: string, decision: "approved" | "rejecte
   revalidatePath("/reminders");
   return res;
 }
+
+/** Talabnoma → Didox 1-qadam: imzolanadigan `toSign`ni oladi. */
+export async function didoxPrepare(id: string): Promise<{ available: boolean; toSign?: string; reason?: string; detail?: string }> {
+  const res = await apiServer<{ available: boolean; toSign?: string; reason?: string; detail?: string }>(`/api/approvals/${id}/didox/prepare`, { method: "POST" });
+  return res.data ?? { available: false, reason: "network" };
+}
+
+/** Talabnoma → Didox 2-qadam: E-IMZO PKCS7 → Didox'ga jo'natish. */
+export async function didoxSign(id: string, pkcs7: string): Promise<{ status: "sent" | "failed"; error?: string }> {
+  const res = await apiServer<{ status: "sent" | "failed"; error?: string }>(`/api/approvals/${id}/didox/sign`, {
+    method: "POST",
+    body: JSON.stringify({ pkcs7 }),
+  });
+  revalidatePath("/approvals");
+  revalidatePath("/reminders");
+  return res.data ?? { status: "failed", error: "network" };
+}
