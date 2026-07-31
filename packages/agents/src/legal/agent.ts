@@ -88,9 +88,10 @@ export async function runAgent(opts: {
       maxSteps: opts.maxSteps ?? 6,
     });
     return { text: text.trim(), steps };
-  } catch {
+  } catch (e) {
+    console.error("[runAgent] error:", (e as Error)?.stack ?? e);
     return {
-      text: opts.locale === "ru" ? "Ошибка AI. Повторите." : opts.locale === "en" ? "AI error. Try again." : "AI xatosi. Qayta urinib ko'ring.",
+      text: `__AGENT_ERR__ ${String((e as Error)?.message ?? e)}`.slice(0, 400),
       steps,
     };
   }
