@@ -80,20 +80,40 @@ export async function runAgent(opts: {
   );
 
   // QO'LDA tool-calling halqasi: har qadamda maxSteps=1 (bitta model chaqiruvi).
-  // Asbob natijasini modelning XOM functionCall qismi sifatida EMAS, oddiy MATN
-  // sifatida qaytaramiz — shunda Gemini "thought_signature" talab qilmaydi.
-  const msgs: { role: "user" | "assistant"; content: string }[] = opts.messages.map((m) => ({ role: m.role, content: m.content }));
+  // Gemini "thinking" modeli xom functionCall'ni qaytarishda thought_signature talab
+  // qiladi, shu bois biz asbob natijalarini oxirgi FOYDALANUVCHI xabariga MATN sifatida
+  // qo'shamiz (assistant "echo" QO'YMAYMIZ — aks holda model tool-call'ni matnda taqlid
+  // qiladi). Har aylanada model haqiqiy funksiya-chaqiruvni yangidan yuboradi.
+  const base: { role: "user" | "assistant"; content: string }[] = opts.messages.map((m) => ({ role: m.role, content: m.content }));
+  let lastUserIdx = -1;
+  for (let i = base.length - 1; i >= 0; i--) {
+    if (base[i]!.role === "user") {
+      lastUserIdx = i;
+      break;
+    }
+  }
+  if (lastUserIdx === -1) {
+    base.push({ role: "user", content: "" });
+    lastUserIdx = base.length - 1;
+  }
+  const origLastUser = base[lastUserIdx]!.content;
   const maxRounds = Math.max(1, Math.min(opts.maxSteps ?? 5, 8));
   const sys = SYS[opts.locale] ?? SYS.uz;
+  let toolContext = "";
   let finalText = "";
   try {
     for (let round = 0; round < maxRounds; round++) {
       const lastRound = round === maxRounds - 1;
+      const msgs = base.map((m, i) =>
+        i === lastUserIdx && toolContext
+          ? { role: m.role, content: `${origLastUser}\n\n[Asboblardan olingan HAQIQIY ma'lumot — o'zgartirma]\n${toolContext}\n\nShu asosda javobni yakunla yoki kerak bo'lsa boshqa asbobni chaqir.` }
+          : m,
+      );
       const r = await generateText({
         model,
         system: sys,
         messages: msgs,
-        tools: lastRound ? undefined : aiTools, // oxirgi aylanada matn javobga majburlaymiz
+        tools: lastRound ? undefined : aiTools, // oxirgi aylanada matn javobiga majburlaymiz
         maxSteps: 1,
       });
       const calls = r.toolCalls ?? [];
@@ -101,15 +121,13 @@ export async function runAgent(opts: {
         finalText = r.text;
         break;
       }
-      // Asbob natijalarini oddiy matn sifatida kontekstga qo'shamiz.
       const summary = (r.toolResults ?? [])
         .map((tr) => {
           const t = tr as { toolName?: string; result?: unknown };
-          return `Asbob "${t.toolName}" natijasi:\n${JSON.stringify(t.result ?? null).slice(0, 6000)}`;
+          return `• ${t.toolName}: ${JSON.stringify(t.result ?? null).slice(0, 6000)}`;
         })
-        .join("\n\n");
-      msgs.push({ role: "assistant", content: `[asboblar chaqirildi: ${calls.map((c) => (c as { toolName?: string }).toolName).join(", ")}]` });
-      msgs.push({ role: "user", content: `${summary}\n\nShu HAQIQIY natijalar asosida javobni yakunla yoki kerak bo'lsa boshqa asbobni chaqir. Raqam va nomlarni o'zgartirma, o'ylab topma.` });
+        .join("\n");
+      toolContext += (toolContext ? "\n" : "") + summary;
       finalText = r.text;
     }
     return { text: (finalText || "").trim(), steps };
