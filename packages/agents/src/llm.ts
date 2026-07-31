@@ -30,6 +30,17 @@ export function getModel(): LanguageModelV1 | null {
   return null;
 }
 
+/**
+ * Tool-calling AGENT uchun model — Groq afzal (funksiya-chaqiruvni toza va tez
+ * qo'llaydi), keyin Anthropic, oxirida umumiy getModel(). Gemini "thinking" modeli
+ * ko'p-qadamli toolда thought_signature talab qilib xato beradi, shu bois agentда emas.
+ */
+export function getAgentModel(): LanguageModelV1 | null {
+  if (process.env.GROQ_API_KEY) return groq(process.env.GROQ_AGENT_MODEL ?? process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile");
+  if (process.env.ANTHROPIC_API_KEY) return anthropic("claude-sonnet-5");
+  return getModel();
+}
+
 export function isLlmAvailable(): boolean {
   return getModel() !== null;
 }

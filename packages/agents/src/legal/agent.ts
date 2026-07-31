@@ -1,6 +1,6 @@
 import { type Locale } from "@lex/shared";
 import { generateText, jsonSchema, tool } from "ai";
-import { getModel } from "../llm";
+import { getAgentModel } from "../llm";
 
 /**
  * Lex AI Agent — LLM + ASBOBLAR (tool-calling) halqasi.
@@ -55,7 +55,7 @@ export async function runAgent(opts: {
   tools: AgentToolDef[];
   maxSteps?: number;
 }): Promise<{ text: string; steps: AgentRunStep[] }> {
-  const model = getModel();
+  const model = getAgentModel();
   if (!model) return { text: noKey(opts.locale), steps: [] };
 
   const steps: AgentRunStep[] = [];
@@ -86,10 +86,6 @@ export async function runAgent(opts: {
       messages: opts.messages,
       tools: aiTools,
       maxSteps: opts.maxSteps ?? 6,
-      // Gemini "thinking"ni o'chiramiz — aks holda ko'p-qadamli tool-callingда
-      // thought_signature talab qilinadi va SDK uni qaytara olmay xato beradi.
-      // (Boshqa providerlar bu namespace'ni e'tiborsiz qoldiradi.)
-      providerOptions: { google: { thinkingConfig: { thinkingBudget: 0 } } },
     });
     return { text: text.trim(), steps };
   } catch (e) {
