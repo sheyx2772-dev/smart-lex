@@ -1,6 +1,6 @@
-import { auditLogs, getDb, tenants, withTenant } from "@lex/db";
+import { auditLogs, getDb, payments, receivables, tenants, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, ne, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 
@@ -80,7 +80,21 @@ agentAutopilotRoutes.get("/agent/autopilot", async (c) => {
     avgRecovery: recoveryN ? Math.round(recoverySum / recoveryN) : null,
   };
 
-  return c.json(ok({ config, feed, stats }, "common.ok", c.get("locale")));
+  // ── ROI: undirilgan pul + undirish darajasi (investor dalili) — mavjud jadvallardan.
+  const rec = await withTenant(tenantId, async (tx) => {
+    const [r] = await tx.select({ sum: sql<string>`coalesce(sum(${payments.amountMinor}),0)::text` }).from(payments).where(eq(payments.status, "received"));
+    const [o] = await tx.select({ sum: sql<string>`coalesce(sum(${receivables.outstandingMinor}),0)::text` }).from(receivables).where(ne(receivables.status, "paid"));
+    return { recoveredMinor: r?.sum ?? "0", outstandingMinor: o?.sum ?? "0" };
+  });
+  const recVal = Number(rec.recoveredMinor);
+  const outVal = Number(rec.outstandingMinor);
+  const recovery = {
+    recoveredMinor: rec.recoveredMinor,
+    outstandingMinor: rec.outstandingMinor,
+    recoveryRate: recVal + outVal > 0 ? Math.round((recVal / (recVal + outVal)) * 100) : null,
+  };
+
+  return c.json(ok({ config, feed, stats, recovery }, "common.ok", c.get("locale")));
 });
 
 /** Autopilot sozlamasini yangilash (faqat owner/admin). */

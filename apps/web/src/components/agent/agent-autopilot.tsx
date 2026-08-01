@@ -20,7 +20,10 @@ export interface AutopilotData {
   config: { mode: Mode; aggressiveness: Aggr };
   feed: FeedItem[];
   stats: { decisionsToday: number; remindersToday: number; escalationsToday: number; avgRecovery: number | null };
+  recovery?: { recoveredMinor: string; outstandingMinor: string; recoveryRate: number | null };
 }
+
+const som = (minor: string | undefined) => new Intl.NumberFormat("uz-UZ").format(Number(minor ?? "0") / 100) + " so'm";
 
 const MODES: { key: Mode; label: string; desc: string }[] = [
   { key: "off", label: "O'chirilgan", desc: "Agent faqat kuzatadi, hech narsa qilmaydi" },
@@ -109,8 +112,32 @@ export function AgentAutopilot({ initial }: { initial: AutopilotData | null }) {
     });
   }
 
+  const recovery = initial?.recovery;
+
   return (
     <div className="space-y-5">
+      {/* ROI hero — undirildi (investor dalili) */}
+      {recovery && (
+        <div className="relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/12 via-card to-card p-6">
+          <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-emerald-500/15 blur-3xl" />
+          <div className="relative flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                <ChartLineUp weight="fill" className="size-4" /> Agent undirdi
+              </p>
+              <p className="mt-1 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{som(recovery.recoveredMinor)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Undirilmagan qoldiq: {som(recovery.outstandingMinor)}</p>
+            </div>
+            {recovery.recoveryRate !== null && (
+              <div className="text-right">
+                <p className="font-display text-3xl font-bold text-emerald-600">{recovery.recoveryRate}%</p>
+                <p className="text-xs text-muted-foreground">undirish darajasi</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header + autonomy */}
       <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/12 via-card to-card p-6">
         <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/15 blur-3xl" />
