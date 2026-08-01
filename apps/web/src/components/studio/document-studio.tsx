@@ -998,7 +998,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
             )}
           </div>
         </div>
-            <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" />
+            <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" paper />
           </div>
 
           {/* ── AI Yordamchi paneli ──────────────────────── */}

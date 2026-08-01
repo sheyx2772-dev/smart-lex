@@ -12,11 +12,14 @@ export function RichEditor({
   onChange,
   className,
   onReady,
+  paper,
 }: {
   value: string;
   onChange: (html: string) => void;
   className?: string;
   onReady?: (editor: Editor) => void;
+  /** A4 "qog'oz" rejimi — hujjatni xuddi Microsoft Word ekranidek (oq A4 list) ko'rsatadi. */
+  paper?: boolean;
 }) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -24,7 +27,9 @@ export function RichEditor({
     content: value,
     editorProps: {
       attributes: {
-        class: "prose-doc min-h-full p-4 text-[13.5px] leading-relaxed outline-none",
+        class: paper
+          ? "prose-doc a4-sheet mx-auto my-8 w-[210mm] max-w-full min-h-[297mm] bg-white px-[22mm] py-[20mm] text-[11.5pt] leading-[1.6] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.14),0_14px_34px_-12px_rgba(0,0,0,0.3)] outline-none [font-family:'Times_New_Roman','PT_Serif',Georgia,serif] print:my-0 print:w-full print:shadow-none"
+          : "prose-doc min-h-full p-4 text-[13.5px] leading-relaxed outline-none",
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -91,7 +96,7 @@ export function RichEditor({
           <ArrowUUpRight className="size-4" />
         </Btn>
       </div>
-      <EditorContent editor={editor} className="scroll-clean min-h-0 flex-1 overflow-y-auto" />
+      <EditorContent editor={editor} className={cn("scroll-clean min-h-0 flex-1 overflow-auto", paper && "bg-neutral-200/70 dark:bg-neutral-950/60")} />
     </div>
   );
 }
