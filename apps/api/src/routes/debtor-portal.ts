@@ -1,0 +1,123 @@
+import { auditLogs, contractors, getDb, invoices, receivables, tenants, withTenant } from "@lex/db";
+import { eq } from "drizzle-orm";
+import { Hono } from "hono";
+import { type Variables } from "../lib/context";
+
+/**
+ * QARZDOR PORTALI (PUBLIC — login talab qilinmaydi).
+ * Qarzdor SMS/eslatmadagi havolani ochadi → qarzini ko'radi → to'lov rekvizitlari +
+ * AI bo'lib-to'lash / kelishuv taklifi. Migratsiyasiz: kelishuv `audit_logs`ga yoziladi.
+ *
+ * receivable id tenant-scoped (RLS) — tenantlarni skanlab topamiz (Payme txn pattern).
+ */
+export const debtorPortalRoutes = new Hono<{ Variables: Variables }>();
+
+interface Found {
+  tenant: { id: string; name: string; tin: string; bankAccount: string | null; bankMfo: string | null; settings: Record<string, unknown> };
+  receivable: { id: string; outstandingMinor: bigint; penaltyMinor: bigint | null; currency: string; overdueDays: number; status: string };
+  debtorName: string;
+  invoiceNumber: string;
+}
+
+async function findReceivable(id: string): Promise<Found | null> {
+  const all = await getDb().select().from(tenants);
+  for (const t of all) {
+    const hit = await withTenant(t.id, async (tx) => {
+      const [r] = await tx.select().from(receivables).where(eq(receivables.id, id)).limit(1);
+      if (!r) return null;
+      const [inv] = r.invoiceId ? await tx.select().from(invoices).where(eq(invoices.id, r.invoiceId)).limit(1) : [undefined];
+      const [con] = await tx.select().from(contractors).where(eq(contractors.id, r.contractorId)).limit(1);
+      return { r, inv, con };
+    });
+    if (hit?.r) {
+      return {
+        tenant: { id: t.id, name: t.name, tin: t.tin, bankAccount: t.bankAccount, bankMfo: t.bankMfo, settings: (t.settings ?? {}) as Record<string, unknown> },
+        receivable: {
+          id: hit.r.id,
+          outstandingMinor: hit.r.outstandingMinor,
+          penaltyMinor: hit.r.penaltyMinor,
+          currency: hit.r.currency,
+          overdueDays: hit.r.overdueDays,
+          status: hit.r.status,
+        },
+        debtorName: hit.con?.name ?? "",
+        invoiceNumber: hit.inv?.number ?? "",
+      };
+    }
+  }
+  return null;
+}
+
+/** Qarz ma'lumoti (public). */
+debtorPortalRoutes.get("/pay/:id", async (c) => {
+  const f = await findReceivable(c.req.param("id"));
+  if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
+  return c.json({
+    success: true,
+    data: {
+      creditor: { name: f.tenant.name, tin: f.tenant.tin, bankAccount: f.tenant.bankAccount, bankMfo: f.tenant.bankMfo },
+      debtorName: f.debtorName,
+      invoiceNumber: f.invoiceNumber,
+      principalMinor: f.receivable.outstandingMinor.toString(),
+      penaltyMinor: (f.receivable.penaltyMinor ?? 0n).toString(),
+      currency: f.receivable.currency,
+      overdueDays: f.receivable.overdueDays,
+      status: f.receivable.status,
+    },
+    error: null,
+    message: "ok",
+  });
+});
+
+// Qattiqlikка qarab minimal kelishuv foizi (money mantiqi deterministik — LLM'da emas).
+const SETTLEMENT_MIN: Record<string, number> = { soft: 60, normal: 72, aggressive: 85 };
+const MAX_MONTHS: Record<string, number> = { soft: 6, normal: 4, aggressive: 3 };
+
+/** AI bo'lib-to'lash / kelishuv taklifi (public). Qoidalarга asoslangan, firmaга xabar. */
+debtorPortalRoutes.post("/pay/:id/negotiate", async (c) => {
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { type?: string; months?: number };
+  const f = await findReceivable(id);
+  if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
+
+  const principal = Number(f.receivable.outstandingMinor) / 100;
+  const penalty = Number(f.receivable.penaltyMinor ?? 0n) / 100;
+  const total = principal + penalty;
+  const aggr = String((f.tenant.settings.agent as { aggressiveness?: string } | undefined)?.aggressiveness ?? "normal");
+
+  let offer: { type: string; text: string; acceptMinor: number; schedule?: { month: number; amount: number }[] };
+  if (body.type === "settlement") {
+    const pct = SETTLEMENT_MIN[aggr] ?? 72;
+    const accept = Math.round((total * pct) / 100);
+    offer = {
+      type: "settlement",
+      acceptMinor: accept * 100,
+      text: `Bir martalik to'lov kelishuvi: agar ${accept.toLocaleString("uz-UZ")} so'm (jami qarzning ${pct}%) darhol to'lansa, qolgan qismi kechiriladi. Penya to'xtatiladi.`,
+    };
+  } else {
+    const maxM = MAX_MONTHS[aggr] ?? 4;
+    const months = Math.max(2, Math.min(maxM, Math.round(body.months ?? maxM)));
+    const per = Math.ceil(total / months);
+    offer = {
+      type: "installment",
+      acceptMinor: Math.round(total) * 100,
+      schedule: Array.from({ length: months }, (_, i) => ({ month: i + 1, amount: per })),
+      text: `Bo'lib to'lash rejasi: ${months} oy davomida oyiga ~${per.toLocaleString("uz-UZ")} so'm. Reja bajarilса sud jarayoni to'xtatiladi.`,
+    };
+  }
+
+  // Firmaga xabar — audit logga (yangi jadval yo'q).
+  await withTenant(f.tenant.id, async (tx) => {
+    await tx.insert(auditLogs).values({
+      tenantId: f.tenant.id,
+      actorType: "system",
+      actorId: "debtor-portal",
+      action: "debtor.negotiation",
+      entityType: "receivable",
+      entityId: f.receivable.id,
+      detail: { debtor: f.debtorName, offerType: offer.type, acceptMinor: offer.acceptMinor, text: offer.text },
+    });
+  });
+
+  return c.json({ success: true, data: { offer, creditor: f.tenant.name }, error: null, message: "ok" });
+});

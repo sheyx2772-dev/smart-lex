@@ -254,10 +254,8 @@ async function runForTenant(
         if (step.stage === "soft_reminder" || step.stage === "firm_reminder") {
           const contact = pickContact(tenant.type, contractor, channelCfg);
           if (!contact) continue;
-          const paymentLink =
-            tenant.type === "bank"
-              ? `${process.env.WEB_URL ?? "http://localhost:3000"}/pay/${receivable.id}`
-              : undefined;
+          // Qarzdor portali havolasi — barcha tenantlar uchun (qarzdor ochib to'laydi/kelishadi).
+          const paymentLink = `${process.env.WEB_URL ?? "https://lexai.com.uz"}/pay/${receivable.id}`;
           const kind = step.stage === "soft_reminder" ? "soft" : "firm";
           const template = templates?.[kind]?.[tenant.defaultLocale];
           const body = generateReminderText({

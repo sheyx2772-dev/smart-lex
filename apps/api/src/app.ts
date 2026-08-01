@@ -10,6 +10,7 @@ import { authRoutes } from "./routes/auth";
 import { chatRoutes } from "./routes/chat";
 import { didoxNotifyRoutes } from "./routes/didox-notify";
 import { paymentRoutes, paymentWebhookRoutes } from "./routes/payment";
+import { debtorPortalRoutes } from "./routes/debtor-portal";
 import { platformRoutes } from "./routes/platform";
 import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
@@ -44,6 +45,7 @@ export function createApp() {
   app.route("/auth", oneIdRoutes);
   // Click to'lov webhook'lari — kabinetdagi /click/prepare, /click/complete (ochiq, imzo bilan).
   app.route("/", paymentWebhookRoutes);
+  app.route("/", debtorPortalRoutes);
 
   // Himoyalangan yo'llar.
   const api = new Hono<{ Variables: Variables }>();
