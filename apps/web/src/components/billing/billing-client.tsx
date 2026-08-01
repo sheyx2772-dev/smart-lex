@@ -1,8 +1,9 @@
 "use client";
 
-import { Bank, CaretRight, CheckCircle, CircleNotch, ShieldCheck, X } from "@phosphor-icons/react";
+import { Bank, CaretRight, CheckCircle, CircleNotch, Crown, Lightning, LockKey, SealCheck, ShieldCheck, Sparkle, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import { createClickPayment, createPaymePayment } from "@/app/(app)/billing/actions";
+import { CardScheme, ClickLogo, PaymeLogo } from "./logos";
 
 export interface Sub {
   plan: string | null;
@@ -13,42 +14,27 @@ export interface Sub {
 interface Plan {
   name: string;
   price: number;
+  tagline: string;
   features: string[];
   popular?: boolean;
+  Icon: typeof Lightning;
 }
 
 const PLANS: Plan[] = [
-  { name: "Boshlang'ich", price: 1_000_000, features: ["Hujjat tuzish + AI tahlil", "SMS eslatma", "Debitorlik nazorati"] },
-  { name: "Standart", price: 2_500_000, features: ["Boshlang'ich hammasi", "Sudga topshirish", "Didox rasmiy yuborish"], popular: true },
-  { name: "Professional", price: 5_000_000, features: ["Standart hammasi", "Cheksiz hujjat", "Ustuvor qo'llab-quvvatlash"] },
+  { name: "Boshlang'ich", price: 1_000_000, tagline: "Yakka amaliyot uchun", Icon: Lightning, features: ["Hujjat tuzish + AI tahlil", "SMS eslatma", "Debitorlik nazorati"] },
+  { name: "Standart", price: 2_500_000, tagline: "O'sayotgan firmalar uchun", Icon: Sparkle, popular: true, features: ["Boshlang'ich hammasi", "Sudga topshirish", "Didox orqali rasmiy yuborish"] },
+  { name: "Professional", price: 5_000_000, tagline: "Yuqori yuklamali jamoalar", Icon: Crown, features: ["Standart hammasi", "Cheksiz hujjat", "Ustuvor qo'llab-quvvatlash"] },
 ];
 
 const fmtSum = (n: number) => new Intl.NumberFormat("uz-UZ").format(n) + " so'm";
 const fmtDate = (d: string | null) => (d ? new Intl.DateTimeFormat("uz-UZ", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(d)) : "—");
-const STATUS: Record<string, { label: string; cls: string }> = {
-  none: { label: "Obuna yo'q", cls: "bg-muted text-muted-foreground" },
-  trial: { label: "Bepul sinov", cls: "bg-amber-500/15 text-amber-600" },
-  active: { label: "Faol obuna", cls: "bg-emerald-500/15 text-emerald-600" },
-  expired: { label: "Muddati tugagan", cls: "bg-red-500/15 text-red-500" },
+const daysLeft = (d: string | null) => (d ? Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 86_400_000)) : 0);
+const STATUS: Record<string, { label: string; cls: string; dot: string }> = {
+  none: { label: "Obuna yo'q", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  trial: { label: "Bepul sinov", cls: "bg-amber-500/15 text-amber-600", dot: "bg-amber-500" },
+  active: { label: "Faol obuna", cls: "bg-emerald-500/15 text-emerald-600", dot: "bg-emerald-500" },
+  expired: { label: "Muddati tugagan", cls: "bg-red-500/15 text-red-500", dot: "bg-red-500" },
 };
-
-/** Click brendli logo (inline SVG). */
-function ClickLogo() {
-  return (
-    <span className="inline-flex items-center gap-1.5 font-bold">
-      <span className="grid size-6 place-items-center rounded-md bg-white/20 text-[13px]">C</span>
-      Click
-    </span>
-  );
-}
-function PaymeLogo() {
-  return (
-    <span className="inline-flex items-center gap-1.5 font-bold">
-      <span className="grid size-6 place-items-center rounded-md bg-white/20 text-[13px]">P</span>
-      Payme
-    </span>
-  );
-}
 
 export function BillingClient({ subscription, tenant }: { subscription: Sub; tenant: { name: string; tin: string } | null }) {
   const [checkout, setCheckout] = useState<Plan | null>(null);
@@ -58,6 +44,7 @@ export function BillingClient({ subscription, tenant }: { subscription: Sub; ten
 
   const st = STATUS[subscription.status] ?? STATUS.none;
   const activeUntil = subscription.status === "active" ? subscription.until : subscription.status === "trial" ? subscription.trialUntil : null;
+  const left = daysLeft(activeUntil);
 
   function openCheckout(p: Plan) {
     setCheckout(p);
@@ -79,123 +66,215 @@ export function BillingClient({ subscription, tenant }: { subscription: Sub; ten
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Obuna va to'lov</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Tarifni tanlang — keyin to'lov usulini (Click, Payme yoki bank o'tkazma) tanlaysiz.</p>
-      </div>
-
-      {/* Joriy holat */}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary-soft/50 via-card to-card p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Joriy holat</p>
-            <div className="mt-1.5 flex items-center gap-2">
-              <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-semibold ${st.cls}`}>{st.label}</span>
-              {subscription.plan && <span className="text-sm font-medium">{subscription.plan}</span>}
+    <div className="mx-auto w-full max-w-5xl space-y-6 pb-10">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/12 via-card to-card p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-1/3 size-48 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="relative flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <Sparkle weight="fill" className="size-3.5" /> LEX.AI obuna
+            </span>
+            <h1 className="mt-3 font-display text-2xl font-bold tracking-tight sm:text-3xl">Kuchli imkoniyatlarni oching</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">Tarifni tanlang — so'ng to'lovni Click, Payme yoki bank o'tkazmasi orqali xavfsiz amalga oshiring.</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card/70 px-3.5 py-2.5 backdrop-blur">
+            <ShieldCheck weight="fill" className="size-5 text-emerald-500" />
+            <div className="leading-tight">
+              <p className="text-xs font-semibold">SSL himoyalangan</p>
+              <p className="text-[11px] text-muted-foreground">Rasmiy to'lov shlyuzi</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{subscription.status === "trial" ? "Sinov tugaydi" : "Amal qiladi"}</p>
-            <p className="mt-1 font-display text-lg font-semibold">{fmtDate(activeUntil)}</p>
+        </div>
+
+        {/* Joriy holat */}
+        <div className="relative mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card/80 p-4 backdrop-blur">
+          <div className="flex items-center gap-3">
+            <span className={`grid size-11 place-items-center rounded-xl ${st.cls}`}>
+              <span className={`size-2.5 rounded-full ${st.dot}`} />
+            </span>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center rounded-lg px-2.5 py-0.5 text-sm font-semibold ${st.cls}`}>{st.label}</span>
+                {subscription.plan && <span className="text-sm font-medium">{subscription.plan}</span>}
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {subscription.status === "trial" ? "Bepul sinov muddati" : subscription.status === "active" ? "Obuna amal qiladi" : subscription.status === "expired" ? "Obunani yangilang" : "Faollashtirish uchun tarif tanlang"}
+              </p>
+            </div>
           </div>
+          {activeUntil && (
+            <div className="text-right">
+              <p className="font-display text-lg font-bold">{fmtDate(activeUntil)}</p>
+              <p className="text-xs text-muted-foreground">{left} kun qoldi</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Tariflar */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {PLANS.map((p) => (
-          <div key={p.name} className={`relative flex flex-col rounded-2xl border bg-card p-5 transition-shadow hover:shadow-lg ${p.popular ? "border-primary shadow-md shadow-primary/10" : "border-border"}`}>
-            {p.popular && <span className="absolute -top-2.5 left-5 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-foreground">Ommabop</span>}
-            <h3 className="font-display text-lg font-semibold">{p.name}</h3>
-            <p className="mt-1 font-display text-2xl font-bold">
-              {fmtSum(p.price)}
-              <span className="text-sm font-normal text-muted-foreground">/oy</span>
-            </p>
-            <ul className="mt-3 flex-1 space-y-1.5">
-              {p.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <CheckCircle weight="fill" className="mt-0.5 size-4 shrink-0 text-emerald-500" /> {f}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => openCheckout(p)}
-              className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-transform hover:scale-[1.02] ${p.popular ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:border-primary/40"}`}
+      <div className="grid items-stretch gap-4 md:grid-cols-3">
+        {PLANS.map((p) => {
+          const isCur = subscription.plan === p.name && (subscription.status === "active" || subscription.status === "trial");
+          return (
+            <div
+              key={p.name}
+              className={`relative flex flex-col rounded-3xl border p-6 transition-all hover:-translate-y-0.5 ${
+                p.popular ? "border-primary/60 bg-gradient-to-b from-primary/10 to-card shadow-xl shadow-primary/10 md:-my-1 md:scale-[1.015]" : "border-border bg-card hover:shadow-lg"
+              }`}
             >
-              Tanlash <CaretRight weight="bold" className="size-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Checkout modal — to'lov usulini tanlash */}
-      {checkout && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !busy && setCheckout(null)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-start justify-between">
-              <div>
-                <h3 className="font-display text-lg font-semibold">To'lov usuli</h3>
-                <p className="text-sm text-muted-foreground">
-                  {checkout.name} · <span className="font-semibold text-foreground">{fmtSum(checkout.price)}/oy</span>
-                </p>
+              {p.popular && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-primary-foreground shadow-md">
+                  <Crown weight="fill" className="size-3.5" /> Eng ommabop
+                </span>
+              )}
+              <div className="flex items-center gap-2.5">
+                <span className={`grid size-10 place-items-center rounded-xl ${p.popular ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                  <p.Icon weight="fill" className="size-5" />
+                </span>
+                <div>
+                  <h3 className="font-display text-base font-bold leading-tight">{p.name}</h3>
+                  <p className="text-[11px] text-muted-foreground">{p.tagline}</p>
+                </div>
               </div>
-              <button onClick={() => setCheckout(null)} disabled={busy !== null} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted disabled:opacity-50">
-                <X className="size-4" />
+
+              <div className="mt-5">
+                <span className="font-display text-3xl font-extrabold tracking-tight">{new Intl.NumberFormat("uz-UZ").format(p.price)}</span>
+                <span className="ml-1 text-sm text-muted-foreground">so'm/oy</span>
+              </div>
+
+              <ul className="mt-5 flex-1 space-y-2.5">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2 text-sm">
+                    <CheckCircle weight="fill" className={`mt-0.5 size-4 shrink-0 ${p.popular ? "text-primary" : "text-emerald-500"}`} /> <span className="text-foreground/90">{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => openCheckout(p)}
+                disabled={isCur}
+                className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-all disabled:cursor-default disabled:opacity-60 ${
+                  isCur ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-600" : p.popular ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:scale-[1.02]" : "border border-border bg-background hover:border-primary/50 hover:scale-[1.02]"
+                }`}
+              >
+                {isCur ? (
+                  <>
+                    <SealCheck weight="fill" className="size-4" /> Joriy tarif
+                  </>
+                ) : (
+                  <>
+                    Tanlash <CaretRight weight="bold" className="size-4" />
+                  </>
+                )}
               </button>
             </div>
+          );
+        })}
+      </div>
 
-            {!showBank ? (
-              <div className="space-y-2.5">
-                {/* Click */}
-                <button
-                  onClick={() => pay("click")}
-                  disabled={busy !== null}
-                  className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-white transition-transform hover:scale-[1.01] disabled:opacity-60"
-                  style={{ background: "linear-gradient(90deg,#0F86D6,#26A9F0)" }}
-                >
-                  <ClickLogo />
-                  {busy === "click" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5" />}
-                </button>
-                {/* Payme */}
-                <button
-                  onClick={() => pay("payme")}
-                  disabled={busy !== null}
-                  className="flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-white transition-transform hover:scale-[1.01] disabled:opacity-60"
-                  style={{ background: "linear-gradient(90deg,#00B8A9,#2CD4C4)" }}
-                >
-                  <PaymeLogo />
-                  {busy === "payme" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5" />}
-                </button>
-                {/* Bank */}
-                <button
-                  onClick={() => setShowBank(true)}
-                  disabled={busy !== null}
-                  className="flex w-full items-center justify-between rounded-xl border border-border bg-background px-4 py-3.5 font-semibold transition-colors hover:border-primary/40 disabled:opacity-60"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Bank weight="fill" className="size-5 text-primary" /> Bank o'tkazmasi
-                  </span>
-                  <CaretRight weight="bold" className="size-5 text-muted-foreground" />
-                </button>
-                {err && <p className="pt-1 text-center text-xs text-red-500">{err}</p>}
-                <p className="pt-1 text-center text-[11px] text-muted-foreground">To'lov xavfsiz — Click/Payme rasmiy sahifasida amalga oshiriladi.</p>
-              </div>
-            ) : (
-              <div>
-                <button onClick={() => setShowBank(false)} className="mb-3 text-xs font-medium text-primary hover:underline">← usullarga qaytish</button>
-                <dl className="space-y-1.5 rounded-xl border border-border bg-muted/20 p-4 text-sm">
-                  <Row k="Qabul qiluvchi" v="«MC LEGAL» yuridik firmasi" />
-                  <Row k="STIR" v="312559000" />
-                  <Row k="H/r" v="20212000507346035001" mono />
-                  <Row k="MFO" v="00423" mono />
-                  <Row k="Bank" v="ATIB «Ipoteka-bank» Mehnat filiali" />
-                  <Row k="Summa" v={fmtSum(checkout.price)} />
-                  <Row k="To'lov maqsadi" v={`LEX.AI obuna — ${tenant?.name ?? "firma"}`} />
-                </dl>
-                <p className="mt-3 text-[11px] text-muted-foreground">O'tkazmadan so'ng obuna administrator tomonidan tasdiqlanadi (1 ish kuni ichida). To'lov maqsadida firma nomingizni ko'rsating.</p>
-              </div>
-            )}
+      {/* Ishonch banneri — qabul qilinadigan to'lov usullari */}
+      <div className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck weight="fill" className="size-5 text-emerald-500" />
+            <div>
+              <p className="text-sm font-semibold">Xavfsiz to'lov usullari</p>
+              <p className="text-xs text-muted-foreground">To'lov O'zbekistonning rasmiy shlyuzlari orqali qabul qilinadi</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-white shadow-sm" style={{ background: "linear-gradient(90deg,#0F86D6,#26A9F0)" }}>
+              <ClickLogo className="text-sm [&_span]:text-sm [&_svg]:size-5" />
+            </span>
+            <span className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-white shadow-sm" style={{ background: "linear-gradient(90deg,#00B8A9,#2CD4C4)" }}>
+              <PaymeLogo className="text-sm [&_span]:text-sm [&_svg]:size-5" />
+            </span>
+            <span className="mx-0.5 h-6 w-px bg-border" />
+            <CardScheme name="UzCard" />
+            <CardScheme name="Humo" />
+            <CardScheme name="Visa" />
+            <CardScheme name="Mastercard" />
+          </div>
+        </div>
+      </div>
+
+      {/* Checkout modal */}
+      {checkout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => !busy && setCheckout(null)}>
+          <div className="w-full max-w-md overflow-hidden rounded-3xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            {/* modal header */}
+            <div className="relative bg-gradient-to-br from-primary/15 to-card p-5">
+              <button onClick={() => setCheckout(null)} disabled={busy !== null} className="absolute right-4 top-4 grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted disabled:opacity-50">
+                <X className="size-4" />
+              </button>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">To'lov · {checkout.name}</p>
+              <p className="mt-1 font-display text-2xl font-extrabold">
+                {fmtSum(checkout.price)}
+                <span className="ml-1 text-sm font-normal text-muted-foreground">/oy</span>
+              </p>
+            </div>
+
+            <div className="p-5">
+              {!showBank ? (
+                <div className="space-y-2.5">
+                  <p className="mb-1 text-xs font-medium text-muted-foreground">To'lov usulini tanlang</p>
+                  {/* Click */}
+                  <button
+                    onClick={() => pay("click")}
+                    disabled={busy !== null}
+                    className="flex w-full items-center justify-between rounded-2xl px-4 py-4 text-white shadow-lg shadow-sky-500/20 transition-transform hover:scale-[1.01] disabled:opacity-60"
+                    style={{ background: "linear-gradient(90deg,#0F86D6,#26A9F0)" }}
+                  >
+                    <ClickLogo />
+                    {busy === "click" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5 opacity-90" />}
+                  </button>
+                  {/* Payme */}
+                  <button
+                    onClick={() => pay("payme")}
+                    disabled={busy !== null}
+                    className="flex w-full items-center justify-between rounded-2xl px-4 py-4 text-white shadow-lg shadow-teal-500/20 transition-transform hover:scale-[1.01] disabled:opacity-60"
+                    style={{ background: "linear-gradient(90deg,#00B8A9,#2CD4C4)" }}
+                  >
+                    <PaymeLogo />
+                    {busy === "payme" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5 opacity-90" />}
+                  </button>
+                  {/* Bank */}
+                  <button
+                    onClick={() => setShowBank(true)}
+                    disabled={busy !== null}
+                    className="flex w-full items-center justify-between rounded-2xl border border-border bg-background px-4 py-4 font-semibold transition-colors hover:border-primary/40 disabled:opacity-60"
+                  >
+                    <span className="inline-flex items-center gap-2.5">
+                      <span className="grid size-7 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Bank weight="fill" className="size-4" />
+                      </span>
+                      Bank o'tkazmasi
+                    </span>
+                    <CaretRight weight="bold" className="size-5 text-muted-foreground" />
+                  </button>
+                  {err && <p className="pt-1 text-center text-xs text-red-500">{err}</p>}
+                  <div className="flex items-center justify-center gap-1.5 pt-2 text-[11px] text-muted-foreground">
+                    <LockKey weight="fill" className="size-3.5 text-emerald-500" /> To'lov Click/Payme rasmiy himoyalangan sahifasida amalga oshiriladi
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <button onClick={() => setShowBank(false)} className="mb-3 text-xs font-medium text-primary hover:underline">← usullarga qaytish</button>
+                  <dl className="space-y-1.5 rounded-2xl border border-border bg-muted/20 p-4 text-sm">
+                    <Row k="Qabul qiluvchi" v="«MC LEGAL» yuridik firmasi" />
+                    <Row k="STIR" v="312559000" />
+                    <Row k="H/r" v="20212000507346035001" mono />
+                    <Row k="MFO" v="00423" mono />
+                    <Row k="Bank" v="ATIB «Ipoteka-bank» Mehnat filiali" />
+                    <Row k="Summa" v={fmtSum(checkout.price)} />
+                    <Row k="To'lov maqsadi" v={`LEX.AI obuna — ${tenant?.name ?? "firma"}`} />
+                  </dl>
+                  <p className="mt-3 text-[11px] text-muted-foreground">O'tkazmadan so'ng obuna administrator tomonidan tasdiqlanadi (1 ish kuni ichida). To'lov maqsadida firma nomingizni ko'rsating.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
