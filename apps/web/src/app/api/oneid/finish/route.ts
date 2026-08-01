@@ -11,10 +11,24 @@ export const dynamic = "force-dynamic";
  * bir martalik `code` yuboradi — biz uni API'да tokenga almashtirib, shu domenда
  * host-only cookie o'rnatamiz va /agent ga yo'naltiramiz.
  */
+/**
+ * `req.url` self-hosted Next.js'да reverse-proxy ortida ko'pincha ichki
+ * bog'lanish manzilini (masalan, http://localhost:3000) qaytaradi, chunki Next
+ * buni Host header'idan emas, o'zining ichki bazasidan quradi. Shuning uchun
+ * absolute redirect uchun kelgan so'rovning haqiqiy Host/proto header'laridan
+ * o'zimiz quramiz.
+ */
+function externalOrigin(req: Request): string {
+  const proto = req.headers.get("x-forwarded-proto") ?? new URL(req.url).protocol.replace(/:$/, "");
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? new URL(req.url).host;
+  return `${proto}://${host}`;
+}
+
 export async function GET(req: Request): Promise<Response> {
+  const origin = externalOrigin(req);
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const fail = () => NextResponse.redirect(new URL("/login?oneid_error=exchange_failed", req.url));
+  const fail = () => NextResponse.redirect(`${origin}/login?oneid_error=exchange_failed`);
   if (!code) return fail();
   try {
     const res = await fetch(`${API_URL}/auth/oneid/otc`, {
@@ -35,7 +49,7 @@ export async function GET(req: Request): Promise<Response> {
       path: "/",
       maxAge: 60 * 60 * 8,
     });
-    return NextResponse.redirect(new URL("/agent", req.url));
+    return NextResponse.redirect(`${origin}/agent`);
   } catch {
     return fail();
   }
