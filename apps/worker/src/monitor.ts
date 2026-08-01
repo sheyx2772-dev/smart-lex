@@ -1,4 +1,4 @@
-import { generateDemandLetterSmart, generateReminderText } from "@lex/agents";
+import { type ContactChannel, decideCollectionAction, generateDemandLetterSmart, generateReminderText } from "@lex/agents";
 import {
   calcPenalty,
   calcRisk,
@@ -35,6 +35,7 @@ export interface MonitorSummary {
   overdue: number;
   remindersSent: number;
   approvalsCreated: number;
+  aiDecisions: number;
 }
 
 /** Bitta AI/tizim harakatini audit logga yozadi. */
@@ -81,6 +82,18 @@ function pickContact(
     if (address) return { channel, address };
   }
   return null;
+}
+
+/** Qarzdor uchun mavjud (yoqilgan + manzili bor) aloqa kanallari. */
+function availableChannels(
+  contractor: { phone: string | null; email: string | null; telegramId: string | null },
+  enabled: ChannelConfig,
+): ContactChannel[] {
+  const out: ContactChannel[] = [];
+  if (enabled.sms && contractor.phone) out.push("sms");
+  if (enabled.email && contractor.email) out.push("email");
+  if (enabled.telegram && contractor.telegramId) out.push("telegram");
+  return out;
 }
 
 /** Berilgan tenant uchun monitoring. Natijani summariga qo'shadi. */
@@ -189,6 +202,38 @@ async function runForTenant(
 
       // To'langan bo'lsa collection harakatlari yo'q.
       if (state.status === "paid") continue;
+
+      // ── AI-miya: keyingi eng yaxshi harakatni AI hal qiladi + NEGA'sini yozadi (explainability).
+      // Hozircha maslahat/tushuntirish sifatida audit logga tushadi; ijro esa quyidagi zinada.
+      try {
+        const decision = await decideCollectionAction({
+          locale: tenant.defaultLocale,
+          creditorName: tenant.name,
+          debtorName: contractor.name,
+          amountMajor: Number(state.outstanding.minor) / 100,
+          penaltyMajor: Number(penalty.minor) / 100,
+          currency: invoice.currency,
+          overdueDays: state.overdueDays,
+          agingBucket: state.agingBucket,
+          riskScore: risk.score,
+          executedStages: [...executedStages],
+          availableChannels: availableChannels(contractor, channelCfg),
+          partialPaid: paid.minor > 0n,
+        });
+        await audit(tx, tenant.id, "agent.decision", "receivable", receivable.id, {
+          action: decision.action,
+          channel: decision.channel,
+          tone: decision.tone,
+          recoveryScore: decision.recoveryScore,
+          priority: decision.priority,
+          reason: decision.reason,
+          settlementPercent: decision.settlementPercent,
+          source: decision.source,
+        });
+        sum.aiDecisions++;
+      } catch (e) {
+        console.error("[monitor:ai-decision]", e);
+      }
 
       const due = dueCollectionSteps({
         steps,
@@ -322,7 +367,7 @@ async function runForTenant(
 export async function runMonitor(now: Date = new Date()): Promise<MonitorSummary> {
   const db = getDb();
   const tenantRows = await db.select().from(tenants);
-  const sum: MonitorSummary = { tenants: 0, evaluated: 0, overdue: 0, remindersSent: 0, approvalsCreated: 0 };
+  const sum: MonitorSummary = { tenants: 0, evaluated: 0, overdue: 0, remindersSent: 0, approvalsCreated: 0, aiDecisions: 0 };
 
   for (const tenant of tenantRows) {
     sum.tenants++;

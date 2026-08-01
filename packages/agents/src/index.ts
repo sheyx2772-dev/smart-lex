@@ -4,6 +4,7 @@ export * from "./legal/reconciliation";
 export * from "./legal/lawsuit";
 export * from "./legal/doc-templates";
 export * from "./collection/reminder-text";
+export * from "./collection/decide";
 export * from "./chat/reply";
 export * from "./legal/studio";
 export * from "./legal/agent";
