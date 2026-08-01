@@ -31,12 +31,31 @@ export function verifyCompleteSign(p: { click_trans_id: string; service_id: stri
   return md5(raw) === p.sign_string;
 }
 
-/** Foydalanuvchi yo'naltiriladigan Click to'lov sahifasi URL. */
+/** Foydalanuvchi yo'naltiriladigan Click to'lov sahifasi URL (platforma merchant). */
 export function clickPaymentUrl(orderId: string, amount: number, returnUrl?: string): string {
-  const c = cfg();
-  let url = `https://my.click.uz/services/pay?service_id=${c.serviceId}&merchant_id=${c.merchantId}&amount=${amount.toFixed(2)}&transaction_param=${encodeURIComponent(orderId)}`;
+  return clickPaymentUrlWith(cfg(), orderId, amount, returnUrl);
+}
+
+// ── Per-tenant (firma o'z merchanti bilan) — qarzdor→firma to'lovi uchun ──
+export interface ClickCreds {
+  serviceId: string;
+  merchantId: string;
+  secretKey: string;
+}
+/** Firma merchanti bilan to'lov URL (qarzdor portali). */
+export function clickPaymentUrlWith(creds: ClickCreds, orderId: string, amount: number, returnUrl?: string): string {
+  let url = `https://my.click.uz/services/pay?service_id=${creds.serviceId}&merchant_id=${creds.merchantId}&amount=${amount.toFixed(2)}&transaction_param=${encodeURIComponent(orderId)}`;
   if (returnUrl) url += `&return_url=${encodeURIComponent(returnUrl)}`;
   return url;
+}
+/** Imzoni BERILGAN sir bilan tekshirish (firma merchanti webhook'lari uchun). */
+export function verifyPrepareSignKey(secretKey: string, p: { click_trans_id: string; service_id: string; merchant_trans_id: string; amount: string; action: string; sign_time: string; sign_string: string }): boolean {
+  const raw = `${p.click_trans_id}${p.service_id}${secretKey}${p.merchant_trans_id}${amt2(p.amount)}${p.action}${p.sign_time}`;
+  return md5(raw) === p.sign_string;
+}
+export function verifyCompleteSignKey(secretKey: string, p: { click_trans_id: string; service_id: string; merchant_trans_id: string; merchant_prepare_id: string; amount: string; action: string; sign_time: string; sign_string: string }): boolean {
+  const raw = `${p.click_trans_id}${p.service_id}${secretKey}${p.merchant_trans_id}${p.merchant_prepare_id}${amt2(p.amount)}${p.action}${p.sign_time}`;
+  return md5(raw) === p.sign_string;
 }
 
 /** Tarif narxlari (so'm/oy) — SaaS obuna. Boshlang'ich 1 mln dan. */

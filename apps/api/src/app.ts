@@ -11,6 +11,7 @@ import { chatRoutes } from "./routes/chat";
 import { didoxNotifyRoutes } from "./routes/didox-notify";
 import { paymentRoutes, paymentWebhookRoutes } from "./routes/payment";
 import { debtorPortalRoutes } from "./routes/debtor-portal";
+import { merchantRoutes } from "./routes/merchant";
 import { platformRoutes } from "./routes/platform";
 import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
@@ -53,6 +54,7 @@ export function createApp() {
   api.route("/", dashboardRoutes);
   api.route("/", agentConsoleRoutes);
   api.route("/", agentAutopilotRoutes);
+  api.route("/", merchantRoutes);
   api.route("/", companyRoutes);
   api.route("/", chatRoutes);
   api.route("/", studioRoutes);

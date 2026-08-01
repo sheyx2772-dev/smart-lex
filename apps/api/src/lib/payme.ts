@@ -27,11 +27,15 @@ export function paymeAuthOk(authorization: string | undefined): boolean {
 }
 /** Checkout URL: base64("m=merchant;ac.payment_id=order;a=tiyin"). */
 export function paymeCheckoutUrl(orderId: string, amountTiyin: number, returnUrl?: string): string {
-  const c = cfg();
-  let raw = `m=${c.merchantId};ac.payment_id=${orderId};a=${amountTiyin}`;
+  return paymeCheckoutUrlWith(cfg().merchantId, cfg().isTest, orderId, amountTiyin, returnUrl);
+}
+
+/** Per-tenant: firma merchant_id bilan checkout URL (qarzdor→firma to'lovi). */
+export function paymeCheckoutUrlWith(merchantId: string, isTest: boolean, orderId: string, amountTiyin: number, returnUrl?: string): string {
+  let raw = `m=${merchantId};ac.payment_id=${orderId};a=${amountTiyin}`;
   if (returnUrl) raw += `;c=${returnUrl}`;
   const b64 = Buffer.from(raw, "utf8").toString("base64");
-  const base = c.isTest ? "https://test.paycom.uz" : "https://checkout.paycom.uz";
+  const base = isTest ? "https://test.paycom.uz" : "https://checkout.paycom.uz";
   return `${base}/${b64}`;
 }
 export const somToTiyin = (som: number): number => Math.round(som * 100);

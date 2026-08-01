@@ -17,6 +17,7 @@ interface Found {
   receivable: { id: string; outstandingMinor: bigint; penaltyMinor: bigint | null; currency: string; overdueDays: number; status: string };
   debtorName: string;
   invoiceNumber: string;
+  invoiceId: string | null;
 }
 
 async function findReceivable(id: string): Promise<Found | null> {
@@ -42,6 +43,7 @@ async function findReceivable(id: string): Promise<Found | null> {
         },
         debtorName: hit.con?.name ?? "",
         invoiceNumber: hit.inv?.number ?? "",
+        invoiceId: hit.r.invoiceId ?? null,
       };
     }
   }
@@ -63,11 +65,26 @@ debtorPortalRoutes.get("/pay/:id", async (c) => {
       currency: f.receivable.currency,
       overdueDays: f.receivable.overdueDays,
       status: f.receivable.status,
+      cards: cardFlags(f.tenant.settings),
     },
     error: null,
     message: "ok",
   });
 });
+
+interface ClickM { serviceId?: string; merchantId?: string; secretKey?: string }
+interface PaymeM { merchantId?: string; secretKey?: string }
+function merchantOf(settings: Record<string, unknown>): { click?: ClickM; payme?: PaymeM } {
+  return (settings.merchant ?? {}) as { click?: ClickM; payme?: PaymeM };
+}
+/** Firma qaysi karta to'lovlarini qabul qiladi (merchant ulanganmi). */
+function cardFlags(settings: Record<string, unknown>): { click: boolean; payme: boolean } {
+  const m = merchantOf(settings);
+  return {
+    click: Boolean(m.click?.serviceId && m.click?.merchantId && m.click?.secretKey),
+    payme: Boolean(m.payme?.merchantId && m.payme?.secretKey),
+  };
+}
 
 // Qattiqlikка qarab minimal kelishuv foizi (money mantiqi deterministik — LLM'da emas).
 const SETTLEMENT_MIN: Record<string, number> = { soft: 60, normal: 72, aggressive: 85 };
