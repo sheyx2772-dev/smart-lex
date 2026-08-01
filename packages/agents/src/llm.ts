@@ -42,9 +42,9 @@ const brief = (err: unknown): string => String((err as { message?: unknown })?.m
  * modeldan olinadi (SDK shu maydonlarni o'qiydi).
  */
 function withFallback(models: LanguageModelV1[]): LanguageModelV1 | null {
-  if (models.length === 0) return null;
-  if (models.length === 1) return models[0];
   const base = models[0];
+  if (!base) return null;
+  if (models.length === 1) return base;
   const wrapped: LanguageModelV1 = {
     specificationVersion: base.specificationVersion,
     provider: base.provider,
@@ -52,27 +52,31 @@ function withFallback(models: LanguageModelV1[]): LanguageModelV1 | null {
     defaultObjectGenerationMode: base.defaultObjectGenerationMode,
     supportsUrl: base.supportsUrl?.bind(base),
     async doGenerate(options) {
-      let lastErr: unknown;
+      let lastErr: unknown = new Error("no model");
       for (let i = 0; i < models.length; i++) {
+        const m = models[i];
+        if (!m) continue;
         try {
-          return await models[i].doGenerate(options);
+          return await m.doGenerate(options);
         } catch (e) {
           lastErr = e;
           if (i === models.length - 1 || !isRetryable(e)) throw e;
-          console.warn(`[llm] "${models[i].modelId}" → keyingisiga o'tildi: ${brief(e)}`);
+          console.warn(`[llm] "${m.modelId}" → keyingisiga o'tildi: ${brief(e)}`);
         }
       }
       throw lastErr;
     },
     async doStream(options) {
-      let lastErr: unknown;
+      let lastErr: unknown = new Error("no model");
       for (let i = 0; i < models.length; i++) {
+        const m = models[i];
+        if (!m) continue;
         try {
-          return await models[i].doStream(options);
+          return await m.doStream(options);
         } catch (e) {
           lastErr = e;
           if (i === models.length - 1 || !isRetryable(e)) throw e;
-          console.warn(`[llm] "${models[i].modelId}" (stream) → keyingisiga o'tildi: ${brief(e)}`);
+          console.warn(`[llm] "${m.modelId}" (stream) → keyingisiga o'tildi: ${brief(e)}`);
         }
       }
       throw lastErr;
