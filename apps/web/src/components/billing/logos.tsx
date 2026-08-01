@@ -1,64 +1,68 @@
 "use client";
 
 /**
- * To'lov tizimlari brend belgilari — inline SVG (tashqi rasm/CDN shart emas).
- * Oq belgi + wordmark; brend rangli fon ustida ishlatiladi.
+ * Rasmiy to'lov tizimlari logolari — HAQIQIY brend artwork (inline SVG).
+ * Click: docs.click.uz rasmiy logotipi (#0065FF halqa belgisi + "click").
+ * Payme: cdn.payme.uz rasmiy logotipi (turkuaz #00C0C9 "pay/me").
  */
 
-export function ClickLogo({ className = "" }: { className?: string }) {
+/** Click rasmiy logotipi. variant="dark" => oq fon uchun qora matn; "light" => quyuq fon uchun oq matn. */
+export function ClickLogo({ className = "", variant = "dark" }: { className?: string; variant?: "dark" | "light" }) {
+  const text = variant === "light" ? "#ffffff" : "#0B1220";
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <svg viewBox="0 0 40 40" className="size-7 shrink-0" aria-hidden>
-        <rect width="40" height="40" rx="11" fill="#ffffff" fillOpacity="0.22" />
-        <path
-          d="M20.6 9.2c-6.3 0-11.4 5.1-11.4 11.4S14.3 32 20.6 32c3.3 0 6.25-1.4 8.32-3.62l-3.65-3.36A6.44 6.44 0 0 1 20.6 27a6.4 6.4 0 1 1 4.67-10.94l3.65-3.36A11.36 11.36 0 0 0 20.6 9.2Z"
-          fill="#fff"
-        />
-      </svg>
-      <span className="text-lg font-extrabold tracking-tight">Click</span>
-    </span>
+    <svg viewBox="0 0 157 40" className={className} role="img" aria-label="Click" xmlns="http://www.w3.org/2000/svg">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M39.3739 20.1572C39.3739 27.7941 27.2594 40.0006 19.6797 40.0006C12.1 40.0006 -0.0146637 27.7941 -0.0146637 20.1572C-0.0146637 12.5203 12.1 0.313477 19.6797 0.313477C27.2594 0.313477 39.3739 12.5203 39.3739 20.1572ZM27.5573 20.1572C27.5573 23.212 22.7113 28.0945 19.6797 28.0945C16.6477 28.0945 11.8019 23.212 11.8019 20.1572C11.8019 17.1025 16.6479 12.2197 19.6797 12.2197C22.7113 12.2197 27.5573 17.1025 27.5573 20.1572Z"
+        fill="#0065FF"
+      />
+      <path
+        d="M60.8212 39.9981C68.1709 39.9981 72.7769 35.3571 74.1744 29.2556H66.1004C65.1172 31.3415 63.5644 32.906 60.8212 32.906C57.5088 32.906 55.0764 30.5073 55.0764 26.3874C55.0764 22.2678 57.5088 19.8687 60.8212 19.8687C63.5644 19.8687 65.1172 21.4332 66.1004 23.5194H74.1744C72.7769 17.4179 68.1709 12.7766 60.8212 12.7766C52.9541 12.7766 47.2093 18.826 47.2093 26.3874C47.2093 33.9491 52.9541 39.9981 60.8212 39.9981ZM76.9305 39.4246H84.7459V0.313209H76.9305V39.4246ZM93.2986 9.80409C96.0417 9.80409 98.2155 7.61389 98.2155 4.90212C98.2155 2.19056 96.0417 0.000366211 93.2986 0.000366211C90.6592 0.000366211 88.4334 2.19056 88.4334 4.90212C88.4334 7.61389 90.6592 9.80409 93.2986 9.80409ZM89.4169 39.4246H97.2323V13.3504H89.4169V39.4246ZM113.963 39.9981C121.312 39.9981 125.918 35.3571 127.316 29.2556H119.242C118.258 31.3415 116.706 32.906 113.963 32.906C110.65 32.906 108.218 30.5073 108.218 26.3874C108.218 22.2678 110.65 19.8687 113.963 19.8687C116.706 19.8687 118.258 21.4332 119.242 23.5194H127.316C125.918 17.4179 121.312 12.7766 113.963 12.7766C106.096 12.7766 100.351 18.826 100.351 26.3874C100.351 33.9491 106.096 39.9981 113.963 39.9981ZM147.514 39.4246H156.985L145.185 25.136L154.708 13.3504H145.443L137.887 22.6849V0.313209H130.072V39.4246H137.887V27.7954L147.514 39.4246Z"
+        fill={text}
+      />
+    </svg>
   );
 }
 
-export function PaymeLogo({ className = "" }: { className?: string }) {
+/** Payme rasmiy logotipi. color => brend turkuaz (oq fonda) yoki #fff (turkuaz fonda). */
+export function PaymeLogo({ className = "", color = "#00C0C9" }: { className?: string; color?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <svg viewBox="0 0 40 40" className="size-7 shrink-0" aria-hidden>
-        <rect width="40" height="40" rx="11" fill="#ffffff" fillOpacity="0.22" />
-        <path d="M13 9.6h9.5a7.6 7.6 0 0 1 0 15.2H18.1V31H13V9.6Zm5.1 5.1v5h4.3a2.5 2.5 0 0 0 0-5h-4.3Z" fill="#fff" />
-      </svg>
-      <span className="text-lg font-extrabold tracking-tight">Payme</span>
-    </span>
+    <svg viewBox="122 167 694 594" className={className} role="img" aria-label="Payme" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M715.483 450.74C724.438 450.74 732.361 454.444 736.844 461.563L815.675 589.427C821.732 599.446 820.697 611.561 811.972 621.58L700.957 749.446C694.9 756.305 686.976 760.526 678.019 760.526H147.157C131.598 760.526 120.258 748.383 122.095 733.112L151.377 478.156C153.243 462.597 166.678 450.74 182.238 450.74H715.483ZM625.714 504.884C567.61 504.884 518.404 539.362 517.629 614.892V614.92C516.854 663.35 552.107 708.278 624.163 708.278C649.714 708.278 671.416 703.253 690.794 691.225L694.67 645.522C678.795 655.226 654.766 661.8 633.867 661.8C606.365 661.8 581.561 649.771 574.614 621.896H708.651C710.574 616.872 712.124 604.843 712.124 593.217C712.124 542.089 683.818 504.884 625.714 504.884ZM447.239 504.597C422.837 504.597 396.856 518.548 379.43 531.323C372.081 514.271 355.804 504.597 332.953 504.597C310.102 504.597 288.026 515.851 270.6 527.448L272.925 510.022H221.796L197.396 703.714H251.94V703.627L269.767 561.868C281.795 553.744 295.317 547.142 306.973 547.142C322.073 547.142 329.421 558.395 327.125 577.744L311.623 703.656H366.254L383.306 566.146L383.679 562.271C395.707 554.146 409.631 547.17 421.258 547.17C436.358 547.17 443.707 558.424 441.41 577.772L425.909 703.685H480.539L497.591 566.175C502.242 527.821 482.463 504.597 447.239 504.597ZM621.81 548.261C644.661 548.261 657.063 561.064 657.063 581.59C657.063 583.916 657.063 586.614 656.69 588.939H574.958C580.384 563.39 598.959 548.261 621.81 548.261Z"
+        fill={color}
+      />
+      <path
+        d="M448.179 311.732C448.179 290.575 472.867 282.766 498.302 282.766H524.139L520.207 314.488C509.24 323.101 489.661 332.114 473.212 332.114C458.341 332.114 448.15 323.904 448.15 311.732H448.179ZM392.945 316.067C392.543 347.789 418.409 373.655 457.939 373.655C485.757 373.655 506.111 361.914 517.852 348.966L515.499 368.947H568.751L581.669 262.814C587.956 210.337 570.703 167.648 503.326 167.648C475.91 167.648 442.638 173.935 424.61 185.677L419.126 229.542C433.624 221.705 461.815 212.145 487.651 212.145C518.57 212.145 529.565 227.59 528.359 244.039H495.46C447.691 244.039 393.232 262.441 392.859 316.096H392.916L392.945 316.067ZM239.818 321.149L251.962 224.834C263.703 215.446 277.024 211.514 288.765 211.916C312.247 212.289 325.195 231.092 325.195 260.489C325.195 298.47 305.214 330.966 271.54 330.966C260.976 330.966 248.833 327.464 239.818 321.177V321.149ZM171.293 433.539H226.125L235.139 359.531C243.751 366.191 259.827 373.626 280.152 373.626C343.596 373.626 382.381 317.617 382.381 256.556C382.381 204.48 357.692 168.05 311.501 168.05C289.569 168.05 269.588 175.084 254.315 187.629L256.267 173.16H203.015L171.293 433.596V433.539ZM747.741 173.103L688.203 308.603L657.285 173.103H596.196L650.625 369.292L618.903 433.539H679.218L807.286 173.103H747.741Z"
+        fill={color}
+      />
+    </svg>
   );
 }
 
-/** Kichik brend-kartochka — "qabul qilamiz" qatori uchun (ishonch banneri). */
+/** Karta tizimlari — "qabul qilamiz" qatori uchun. */
 export function CardScheme({ name }: { name: "UzCard" | "Humo" | "Visa" | "Mastercard" }) {
-  const styles: Record<string, { bg: string; fg: string }> = {
-    UzCard: { bg: "linear-gradient(135deg,#1e3a8a,#2563eb)", fg: "#fff" },
-    Humo: { bg: "linear-gradient(135deg,#0e7490,#06b6d4)", fg: "#fff" },
-    Visa: { bg: "#1a1f71", fg: "#fff" },
-    Mastercard: { bg: "#f7f7f7", fg: "#1a1a1a" },
-  };
-  const s = styles[name];
-  return (
-    <span
-      className="inline-flex h-8 items-center rounded-md px-2.5 text-xs font-bold shadow-sm"
-      style={{ background: s.bg, color: s.fg }}
-    >
-      {name === "Mastercard" ? (
-        <span className="inline-flex items-center gap-1">
-          <span className="relative inline-flex">
-            <span className="size-3.5 rounded-full" style={{ background: "#eb001b" }} />
-            <span className="-ml-2 size-3.5 rounded-full" style={{ background: "#f79e1b", mixBlendMode: "multiply" }} />
-          </span>
-          <span className="ml-0.5">mastercard</span>
+  if (name === "Mastercard")
+    return (
+      <span className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-white px-2.5 shadow-sm">
+        <span className="relative inline-flex">
+          <span className="size-4 rounded-full" style={{ background: "#EB001B" }} />
+          <span className="-ml-2 size-4 rounded-full" style={{ background: "#F79E1B", mixBlendMode: "multiply" }} />
         </span>
-      ) : name === "Visa" ? (
-        <span className="italic tracking-tight">VISA</span>
-      ) : (
-        name
-      )}
+        <span className="text-[11px] font-semibold text-[#1a1a1a]">mastercard</span>
+      </span>
+    );
+  if (name === "Visa")
+    return (
+      <span className="inline-flex h-8 items-center rounded-lg border border-border bg-white px-2.5 shadow-sm">
+        <span className="text-sm font-bold italic tracking-tight text-[#1a1f71]">VISA</span>
+      </span>
+    );
+  const grad = name === "UzCard" ? "linear-gradient(135deg,#1e3a8a,#2563eb)" : "linear-gradient(135deg,#0e7490,#06b6d4)";
+  return (
+    <span className="inline-flex h-8 items-center rounded-lg px-2.5 text-[11px] font-bold text-white shadow-sm" style={{ background: grad }}>
+      {name}
     </span>
   );
 }

@@ -185,11 +185,11 @@ export function BillingClient({ subscription, tenant }: { subscription: Sub; ten
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-white shadow-sm" style={{ background: "linear-gradient(90deg,#0F86D6,#26A9F0)" }}>
-              <ClickLogo className="text-sm [&_span]:text-sm [&_svg]:size-5" />
+            <span className="inline-flex h-9 items-center rounded-xl border border-border bg-white px-3 shadow-sm">
+              <ClickLogo className="h-5 w-auto" variant="dark" />
             </span>
-            <span className="inline-flex h-9 items-center gap-2 rounded-xl px-3 text-white shadow-sm" style={{ background: "linear-gradient(90deg,#00B8A9,#2CD4C4)" }}>
-              <PaymeLogo className="text-sm [&_span]:text-sm [&_svg]:size-5" />
+            <span className="inline-flex h-9 items-center rounded-xl border border-border bg-white px-3.5 shadow-sm">
+              <PaymeLogo className="h-7 w-auto" />
             </span>
             <span className="mx-0.5 h-6 w-px bg-border" />
             <CardScheme name="UzCard" />
@@ -224,21 +224,23 @@ export function BillingClient({ subscription, tenant }: { subscription: Sub; ten
                   <button
                     onClick={() => pay("click")}
                     disabled={busy !== null}
-                    className="flex w-full items-center justify-between rounded-2xl px-4 py-4 text-white shadow-lg shadow-sky-500/20 transition-transform hover:scale-[1.01] disabled:opacity-60"
-                    style={{ background: "linear-gradient(90deg,#0F86D6,#26A9F0)" }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-[#0065FF]/30 bg-white px-4 py-4 shadow-sm transition-all hover:border-[#0065FF] hover:shadow-md disabled:opacity-60"
                   >
-                    <ClickLogo />
-                    {busy === "click" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5 opacity-90" />}
+                    <ClickLogo className="h-6 w-auto" variant="dark" />
+                    <span className="grid size-8 place-items-center rounded-full bg-[#0065FF] text-white">
+                      {busy === "click" ? <CircleNotch className="size-4 animate-spin" /> : <CaretRight weight="bold" className="size-4" />}
+                    </span>
                   </button>
                   {/* Payme */}
                   <button
                     onClick={() => pay("payme")}
                     disabled={busy !== null}
-                    className="flex w-full items-center justify-between rounded-2xl px-4 py-4 text-white shadow-lg shadow-teal-500/20 transition-transform hover:scale-[1.01] disabled:opacity-60"
-                    style={{ background: "linear-gradient(90deg,#00B8A9,#2CD4C4)" }}
+                    className="flex w-full items-center justify-between rounded-2xl border border-[#00C0C9]/45 bg-white px-4 py-4 shadow-sm transition-all hover:border-[#00C0C9] hover:shadow-md disabled:opacity-60"
                   >
-                    <PaymeLogo />
-                    {busy === "payme" ? <CircleNotch className="size-5 animate-spin" /> : <CaretRight weight="bold" className="size-5 opacity-90" />}
+                    <PaymeLogo className="h-8 w-auto" />
+                    <span className="grid size-8 place-items-center rounded-full text-white" style={{ background: "#00C0C9" }}>
+                      {busy === "payme" ? <CircleNotch className="size-4 animate-spin" /> : <CaretRight weight="bold" className="size-4" />}
+                    </span>
                   </button>
                   {/* Bank */}
                   <button
