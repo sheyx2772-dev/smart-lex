@@ -23,6 +23,7 @@ import { oneIdRoutes } from "./routes/oneid";
 import { overdueRoutes } from "./routes/overdue";
 import { receivableRoutes } from "./routes/receivables";
 import { agentConsoleRoutes } from "./routes/agent-console";
+import { agentAutopilotRoutes } from "./routes/agent-autopilot";
 import { reminderRoutes } from "./routes/reminders";
 import { reportRoutes } from "./routes/reports";
 import { syncRoutes } from "./routes/sync";
@@ -49,6 +50,7 @@ export function createApp() {
   api.use("*", authMiddleware);
   api.route("/", dashboardRoutes);
   api.route("/", agentConsoleRoutes);
+  api.route("/", agentAutopilotRoutes);
   api.route("/", companyRoutes);
   api.route("/", chatRoutes);
   api.route("/", studioRoutes);

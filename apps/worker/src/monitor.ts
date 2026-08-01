@@ -84,6 +84,13 @@ function pickContact(
   return null;
 }
 
+type AgentMode = "off" | "suggest" | "auto";
+/** Autonomiya rejimi — tenant.settings.agent.mode (default: suggest = xavfsiz, o'zi yubormaydi). */
+function agentMode(settings: Record<string, unknown> | undefined): AgentMode {
+  const m = (settings?.agent as { mode?: string } | undefined)?.mode;
+  return m === "off" || m === "auto" ? m : "suggest";
+}
+
 /** Qarzdor uchun mavjud (yoqilgan + manzili bor) aloqa kanallari. */
 function availableChannels(
   contractor: { phone: string | null; email: string | null; telegramId: string | null },
@@ -113,6 +120,7 @@ async function runForTenant(
   const templates = tenant.settings?.templates as
     | { soft?: Record<string, string>; firm?: Record<string, string> }
     | undefined;
+  const mode = agentMode(tenant.settings); // off | suggest | auto
   await withTenant(tenant.id, async (tx) => {
     const [contractorRows, contractRows, invoiceRows, paymentRows, ruleRows, receivableRows] =
       await Promise.all([
@@ -242,7 +250,7 @@ async function runForTenant(
         executedStages: [...executedStages] as CollectionStep["stage"][],
       });
 
-      for (const step of due) {
+      for (const step of mode === "off" ? [] : due) {
         if (step.stage === "soft_reminder" || step.stage === "firm_reminder") {
           const contact = pickContact(tenant.type, contractor, channelCfg);
           if (!contact) continue;
@@ -263,33 +271,45 @@ async function runForTenant(
             template,
           });
 
-          const pochtaToken = (tenant.settings?.integrations as Record<string, unknown> | undefined)?.pochtaToken;
-          const result = await createNotifier(contact.channel, {
-            pochtaToken: typeof pochtaToken === "string" ? pochtaToken : null,
-          }).send({
-            channel: contact.channel,
-            address: contact.address,
-            body,
-            paymentLink,
-          });
+          if (mode === "auto") {
+            // AVTONOM: agent o'zi yuboradi.
+            const pochtaToken = (tenant.settings?.integrations as Record<string, unknown> | undefined)?.pochtaToken;
+            const result = await createNotifier(contact.channel, {
+              pochtaToken: typeof pochtaToken === "string" ? pochtaToken : null,
+            }).send({
+              channel: contact.channel,
+              address: contact.address,
+              body,
+              paymentLink,
+            });
 
-          await tx.insert(reminders).values({
-            tenantId: tenant.id,
-            receivableId: receivable.id,
-            stage: step.stage,
-            channel: contact.channel,
-            status: result.status === "sent" ? "sent" : "failed",
-            address: contact.address,
-            body,
-            paymentLink,
-            sentAt: result.status === "sent" ? now : null,
-          });
-          await audit(tx, tenant.id, "reminder.sent", "receivable", receivable.id, {
-            stage: step.stage,
-            channel: contact.channel,
-          });
-          if (result.status === "sent") sum.remindersSent++;
-          executedStages.add(step.stage);
+            await tx.insert(reminders).values({
+              tenantId: tenant.id,
+              receivableId: receivable.id,
+              stage: step.stage,
+              channel: contact.channel,
+              status: result.status === "sent" ? "sent" : "failed",
+              address: contact.address,
+              body,
+              paymentLink,
+              sentAt: result.status === "sent" ? now : null,
+            });
+            await audit(tx, tenant.id, "reminder.sent", "receivable", receivable.id, {
+              stage: step.stage,
+              channel: contact.channel,
+            });
+            if (result.status === "sent") sum.remindersSent++;
+            executedStages.add(step.stage);
+          } else {
+            // TAKLIF (suggest, default): tayyorlaydi lekin YUBORMAYDI — founder tasmadan tasdiqlaydi.
+            // executedStages belgilanmaydi: rejim "auto" bo'lganда yoki qo'lda tasdiqlanганда yuboriladi.
+            await audit(tx, tenant.id, "agent.suggested", "receivable", receivable.id, {
+              stage: step.stage,
+              channel: contact.channel,
+              address: contact.address,
+              draft: body,
+            });
+          }
         } else if (step.stage === "demand_letter") {
           const total = totalDebt(state.outstanding, penalty);
           const letter = await generateDemandLetterSmart({
