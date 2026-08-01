@@ -461,25 +461,63 @@ export interface StudioDebtor {
   penalty: string;
   total: string;
   overdueDays: string;
+  stateDuty: string;
 }
 
-/** Shablondagi [belgilangan joy]larni qarzdor qiymatlari bilan almashtiradi. */
-function applyDebtor(html: string, d: StudioDebtor): string {
-  const map: Record<string, string> = {
-    "[Qarzdor nomi]": d.name,
-    "[Qarzdor STIR]": d.tin,
-    "[Shartnoma raqami]": d.contractNumber,
-    "[Faktura raqami]": d.invoiceNumber,
-    "[Asosiy qarz]": d.principal,
-    "[Penya]": d.penalty,
-    "[Jami summa]": d.total,
-    "[Kechikish kunlari]": d.overdueDays,
-  };
+/** Kreditor (firma) rekvizitlari — har hujjatда avtomatik to'ldiriladi. */
+export interface Creditor {
+  name: string;
+  tin: string;
+  address: string;
+  bankAccount: string;
+  bankMfo: string;
+  phone: string;
+  director: string;
+  city: string;
+}
+
+function todayStr(): string {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
+}
+
+/** Shablondagi [joy]larni ish qiymatlari (qarzdor + kreditor + summalar + sana) bilan to'ldiradi. */
+function applyCase(html: string, creditor: Creditor | undefined, d: StudioDebtor | undefined): string {
+  const map: Record<string, string> = {};
+  if (d)
+    Object.assign(map, {
+      "[Qarzdor nomi]": d.name,
+      "[Qarzdor STIR]": d.tin,
+      "[Shartnoma raqami]": d.contractNumber,
+      "[Faktura raqami]": d.invoiceNumber,
+      "[Asosiy qarz]": d.principal,
+      "[Penya]": d.penalty,
+      "[Jami summa]": d.total,
+      "[Kechikish kunlari]": d.overdueDays,
+      "[Davlat boji]": d.stateDuty,
+    });
+  if (creditor)
+    Object.assign(map, {
+      "[Kreditor nomi]": creditor.name,
+      "[Kreditor STIR]": creditor.tin,
+      "[Kreditor manzili]": creditor.address,
+      "[Kreditor h/r]": creditor.bankAccount,
+      "[Kreditor MFO]": creditor.bankMfo,
+      "[Kreditor telefoni]": creditor.phone,
+      "[Kreditor direktori]": creditor.director,
+      "[Shahar]": creditor.city,
+    });
+  map["[Sana]"] = todayStr();
   let out = html;
   for (const [needle, value] of Object.entries(map)) {
     if (value) out = out.split(needle).join(value);
   }
   return out;
+}
+/** Hujjatдаги to'ldirilmagan [joy]lar ro'yxati (takrorlanmas). */
+function unfilledFields(html: string): string[] {
+  const found = html.match(/\[[^\]\n]{1,40}\]/g) ?? [];
+  return [...new Set(found)];
 }
 
 function TemplateLibrary({
@@ -575,7 +613,7 @@ function TemplateLibrary({
   );
 }
 
-export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
+export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[]; creditor?: Creditor }) {
   const t = useTranslations("studio");
   const locale = useLocale();
   const Lc = (o: Loc) => (locale === "ru" ? o.ru : o.uz);
@@ -590,7 +628,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
 
   const [debtorId, setDebtorId] = useState(initDebtor?.id ?? "");
   const [title, setTitle] = useState(searchParams.get("title") ?? (initTpl && initTpl.key !== "blank" ? Lc(initTpl.title) : ""));
-  const [docHtml, setDocHtml] = useState(initHtml !== undefined ? (initDebtor ? applyDebtor(initHtml, initDebtor) : initHtml) : "");
+  const [docHtml, setDocHtml] = useState(initHtml !== undefined ? applyCase(initHtml, creditor, initDebtor) : "");
   const [picker, setPicker] = useState(initHtml === undefined);
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
@@ -629,6 +667,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   const text = plainText(docHtml);
   const words = text ? text.split(" ").length : 0;
   const hasDoc = words > 0;
+  const unfilled = unfilledFields(docHtml); // to'ldirilmagan [joy]lar
 
   // Studio AI — STREAMING: javob harfma-harf keladi va oxirgi AI xabariga yoziladi.
   async function ask(prompt: string, docOverride?: string) {
@@ -701,7 +740,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   function chooseTemplate(tpl: Template) {
     if (plainText(docHtml)) snapshot(locale === "ru" ? "до шаблона" : "shablon oldidan");
     const d = debtors.find((x) => x.id === debtorId);
-    setDocHtml(d ? applyDebtor(tpl.html, d) : tpl.html);
+    setDocHtml(applyCase(tpl.html, creditor, d));
     if (!title.trim() && tpl.key !== "blank") setTitle(Lc(tpl.title));
     setPicker(false);
   }
@@ -739,7 +778,7 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
   function fillFromDebtor(id: string) {
     setDebtorId(id);
     const d = debtors.find((x) => x.id === id);
-    if (d) setDocHtml(applyDebtor(docHtml, d));
+    setDocHtml(applyCase(docHtml, creditor, d));
   }
 
   const [exportOpen, setExportOpen] = useState(false);
@@ -824,6 +863,11 @@ export function DocumentStudio({ debtors }: { debtors: StudioDebtor[] }) {
             className="min-w-0 flex-1 border-0 bg-transparent font-display text-xl font-semibold tracking-tight outline-none placeholder:text-muted-foreground/50"
           />
           <span className="shrink-0 text-xs text-muted-foreground">{t("words", { n: words })}</span>
+          {hasDoc && unfilled.length > 0 && (
+            <span title={`To'ldirilmagan: ${unfilled.join(", ")}`} className="shrink-0 cursor-help rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-600">
+              {unfilled.length} joy to'ldirilmagan
+            </span>
+          )}
           {debtors.length > 0 && (
             <select
               value={debtorId}

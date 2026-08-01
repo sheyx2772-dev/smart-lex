@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import type { ReceivablesData } from "@/components/receivables/receivables-client";
-import { DocumentStudio, type StudioDebtor } from "@/components/studio/document-studio";
+import { type Creditor, DocumentStudio, type StudioDebtor } from "@/components/studio/document-studio";
 import { apiServer } from "@/lib/api";
 
 function fmtMinor(minor: string, currency = "UZS"): string {
@@ -10,29 +10,62 @@ function fmtMinor(minor: string, currency = "UZS"): string {
   return `${major},${frac} ${currency}`;
 }
 
+interface SettingsResp {
+  profile?: { fullName?: string } | null;
+  company?: {
+    name?: string;
+    tin?: string;
+    legalAddress?: string;
+    bankAccount?: string;
+    bankMfo?: string;
+    phone?: string;
+    settings?: { signatory?: { name?: string; position?: string }; city?: string } | null;
+  } | null;
+}
+
 /**
- * Hujjat tayyorlash studiyasi — Tuzuk.ai uslubidagi ikki panelli ish maydoni:
- * chapda hujjat muharriri, o'ngda AI yordamchi. ?template=<key> — boshqa
- * bo'limlardan kerakli shablonni ochish uchun. Qarzdorlar ro'yxati shablonni
- * avtomatik to'ldirish uchun uzatiladi (qo'lda tahrir ham saqlanadi).
+ * Hujjat tayyorlash studiyasi. Qarzdorlar VA kreditor (firma) rekvizitlari uzatiladi —
+ * hujjat ochilganda summalar, davlat boji, sana, rekvizitlar AVTOMATIK to'ladi
+ * (foydalanuvchi matn ichidan [joy] qidirmaydi). Deterministik hisob — LLM'da emas.
  */
 export default async function StudioPage() {
-  const res = await apiServer<ReceivablesData>("/api/receivables?page=1&sort=overdue");
-  const debtors: StudioDebtor[] = (res.data?.items ?? []).slice(0, 50).map((r) => ({
-    id: r.id,
-    name: r.contractorName,
-    tin: r.contractorTin,
-    invoiceNumber: r.invoiceNumber,
-    contractNumber: r.contractNumber ?? "",
-    principal: r.outstanding.formatted,
-    penalty: r.penalty.formatted,
-    total: fmtMinor((BigInt(r.outstanding.minor) + BigInt(r.penalty.minor)).toString(), r.currency),
-    overdueDays: String(r.overdueDays),
-  }));
+  const [recRes, setRes] = await Promise.all([
+    apiServer<ReceivablesData>("/api/receivables?page=1&sort=overdue"),
+    apiServer<SettingsResp>("/api/settings"),
+  ]);
+
+  const debtors: StudioDebtor[] = (recRes.data?.items ?? []).slice(0, 50).map((r) => {
+    const totalMinor = BigInt(r.outstanding.minor) + BigInt(r.penalty.minor);
+    const dutyMinor = (totalMinor * 2n) / 100n; // davlat boji — da'vo narxining 2% (qonuniy stavka)
+    return {
+      id: r.id,
+      name: r.contractorName,
+      tin: r.contractorTin,
+      invoiceNumber: r.invoiceNumber,
+      contractNumber: r.contractNumber ?? "",
+      principal: r.outstanding.formatted,
+      penalty: r.penalty.formatted,
+      total: fmtMinor(totalMinor.toString(), r.currency),
+      overdueDays: String(r.overdueDays),
+      stateDuty: fmtMinor(dutyMinor.toString(), r.currency),
+    };
+  });
+
+  const co = setRes.data?.company ?? null;
+  const creditor: Creditor = {
+    name: co?.name ?? "",
+    tin: co?.tin ?? "",
+    address: co?.legalAddress ?? "",
+    bankAccount: co?.bankAccount ?? "",
+    bankMfo: co?.bankMfo ?? "",
+    phone: co?.phone ?? "",
+    director: co?.settings?.signatory?.name || setRes.data?.profile?.fullName || "",
+    city: co?.settings?.city ?? "",
+  };
 
   return (
     <Suspense fallback={null}>
-      <DocumentStudio debtors={debtors} />
+      <DocumentStudio debtors={debtors} creditor={creditor} />
     </Suspense>
   );
 }
