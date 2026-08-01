@@ -4,41 +4,118 @@ import { groq } from "@ai-sdk/groq";
 import { type LanguageModelV1 } from "ai";
 
 /**
- * Multi-provider LLM tanlash (Vercel AI SDK). Kalit yo'q bo'lsa `null` qaytadi —
- * chaqiruvchi kod deterministik shablonga o'tadi (offline/kalitsiz ishlash uchun).
- * Pul/huquqiy HISOB-KITOB hech qachon LLM'da emas — faqat matn generatsiyasi.
+ * Multi-provider LLM tanlash + FALLBACK zanjiri (Vercel AI SDK v4).
  *
- * AI_PROVIDER = anthropic | google | groq
+ * Pul yo'q — shuning uchun faqat TEKIN provayderlar zanjir qilinadi: biri limitga
+ * (429 / quota / rate limit) ursa, chaqiruv avtomatik keyingi modelга o'tadi.
+ * Chat: Groq (70b → 8b) → Gemini (flash). Agent (tool-calling): faqat Groq —
+ * Gemini "thinking" modeli ko'p-qadamli toolда thought_signature talab qilib xato beradi.
+ *
+ * Kalit yo'q bo'lsa `null` qaytadi — chaqiruvchi deterministik shablonga o'tadi.
+ * Pul/huquqiy HISOB-KITOB hech qachon LLM'da emas — faqat matn generatsiyasi.
  */
-export function getModel(): LanguageModelV1 | null {
-  const provider = process.env.AI_PROVIDER ?? "anthropic";
 
-  if (provider === "anthropic" && process.env.ANTHROPIC_API_KEY) {
-    return anthropic("claude-sonnet-5");
-  }
-  if (provider === "google" && process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return google(process.env.GEMINI_MODEL ?? "gemini-flash-latest");
-  }
-  if (provider === "groq" && process.env.GROQ_API_KEY) {
-    return groq(process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile");
-  }
-
-  // Fallback: qaysi kalit bor bo'lsa o'shani ishlatadi.
-  if (process.env.GROQ_API_KEY) return groq(process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile");
-  if (process.env.ANTHROPIC_API_KEY) return anthropic("claude-sonnet-5");
-  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) return google("gemini-2.0-flash");
-  return null;
+/** Xato qayta urinishga (fallback'ga) arziydimi — limit/quota/vaqtincha nosozlik. */
+function isRetryable(err: unknown): boolean {
+  const e = err as { statusCode?: number; status?: number; message?: unknown; data?: { error?: { code?: number } } };
+  const status = e?.statusCode ?? e?.status ?? e?.data?.error?.code;
+  const msg = String(e?.message ?? err ?? "").toLowerCase();
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 503 ||
+    msg.includes("rate limit") ||
+    msg.includes("rate_limit") ||
+    msg.includes("too many requests") ||
+    msg.includes("quota") ||
+    msg.includes("resource_exhausted") ||
+    msg.includes("overloaded") ||
+    msg.includes("unavailable")
+  );
 }
 
+const brief = (err: unknown): string => String((err as { message?: unknown })?.message ?? err).slice(0, 140);
+
 /**
- * Tool-calling AGENT uchun model — Groq afzal (funksiya-chaqiruvni toza va tez
- * qo'llaydi), keyin Anthropic, oxirida umumiy getModel(). Gemini "thinking" modeli
- * ko'p-qadamli toolда thought_signature talab qilib xato beradi, shu bois agentда emas.
+ * Bir nechta modelni bitta `LanguageModelV1`ga o'raydi: doGenerate/doStream biror
+ * modelда limit/nosozlik bersa — zanjirdagi keyingi modelга o'tadi. Metadata birinchi
+ * modeldan olinadi (SDK shu maydonlarni o'qiydi).
  */
+function withFallback(models: LanguageModelV1[]): LanguageModelV1 | null {
+  if (models.length === 0) return null;
+  if (models.length === 1) return models[0];
+  const base = models[0];
+  const wrapped: LanguageModelV1 = {
+    specificationVersion: base.specificationVersion,
+    provider: base.provider,
+    modelId: `fallback(${models.map((m) => m.modelId).join(" > ")})`,
+    defaultObjectGenerationMode: base.defaultObjectGenerationMode,
+    supportsUrl: base.supportsUrl?.bind(base),
+    async doGenerate(options) {
+      let lastErr: unknown;
+      for (let i = 0; i < models.length; i++) {
+        try {
+          return await models[i].doGenerate(options);
+        } catch (e) {
+          lastErr = e;
+          if (i === models.length - 1 || !isRetryable(e)) throw e;
+          console.warn(`[llm] "${models[i].modelId}" → keyingisiga o'tildi: ${brief(e)}`);
+        }
+      }
+      throw lastErr;
+    },
+    async doStream(options) {
+      let lastErr: unknown;
+      for (let i = 0; i < models.length; i++) {
+        try {
+          return await models[i].doStream(options);
+        } catch (e) {
+          lastErr = e;
+          if (i === models.length - 1 || !isRetryable(e)) throw e;
+          console.warn(`[llm] "${models[i].modelId}" (stream) → keyingisiga o'tildi: ${brief(e)}`);
+        }
+      }
+      throw lastErr;
+    },
+  };
+  return wrapped;
+}
+
+// ── Provayder bo'yicha model ro'yxatlari (faqat kaliti bor bo'lsa) ──
+function groqModels(): LanguageModelV1[] {
+  if (!process.env.GROQ_API_KEY) return [];
+  const primary = process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
+  const secondary = process.env.GROQ_FALLBACK_MODEL ?? "llama-3.1-8b-instant"; // yuqori TPM — zaxira
+  return [...new Set([primary, secondary])].map((id) => groq(id));
+}
+function geminiModels(): LanguageModelV1[] {
+  if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) return [];
+  return [google(process.env.GEMINI_MODEL ?? "gemini-2.0-flash")];
+}
+function anthropicModels(): LanguageModelV1[] {
+  if (!process.env.ANTHROPIC_API_KEY) return [];
+  return [anthropic("claude-sonnet-5")];
+}
+
+/** Zanjirni tuzadi. Bepul (Groq, Gemini) oldinda; Anthropic (pullik) oxirida zaxira. */
+function buildChain(kind: "chat" | "agent"): LanguageModelV1[] {
+  const groqM = groqModels();
+  const gemM = kind === "agent" ? [] : geminiModels(); // agent = faqat Groq (tool xatosi tufayli)
+  const antM = anthropicModels();
+  const pref = process.env.AI_PROVIDER;
+  if (pref === "google") return [...gemM, ...groqM, ...antM];
+  if (pref === "anthropic") return [...antM, ...groqM, ...gemM];
+  return [...groqM, ...gemM, ...antM]; // default: bepul-birinchi
+}
+
+/** Umumiy (chat / hujjat generatsiyasi) model — Groq→Gemini fallback zanjiri. */
+export function getModel(): LanguageModelV1 | null {
+  return withFallback(buildChain("chat"));
+}
+
+/** Tool-calling AGENT modeli — Groq zanjiri (70b→8b). Gemini toolда ishlamaydi. */
 export function getAgentModel(): LanguageModelV1 | null {
-  if (process.env.GROQ_API_KEY) return groq(process.env.GROQ_AGENT_MODEL ?? process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile");
-  if (process.env.ANTHROPIC_API_KEY) return anthropic("claude-sonnet-5");
-  return getModel();
+  return withFallback(buildChain("agent"));
 }
 
 export function isLlmAvailable(): boolean {
