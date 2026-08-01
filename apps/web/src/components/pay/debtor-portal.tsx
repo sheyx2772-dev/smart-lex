@@ -1,8 +1,9 @@
 "use client";
 
-import { Bank, CalendarBlank, CheckCircle, CircleNotch, Handshake, ShieldCheck, Warning } from "@phosphor-icons/react";
+import { Bank, CalendarBlank, CaretRight, CheckCircle, CircleNotch, Handshake, ShieldCheck, Warning } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
-import { negotiateDebt, type NegotiationOffer } from "@/app/pay/[id]/actions";
+import { negotiateDebt, type NegotiationOffer, payDebt } from "@/app/pay/[id]/actions";
+import { ClickLogo, PaymeLogo } from "@/components/billing/logos";
 
 export interface DebtData {
   creditor: { name: string; tin: string; bankAccount: string | null; bankMfo: string | null };
@@ -13,6 +14,7 @@ export interface DebtData {
   currency: string;
   overdueDays: number;
   status: string;
+  cards?: { click: boolean; payme: boolean };
 }
 
 const fmt = (minor: string, cur: string) => new Intl.NumberFormat("uz-UZ").format(Number(minor) / 100) + " " + (cur === "UZS" ? "so'm" : cur);
@@ -35,6 +37,14 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
   function negotiate(type: "installment" | "settlement") {
     start(async () => setOffer(await negotiateDebt(id, type)));
   }
+  const [paying, startPay] = useTransition();
+  function pay(provider: "click" | "payme") {
+    startPay(async () => {
+      const { url } = await payDebt(id, provider);
+      if (url) window.location.href = url;
+    });
+  }
+  const hasCards = Boolean(data.cards?.click || data.cards?.payme);
 
   return (
     <div className="mx-auto min-h-screen max-w-md space-y-4 p-4 sm:py-8">
@@ -62,6 +72,37 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
         )}
         {data.invoiceNumber && <p className="mt-2 text-[11px] text-muted-foreground">Hisob-faktura № {data.invoiceNumber}</p>}
       </div>
+
+      {/* Karta bilan to'lash (firma merchanti ulanган bo'lsa) */}
+      {hasCards && (
+        <div className="space-y-2.5">
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">Karta bilan to'lash</p>
+          {data.cards?.click && (
+            <button
+              onClick={() => pay("click")}
+              disabled={paying}
+              className="flex w-full items-center justify-between rounded-2xl border border-[#0065FF]/30 bg-white px-4 py-4 shadow-sm transition-transform hover:scale-[1.01] disabled:opacity-60"
+            >
+              <ClickLogo className="h-6 w-auto" variant="dark" />
+              <span className="grid size-8 place-items-center rounded-full bg-[#0065FF] text-white">
+                {paying ? <CircleNotch className="size-4 animate-spin" /> : <CaretRight weight="bold" className="size-4" />}
+              </span>
+            </button>
+          )}
+          {data.cards?.payme && (
+            <button
+              onClick={() => pay("payme")}
+              disabled={paying}
+              className="flex w-full items-center justify-between rounded-2xl border border-[#00C0C9]/45 bg-white px-4 py-4 shadow-sm transition-transform hover:scale-[1.01] disabled:opacity-60"
+            >
+              <PaymeLogo className="h-8 w-auto" />
+              <span className="grid size-8 place-items-center rounded-full text-white" style={{ background: "#00C0C9" }}>
+                {paying ? <CircleNotch className="size-4 animate-spin" /> : <CaretRight weight="bold" className="size-4" />}
+              </span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Bank details */}
       <div className="rounded-2xl border border-border bg-card p-4">

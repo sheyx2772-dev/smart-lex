@@ -1,7 +1,9 @@
 import { auditLogs, contractors, getDb, invoices, receivables, tenants, withTenant } from "@lex/db";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { clickPaymentUrlWith } from "../lib/click";
 import { type Variables } from "../lib/context";
+import { paymeCheckoutUrlWith } from "../lib/payme";
 
 /**
  * QARZDOR PORTALI (PUBLIC — login talab qilinmaydi).
@@ -137,4 +139,37 @@ debtorPortalRoutes.post("/pay/:id/negotiate", async (c) => {
   });
 
   return c.json({ success: true, data: { offer, creditor: f.tenant.name }, error: null, message: "ok" });
+});
+
+/** Karta orqali to'lash — firma merchanti bilan buyurtma yaratadi va checkout URL qaytaradi (public). */
+debtorPortalRoutes.post("/pay/:id/pay/:provider", async (c) => {
+  const id = c.req.param("id");
+  const provider = c.req.param("provider");
+  const f = await findReceivable(id);
+  if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
+  if (f.receivable.status === "paid") return c.json({ success: false, data: null, error: "already_paid", message: "to'langan" }, 400);
+
+  const m = merchantOf(f.tenant.settings);
+  const totalMinor = Math.round(Number(f.receivable.outstandingMinor) + Number(f.receivable.penaltyMinor ?? 0n)); // tiyin
+  const amountSom = totalMinor / 100;
+  const mid = `${f.tenant.id}~${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
+  const returnUrl = `${process.env.WEB_URL ?? "https://lexai.com.uz"}/pay/${id}`;
+
+  let url: string | null = null;
+  if (provider === "click" && m.click?.serviceId && m.click?.merchantId && m.click?.secretKey) {
+    url = clickPaymentUrlWith({ serviceId: m.click.serviceId, merchantId: m.click.merchantId, secretKey: m.click.secretKey }, mid, amountSom, returnUrl);
+  } else if (provider === "payme" && m.payme?.merchantId && m.payme?.secretKey) {
+    url = paymeCheckoutUrlWith(m.payme.merchantId, false, mid, totalMinor, returnUrl);
+  }
+  if (!url) return c.json({ success: false, data: null, error: "not_available", message: "karta to'lovi ulanmagan" }, 400);
+
+  // Buyurtmani saqlaymiz (webhook tasdiqlaganда payments'ga yoziladi). Fresh o'qib merge.
+  const [row] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, f.tenant.id)).limit(1);
+  const s = { ...((row?.settings ?? {}) as Record<string, unknown>) };
+  const orders = { ...((s.payOrders ?? {}) as Record<string, unknown>) };
+  orders[mid] = { plan: "", months: 0, amount: amountSom, provider, status: "pending", createdAt: new Date().toISOString(), kind: "debt", receivableId: id, invoiceId: f.invoiceId ?? undefined };
+  s.payOrders = orders;
+  await getDb().update(tenants).set({ settings: s }).where(eq(tenants.id, f.tenant.id));
+
+  return c.json({ success: true, data: { url }, error: null, message: "ok" });
 });

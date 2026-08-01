@@ -1,11 +1,11 @@
-import { getDb, tenants } from "@lex/db";
+import { auditLogs, getDb, payments, tenants, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
-import { clickConfigured, clickPaymentUrl, planPrice, verifyCompleteSign, verifyPrepareSign } from "../lib/click";
+import { clickConfigured, clickPaymentUrl, planPrice, verifyCompleteSign, verifyCompleteSignKey, verifyPrepareSign, verifyPrepareSignKey } from "../lib/click";
 import { env } from "../lib/env";
-import { PAYME_ERR, PAYME_STATE, paymeAuthOk, paymeCheckoutUrl, paymeConfigured, somToTiyin } from "../lib/payme";
+import { PAYME_ERR, PAYME_STATE, paymeAuthOk, paymeAuthOkWith, paymeCheckoutUrl, paymeConfigured, somToTiyin } from "../lib/payme";
 
 interface PayOrder {
   plan: string;
@@ -16,6 +16,10 @@ interface PayOrder {
   createdAt: string;
   clickPrepareId?: number;
   paidAt?: string;
+  // Qarzdor→firma to'lovi uchun (obunadan farqli):
+  kind?: "subscription" | "debt";
+  receivableId?: string;
+  invoiceId?: string;
 }
 
 // Click natija kodlari (eski implementatsiyaga mos).
@@ -53,6 +57,40 @@ async function activateSubscription(tenantId: string, plan: string, months: numb
   sub.lastPaymentAt = new Date().toISOString();
   settings.subscription = sub;
   await getDb().update(tenants).set({ settings }).where(eq(tenants.id, tenantId));
+}
+
+// ── Per-tenant (firma merchanti) — qarzdor→firma to'lovi uchun ──
+function firmClickSecret(settings: Record<string, unknown>): string {
+  return ((settings.merchant as { click?: { secretKey?: string } } | undefined)?.click?.secretKey) ?? "";
+}
+function firmPaymeKey(settings: Record<string, unknown>): string {
+  return ((settings.merchant as { payme?: { secretKey?: string } } | undefined)?.payme?.secretKey) ?? "";
+}
+/** Qarz to'lovi tasdiqlanганда — `payments`ga yozadi (recovery raqami o'zi ko'tariladi). */
+async function recordDebtPayment(tenantId: string, order: PayOrder): Promise<void> {
+  if (!order.invoiceId) return;
+  const invoiceId = order.invoiceId;
+  await withTenant(tenantId, async (tx) => {
+    await tx.insert(payments).values({
+      tenantId,
+      invoiceId,
+      amountMinor: BigInt(Math.round(order.amount * 100)),
+      currency: "UZS",
+      status: "received",
+      paidAt: new Date(),
+    });
+    if (order.receivableId) {
+      await tx.insert(auditLogs).values({
+        tenantId,
+        actorType: "system",
+        actorId: "debtor-portal",
+        action: "debt.paid",
+        entityType: "receivable",
+        entityId: order.receivableId,
+        detail: { amount: order.amount, provider: order.provider },
+      });
+    }
+  });
 }
 
 // ── Authed: to'lov buyurtmasi yaratish → Click URL ──
@@ -115,23 +153,23 @@ paymentWebhookRoutes.post("/click/prepare", async (c) => {
     error_note: note,
   });
 
-  if (
-    !verifyPrepareSign({
-      click_trans_id: f(body, "click_trans_id"),
-      service_id: f(body, "service_id"),
-      merchant_trans_id: mid,
-      amount,
-      action: f(body, "action"),
-      sign_time: f(body, "sign_time"),
-      sign_string: f(body, "sign_string"),
-    })
-  ) {
-    return c.json(resp(C_SIGN, "SIGN CHECK FAILED"));
-  }
   if (f(body, "action") !== "0") return c.json(resp(C_ACTION, "Action not found"));
 
   const { tenantId, settings, order } = await loadOrder(mid);
   if (!order) return c.json(resp(C_NOTFOUND, "Order not found"));
+
+  // Debt = firma siri bilan, obuna = platforma siri bilan imzo tekshiruvi.
+  const signPayload = {
+    click_trans_id: f(body, "click_trans_id"),
+    service_id: f(body, "service_id"),
+    merchant_trans_id: mid,
+    amount,
+    action: f(body, "action"),
+    sign_time: f(body, "sign_time"),
+    sign_string: f(body, "sign_string"),
+  };
+  const signOk = order.kind === "debt" ? verifyPrepareSignKey(firmClickSecret(settings), signPayload) : verifyPrepareSign(signPayload);
+  if (!signOk) return c.json(resp(C_SIGN, "SIGN CHECK FAILED"));
   if (order.status === "paid") return c.json(resp(C_PAID, "Already paid"));
   if (Math.abs(order.amount - Number(amount)) > 1) return c.json(resp(C_AMOUNT, `Bad amount, expected ${order.amount}`));
 
@@ -154,23 +192,21 @@ paymentWebhookRoutes.post("/click/complete", async (c) => {
     error_note: note,
   });
 
-  if (
-    !verifyCompleteSign({
-      click_trans_id: f(body, "click_trans_id"),
-      service_id: f(body, "service_id"),
-      merchant_trans_id: mid,
-      merchant_prepare_id: prepareId,
-      amount,
-      action: f(body, "action"),
-      sign_time: f(body, "sign_time"),
-      sign_string: f(body, "sign_string"),
-    })
-  ) {
-    return c.json(resp(C_SIGN, "SIGN CHECK FAILED"));
-  }
-
   const { tenantId, settings, order } = await loadOrder(mid);
   if (!order) return c.json(resp(C_NOTFOUND, "Order not found"));
+
+  const signPayload = {
+    click_trans_id: f(body, "click_trans_id"),
+    service_id: f(body, "service_id"),
+    merchant_trans_id: mid,
+    merchant_prepare_id: prepareId,
+    amount,
+    action: f(body, "action"),
+    sign_time: f(body, "sign_time"),
+    sign_string: f(body, "sign_string"),
+  };
+  const signOk = order.kind === "debt" ? verifyCompleteSignKey(firmClickSecret(settings), signPayload) : verifyCompleteSign(signPayload);
+  if (!signOk) return c.json(resp(C_SIGN, "SIGN CHECK FAILED"));
   if (order.status === "paid") return c.json(resp(C_OK, "Already confirmed"));
 
   // Click tomonida to'lov bekor/muvaffaqiyatsiz bo'lsa.
@@ -179,9 +215,10 @@ paymentWebhookRoutes.post("/click/complete", async (c) => {
     return c.json(resp(clickError, "Canceled by Click"));
   }
 
-  // Muvaffaqiyatli → to'landi + obuna faollashadi.
+  // Muvaffaqiyatli → to'landi. Debt = to'lovni yozamiz, obuna = faollashadi.
   await saveOrder(tenantId, settings, mid, { ...order, status: "paid", paidAt: new Date().toISOString() });
-  await activateSubscription(tenantId, order.plan, order.months);
+  if (order.kind === "debt") await recordDebtPayment(tenantId, order);
+  else await activateSubscription(tenantId, order.plan, order.months);
   return c.json(resp(C_OK, "Success"));
 });
 
@@ -216,11 +253,30 @@ paymentWebhookRoutes.post("/payme/callback", async (c) => {
   const errR = (code: number, m: string, data?: string) => c.json({ error: { code, message: msg(m), ...(data ? { data } : {}) }, id });
   const okR = (result: unknown) => c.json({ result, id });
 
-  if (!paymeAuthOk(c.req.header("authorization"))) return errR(PAYME_ERR.UNAUTHORIZED, "Avtorizatsiya xatosi");
   if (!body || !body.method) return errR(-32600, "Invalid request");
   const params = (body.params ?? {}) as Record<string, unknown>;
   const method = body.method;
   const accountOrder = (): string => String((params.account as Record<string, unknown> | undefined)?.payment_id ?? "");
+
+  // Auth: qarz (debt) buyurtmasi bo'lsa FIRMA kaliti bilan, obuna bo'lsa platforma kaliti bilan.
+  let firmKey: string | null = null;
+  try {
+    const acct = accountOrder();
+    if (acct) {
+      const { settings, order } = await loadOrder(acct);
+      if (order?.kind === "debt") firmKey = firmPaymeKey(settings);
+    } else if (params.id) {
+      const { txn } = await findPaymeTxn(String(params.id));
+      if (txn) {
+        const o = await loadOrder(txn.orderId);
+        if (o.order?.kind === "debt") firmKey = firmPaymeKey(o.settings);
+      }
+    }
+  } catch {
+    firmKey = null;
+  }
+  const authed = firmKey !== null ? paymeAuthOkWith(c.req.header("authorization"), firmKey) : paymeAuthOk(c.req.header("authorization"));
+  if (!authed) return errR(PAYME_ERR.UNAUTHORIZED, "Avtorizatsiya xatosi");
   const amtOk = (som: number) => Math.abs(somToTiyin(som) - Number(params.amount)) <= 100;
 
   try {
@@ -254,7 +310,8 @@ paymentWebhookRoutes.post("/payme/callback", async (c) => {
       const ord = await loadOrder(txn.orderId);
       if (ord.order && ord.order.status !== "paid") {
         await saveOrder(ord.tenantId, ord.settings, txn.orderId, { ...ord.order, status: "paid", paidAt: new Date().toISOString() });
-        await activateSubscription(ord.tenantId, ord.order.plan, ord.order.months);
+        if (ord.order.kind === "debt") await recordDebtPayment(ord.tenantId, ord.order);
+        else await activateSubscription(ord.tenantId, ord.order.plan, ord.order.months);
       }
       return okR({ transaction: txn.orderId, perform_time: performT, state: PAYME_STATE.COMPLETED });
     }

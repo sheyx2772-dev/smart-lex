@@ -16,11 +16,15 @@ export function paymeConfigured(): boolean {
 }
 /** Payme Basic auth: "Basic base64(Paycom:KEY)". */
 export function paymeAuthOk(authorization: string | undefined): boolean {
-  if (!authorization || !authorization.startsWith("Basic ")) return false;
+  return paymeAuthOkWith(authorization, cfg().key);
+}
+/** Berilgan kalit bilan tekshirish (firma merchanti webhook auth'i uchun). */
+export function paymeAuthOkWith(authorization: string | undefined, expectedKey: string): boolean {
+  if (!authorization || !authorization.startsWith("Basic ") || !expectedKey) return false;
   try {
     const decoded = Buffer.from(authorization.slice(6), "base64").toString("utf8"); // "Paycom:KEY"
     const key = decoded.split(":")[1] ?? "";
-    return Boolean(key) && key === cfg().key;
+    return Boolean(key) && key === expectedKey;
   } catch {
     return false;
   }
