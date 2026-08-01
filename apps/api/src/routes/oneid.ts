@@ -1,4 +1,4 @@
-import { auditLogs, createOneIdUser, findTenantByTin, findUserByOneId, getDb, linkOneIdByEmail, type OneIdSessionUser, tenants, withTenant } from "@lex/db";
+import { auditLogs, createOneIdUser, createTenantWithOwner, findTenantByTin, findUserByOneId, getDb, linkOneIdByEmail, type OneIdSessionUser, tenants, withTenant } from "@lex/db";
 import { type UserRole } from "@lex/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -6,7 +6,7 @@ import { setCookie } from "hono/cookie";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
 import { signToken } from "../lib/jwt";
-import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalTin, putOtc, signState, takeOtc, verifyState } from "../lib/oneid";
+import { buildAuthorizeUrl, describeAuth, exchangeCode, identify, oneIdLogout, primaryLegalName, primaryLegalTin, putOtc, signState, takeOtc, verifyState } from "../lib/oneid";
 import { trialUntilIso } from "../lib/subscription";
 
 export const oneIdRoutes = new Hono<{ Variables: Variables }>();
@@ -86,24 +86,44 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
     const legalTin = primaryLegalTin(id);
     if (!legalTin) return c.redirect(loginError("no_legal_entity", origin));
 
-    const tenant = await findTenantByTin(legalTin);
-    if (!tenant) return c.redirect(loginError("tenant_not_registered", origin));
+    const fullName = id.full_name?.trim() || [id.sur_name, id.first_name, id.mid_name].filter(Boolean).join(" ") || pin;
+    let tenant = await findTenantByTin(legalTin);
+    let user: OneIdSessionUser | null = null;
 
-    // Foydalanuvchini topish → email bilan bog'lash → (yoqilgan bo'lsa) yaratish.
-    let user: OneIdSessionUser | null = await findUserByOneId(tenant.id, pin);
-    if (!user && id.user_id) {
-      // Ehtimol email = One-ID login yoki to'liq email — mavjud parolli hisobни PIN bilan bog'lash.
-      user = await linkOneIdByEmail(tenant.id, id.user_id, pin, id.user_id);
-    }
-    if (!user && env.oneid.autoProvision) {
-      user = await createOneIdUser({
-        tenantId: tenant.id,
-        pin,
-        sub: id.user_id ?? pin,
-        fullName: id.full_name?.trim() || [id.sur_name, id.first_name, id.mid_name].filter(Boolean).join(" ") || pin,
-        email: id.user_id ?? "",
-        locale: tenant.defaultLocale,
+    if (!tenant) {
+      // ── Self-onboarding (freemium) ────────────────────────────────────────
+      // Tashkilot ro'yxatdan o'tmagan bo'lsa — One-ID yuridik shaxs ma'lumotidan
+      // AVTOMATIK tenant + rahbar (owner) yaratamiz. Endi har qanday One-ID/E-IMZO
+      // foydalanuvchisi (yaroqli yuridik shaxs bilan) kira oladi. Platforma admin
+      // paneli esa faqat PLATFORM_TENANT_ID (MC LEGAL)'ga qoladi (isPlatformAdmin).
+      // autoProvision o'chirilganda eski xatti-harakat — rad etish.
+      if (!env.oneid.autoProvision) return c.redirect(loginError("tenant_not_registered", origin));
+      const orgName = primaryLegalName(id) || `Tashkilot ${legalTin}`;
+      const created = await createTenantWithOwner({
+        tin: legalTin,
+        name: orgName,
+        owner: { pin, sub: id.user_id ?? pin, fullName, email: id.user_id ?? "", locale: "uz" },
       });
+      if (!created) return c.redirect(loginError("exchange_failed", origin));
+      tenant = { id: created.tenant.id, defaultLocale: created.tenant.defaultLocale };
+      user = created.user;
+    } else {
+      // Mavjud tashkilot — foydalanuvchini topish → email bilan bog'lash → (yoqilgan bo'lsa) yaratish.
+      user = await findUserByOneId(tenant.id, pin);
+      if (!user && id.user_id) {
+        // Ehtimol email = One-ID login yoki to'liq email — mavjud parolli hisobни PIN bilan bog'lash.
+        user = await linkOneIdByEmail(tenant.id, id.user_id, pin, id.user_id);
+      }
+      if (!user && env.oneid.autoProvision) {
+        user = await createOneIdUser({
+          tenantId: tenant.id,
+          pin,
+          sub: id.user_id ?? pin,
+          fullName,
+          email: id.user_id ?? "",
+          locale: tenant.defaultLocale,
+        });
+      }
     }
     if (!user) return c.redirect(loginError("user_not_found", origin));
 

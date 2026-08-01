@@ -131,6 +131,54 @@ export async function createOneIdUser(input: {
   return mapSessionUser(rows[0]);
 }
 
+/**
+ * One-ID self-onboarding: ro'yxatdan o'tmagan tashkilotni (STIR bo'yicha) avtomatik
+ * yaratadi va uning BIRINCHI foydalanuvchisini `owner` (rahbar) sifatida qo'shadi.
+ * `tenants`da RLS yo'q; `users` insert esa `withTenant` ичida (RLS WITH CHECK mos keladi).
+ */
+export async function createTenantWithOwner(input: {
+  tin: string;
+  name: string;
+  owner: { pin: string; sub: string; fullName: string; email: string; locale?: string };
+}): Promise<{ tenant: { id: string; defaultLocale: string }; user: OneIdSessionUser } | null> {
+  const db = getDb();
+  const [t] = await db
+    .insert(schema.tenants)
+    .values({ type: "company", name: input.name, tin: input.tin })
+    .returning({ id: schema.tenants.id, defaultLocale: schema.tenants.defaultLocale });
+  if (!t) return null;
+  const locale = (input.owner.locale || t.defaultLocale || "uz") as (typeof schema.users.$inferInsert)["locale"];
+  const u = await withTenant(t.id, async (tx) => {
+    const [row] = await tx
+      .insert(schema.users)
+      .values({
+        tenantId: t.id,
+        email: input.owner.email || `${input.owner.pin}@oneid.local`,
+        passwordHash: null,
+        fullName: input.owner.fullName || input.owner.pin,
+        role: "owner",
+        locale,
+        isActive: true,
+        oneidPin: input.owner.pin,
+        oneidSub: input.owner.sub,
+      })
+      .returning({
+        id: schema.users.id,
+        tenantId: schema.users.tenantId,
+        role: schema.users.role,
+        locale: schema.users.locale,
+        fullName: schema.users.fullName,
+        isActive: schema.users.isActive,
+      });
+    return row;
+  });
+  if (!u || !u.isActive) return null;
+  return {
+    tenant: { id: t.id, defaultLocale: t.defaultLocale },
+    user: { id: u.id, tenantId: u.tenantId, role: u.role, locale: u.locale, fullName: u.fullName },
+  };
+}
+
 export async function closeDb(): Promise<void> {
   await _client?.end({ timeout: 5 });
   _client = null;

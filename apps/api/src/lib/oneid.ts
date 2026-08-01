@@ -158,6 +158,13 @@ export function primaryLegalTin(id: OneIdIdentity): string | null {
   return basic?.tin ?? basic?.le_tin ?? id.pkcs_legal_tin ?? null;
 }
 
+/** Asosiy yuridik shaxs NOMINI aniqlaydi (self-onboarding'da tenant nomi uchun). */
+export function primaryLegalName(id: OneIdIdentity): string | null {
+  const list = id.legal_info ?? [];
+  const basic = list.find((l) => l.is_basic) ?? list[0];
+  return (basic?.le_name || basic?.acron_UZ || "").trim() || null;
+}
+
 // E-IMZO (ERI) va Mobile-ID — One-ID ichidagi tasdiqlash/kirish usullari.
 const ERI_METHODS = new Set(["PKCSMETHOD", "LEPKCSMETHOD"]); // ERI (E-IMZO): jismoniy / yuridik
 const VERIFIED_METHODS = new Set(["PKCSMETHOD", "MOBILEMETHOD"]); // "Tasdiqlangan foydalanuvchi" usullari
