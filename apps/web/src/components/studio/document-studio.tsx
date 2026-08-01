@@ -783,6 +783,19 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
 
   const [exportOpen, setExportOpen] = useState(false);
 
+  // ── Qo'lda boshqariladigan to'ldirish: har [joy] uchun aniq input (matn ichidan qidirilmaydi) ──
+  const [fillOpen, setFillOpen] = useState(false);
+  const [fillValues, setFillValues] = useState<Record<string, string>>({});
+  function applyFill() {
+    let out = docHtml;
+    for (const [ph, val] of Object.entries(fillValues)) {
+      if (val.trim()) out = out.split(ph).join(val.trim());
+    }
+    setDocHtml(out);
+    setFillValues({});
+    setFillOpen(false);
+  }
+
   const docName = () => (title.trim() || t("untitled")).replace(/[^\p{L}\p{N} _-]/gu, "");
   const bodyHtml = () => docHtml || `<p>${escapeHtml(text)}</p>`;
 
@@ -864,9 +877,14 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
           />
           <span className="shrink-0 text-xs text-muted-foreground">{t("words", { n: words })}</span>
           {hasDoc && unfilled.length > 0 && (
-            <span title={`To'ldirilmagan: ${unfilled.join(", ")}`} className="shrink-0 cursor-help rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-600">
-              {unfilled.length} joy to'ldirilmagan
-            </span>
+            <button
+              type="button"
+              onClick={() => setFillOpen(true)}
+              title="Bosing — har bir joyni forma orqali to'ldiring"
+              className="shrink-0 rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-500/25"
+            >
+              {unfilled.length} joyni to'ldirish
+            </button>
           )}
           {debtors.length > 0 && (
             <select
@@ -1083,6 +1101,46 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
           </p>
         </form>
           </aside>
+        </div>
+      )}
+
+      {/* Qo'lda to'ldirish formasi — har [joy] uchun input */}
+      {fillOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setFillOpen(false)}>
+          <div className="flex max-h-[82vh] w-full max-w-md flex-col rounded-2xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <div>
+                <h3 className="font-display text-lg font-semibold">Joylarni to'ldirish</h3>
+                <p className="text-xs text-muted-foreground">Har bir maydonni yozing — hujjatga o'zi tushadi</p>
+              </div>
+              <button onClick={() => setFillOpen(false)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 space-y-2 overflow-auto p-4">
+              {unfilled.length === 0 ? (
+                <p className="py-6 text-center text-sm font-medium text-emerald-600">Hammasi to'ldirilgan ✓</p>
+              ) : (
+                unfilled.map((ph) => (
+                  <label key={ph} className="block">
+                    <span className="text-xs font-medium text-muted-foreground">{ph.replace(/[[\]]/g, "")}</span>
+                    <input
+                      value={fillValues[ph] ?? ""}
+                      onChange={(e) => setFillValues((v) => ({ ...v, [ph]: e.target.value }))}
+                      className="mt-0.5 w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:border-primary/50"
+                    />
+                  </label>
+                ))
+              )}
+            </div>
+            {unfilled.length > 0 && (
+              <div className="border-t border-border p-4">
+                <button onClick={applyFill} className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.01]">
+                  Joylashtirish
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
