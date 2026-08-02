@@ -181,6 +181,10 @@
     border-radius: 2px;
     padding: 0 1px;
   }
+  /* A4 qog'oz zoom — status paneldagi zoom nazorati (--doc-zoom EditorContent'da o'rnatiladi). */
+  .a4-sheet {
+    zoom: var(--doc-zoom, 1);
+  }
   /* Ko'rinmas, lekin ishlaydigan scroll (premium ko'rinish uchun). */
   .scroll-clean {
     scrollbar-width: none; /* Firefox */

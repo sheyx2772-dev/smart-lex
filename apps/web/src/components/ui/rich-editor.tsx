@@ -24,7 +24,7 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { TextStyleKit } from "@tiptap/extension-text-style";
 import { type Editor, EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const FONTS = ["Times New Roman", "Arial", "Georgia", "Calibri", "Verdana", "Courier New"];
@@ -70,6 +70,8 @@ export function RichEditor({
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 
+  const [zoom, setZoom] = useState(100);
+
   useEffect(() => {
     if (editor && value !== editor.getHTML()) editor.commands.setContent(value, { emitUpdate: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,6 +83,11 @@ export function RichEditor({
   }, [editor]);
 
   if (!editor) return null;
+
+  const plain = editor.getText();
+  const words = plain.trim() ? plain.trim().split(/\s+/).length : 0;
+  const chars = plain.length;
+  const pages = Math.max(1, Math.ceil(words / 400)); // A4 taxminiy sahifa
 
   const Btn = ({ active, onClick, children, title, disabled }: { active?: boolean; onClick: () => void; children: React.ReactNode; title: string; disabled?: boolean }) => (
     <button
@@ -193,7 +200,39 @@ export function RichEditor({
           <TableIcon className="size-4" />
         </Btn>
       </div>
-      <EditorContent editor={editor} className={cn("scroll-clean min-h-0 flex-1 overflow-auto", paper && "bg-neutral-200/70 dark:bg-neutral-950/60")} />
+      {/* Lineyka (o'lchagich) */}
+      {paper && (
+        <div className="flex shrink-0 justify-center border-b border-border bg-neutral-200/70 pt-2 dark:bg-neutral-950/60">
+          <div
+            className="h-4 rounded-sm border border-neutral-300 bg-white/85 dark:border-neutral-700 dark:bg-neutral-800/70"
+            style={{ width: "calc(210mm * var(--doc-zoom, 1))", backgroundImage: "repeating-linear-gradient(90deg,#94a3b8 0,#94a3b8 1px,transparent 1px,transparent 37.8px)" }}
+          />
+        </div>
+      )}
+      <EditorContent
+        editor={editor}
+        style={paper ? ({ "--doc-zoom": String(zoom / 100) } as CSSProperties) : undefined}
+        className={cn("scroll-clean min-h-0 flex-1 overflow-auto", paper && "bg-neutral-200/70 dark:bg-neutral-950/60")}
+      />
+      {/* Status panel — sahifa/so'z/belgi + zoom */}
+      {paper && (
+        <div className="flex shrink-0 items-center gap-2.5 border-t border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+          <span>Sahifa {pages}</span>
+          <span className="text-border">·</span>
+          <span>{words} so'z</span>
+          <span className="text-border">·</span>
+          <span>{chars} belgi</span>
+          <span className="ml-auto flex items-center gap-1">
+            <button type="button" title="Kichraytirish" onClick={() => setZoom((z) => Math.max(50, z - 10))} className="grid size-5 place-items-center rounded text-sm hover:bg-muted">
+              −
+            </button>
+            <span className="w-11 text-center tabular-nums font-medium text-foreground">{zoom}%</span>
+            <button type="button" title="Kattalashtirish" onClick={() => setZoom((z) => Math.min(200, z + 10))} className="grid size-5 place-items-center rounded text-sm hover:bg-muted">
+              +
+            </button>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
