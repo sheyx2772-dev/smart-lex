@@ -54,13 +54,73 @@ interface AiMsg {
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
+/** Markdown → toza HTML (AI natijasi: # sarlavha, ** bold, ro'yxat, | jadval). */
 function toHtml(text: string): string {
-  return text
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .map((l) => `<p>${escapeHtml(l)}</p>`)
-    .join("");
+  const inline = (s: string) =>
+    escapeHtml(s)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/__(.+?)__/g, "<strong>$1</strong>")
+      .replace(/(^|[^*])\*(?!\s)([^*]+?)\*(?!\*)/g, "$1<em>$2</em>");
+  const lines = text.replace(/\r/g, "").split("\n");
+  const out: string[] = [];
+  let list: "ul" | "ol" | null = null;
+  let table: string[][] = [];
+  const closeList = () => {
+    if (list) {
+      out.push(`</${list}>`);
+      list = null;
+    }
+  };
+  const flushTable = () => {
+    if (!table.length) return;
+    const rows = table.filter((r) => !r.every((c) => /^\s*:?-+:?\s*$/.test(c)));
+    out.push(`<table>${rows.map((r, i) => `<tr>${r.map((c) => `<${i === 0 ? "th" : "td"}>${inline(c.trim())}</${i === 0 ? "th" : "td"}>`).join("")}</tr>`).join("")}</table>`);
+    table = [];
+  };
+  for (const raw of lines) {
+    const l = raw.trim();
+    if (/^\|.*\|$/.test(l)) {
+      closeList();
+      table.push(l.slice(1, -1).split("|"));
+      continue;
+    }
+    if (table.length) flushTable();
+    if (!l) {
+      closeList();
+      continue;
+    }
+    const h1 = l.match(/^#\s+(.*)/);
+    const h2 = l.match(/^#{2,}\s+(.*)/);
+    const ol = l.match(/^\d+[.)]\s+(.*)/);
+    const ul = l.match(/^[-*•]\s+(.*)/);
+    if (h1) {
+      closeList();
+      out.push(`<h2 style="text-align:center">${inline(h1[1] ?? "")}</h2>`);
+    } else if (h2) {
+      closeList();
+      out.push(`<h3>${inline(h2[1] ?? "")}</h3>`);
+    } else if (ol) {
+      if (list !== "ol") {
+        closeList();
+        out.push("<ol>");
+        list = "ol";
+      }
+      out.push(`<li>${inline(ol[1] ?? "")}</li>`);
+    } else if (ul) {
+      if (list !== "ul") {
+        closeList();
+        out.push("<ul>");
+        list = "ul";
+      }
+      out.push(`<li>${inline(ul[1] ?? "")}</li>`);
+    } else {
+      closeList();
+      out.push(`<p>${inline(l)}</p>`);
+    }
+  }
+  closeList();
+  flushTable();
+  return out.join("");
 }
 function plainText(html: string): string {
   return html

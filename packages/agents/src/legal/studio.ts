@@ -45,9 +45,16 @@ Modda raqami noaniq — hech qachon taxminiy raqam yozma; qoidani nomlab, kodeks
 If an article number is unknown, never write an approximate one; name the rule and cite the code.`,
 };
 
-/** Rejim (draft/tahlil) uchun umumiy tizim-prompt: rol + huquqiy asos. */
+/** Chiqish formati — hujjat tuzganда markdown + yetishmovchilik xatti-harakati. */
+const FORMAT: Record<Locale, string> = {
+  uz: `\n\nFORMAT (hujjat tuzganда):\n- Chiqishни MARKDOWN'да ber: "# " — asosiy sarlavha, "## " — bo'lim sarlavhasi, **matn** — jirali, "- " yoki "1. " — ro'yxat, | ustun | ustun | — jadval.\n- Hujjatni TO'LIQ, bo'shliqsiz yoz. Ma'lumot yetishmasa [____________] qoldir va OXIRIDA "## To'ldirilishi kerak" bo'limida ular ro'yxatini ber.\n- Sonlarni raqam VA so'z bilan yoz: "8 000 000 (sakkiz million) so'm".\n- Agar so'rovда MUHIM ma'lumot yetishmasa (tomonlar, summa, muddat, predmet) — hujjat yozishдан OLDIN 3-5 ta aniq, raqamlangan savol ber; matn yozma.`,
+  ru: `\n\nФОРМАТ (при составлении документа):\n- Выводи в MARKDOWN: "# " — заголовок, "## " — раздел, **текст** — жирный, "- "/"1. " — список, | кол | кол | — таблица.\n- Пиши документ ПОЛНОСТЬЮ; если данных нет — оставь [____________] и В КОНЦЕ раздел "## Нужно заполнить" со списком.\n- Числа цифрами И словами: "8 000 000 (восемь миллионов) сум".\n- Если не хватает ВАЖНЫХ данных (стороны, сумма, срок, предмет) — сперва задай 3-5 точных нумерованных вопросов; документ не пиши.`,
+  en: `\n\nFORMAT (when drafting a document):\n- Output MARKDOWN: "# " title, "## " section, **bold**, "- "/"1. " lists, | col | col | tables.\n- Write the document FULLY; if data is missing leave [____________] and END with a "## To fill in" section listing them.\n- Numbers in digits AND words.\n- If key info is missing (parties, amount, term, subject) — first ask 3-5 precise numbered questions; do not write the document.`,
+};
+
+/** Rejim (draft/tahlil) uchun umumiy tizim-prompt: rol + huquqiy asos + format. */
 function buildSystem(locale: Locale): string {
-  return `${SYS[locale] ?? SYS.uz}\n\n${LEGAL_KB[locale] ?? LEGAL_KB.uz}`;
+  return `${SYS[locale] ?? SYS.uz}\n\n${LEGAL_KB[locale] ?? LEGAL_KB.uz}${FORMAT[locale] ?? FORMAT.uz}`;
 }
 
 export async function studioReply(opts: { locale: Locale; instruction: string; document?: string }): Promise<string> {
