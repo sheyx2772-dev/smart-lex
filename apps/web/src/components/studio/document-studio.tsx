@@ -29,8 +29,10 @@ import {
   Receipt,
   Scroll,
   ShieldCheck,
+  ShieldWarning,
   Sparkle,
   SquaresFour,
+  X,
   Truck,
   UploadSimple,
   UsersThree,
@@ -519,6 +521,36 @@ function unfilledFields(html: string): string[] {
   return [...new Set(found)];
 }
 
+/** PII (maxfiy shaxsiy ma'lumot) — karta, JShShIR, telefon, pasport, email. */
+const PII_PATTERNS: { type: string; re: RegExp }[] = [
+  { type: "Karta raqami", re: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g },
+  { type: "JShShIR (PINFL)", re: /\b\d{14}\b/g },
+  { type: "Telefon", re: /\+?998[\s-]?\d{2}[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}\b/g },
+  { type: "Pasport", re: /\b[A-Z]{2}[\s-]?\d{7}\b/g },
+  { type: "Email", re: /\b[\w.-]+@[\w.-]+\.\w{2,}\b/g },
+];
+function detectPii(text: string): { type: string; value: string }[] {
+  const out: { type: string; value: string }[] = [];
+  const seen = new Set<string>();
+  for (const p of PII_PATTERNS) {
+    for (const m of text.matchAll(p.re)) {
+      const v = m[0];
+      if (!seen.has(v)) {
+        seen.add(v);
+        out.push({ type: p.type, value: v });
+      }
+    }
+  }
+  return out;
+}
+function maskPii(v: string): string {
+  if (v.includes("@")) {
+    const [a, b] = v.split("@");
+    return (a?.[0] ?? "") + "•••@" + (b ?? "");
+  }
+  return v.length > 4 ? "•".repeat(v.length - 4) + v.slice(-4) : "•".repeat(v.length);
+}
+
 function TemplateLibrary({
   locale,
   t,
@@ -669,6 +701,14 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
   const words = text ? text.split(" ").length : 0;
   const hasDoc = words > 0;
   const unfilled = unfilledFields(docHtml); // to'ldirilmagan [joy]lar
+  const pii = detectPii(text); // maxfiy ma'lumotlar (PII)
+  const [piiOpen, setPiiOpen] = useState(false);
+  function maskAllPii() {
+    let out = docHtml;
+    for (const p of pii) out = out.split(p.value).join(maskPii(p.value));
+    setDocHtml(out);
+    setPiiOpen(false);
+  }
 
   // Studio AI — STREAMING: javob harfma-harf keladi va oxirgi AI xabariga yoziladi.
   async function ask(prompt: string, docOverride?: string) {
@@ -936,6 +976,16 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
               className="shrink-0 rounded-lg bg-amber-500/15 px-2 py-1 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-500/25"
             >
               {unfilled.length} joyni to'ldirish
+            </button>
+          )}
+          {hasDoc && pii.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setPiiOpen(true)}
+              title="Maxfiy ma'lumotlar — bosing"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-red-500/15 px-2 py-1 text-xs font-semibold text-red-600 transition-colors hover:bg-red-500/25"
+            >
+              <ShieldWarning weight="fill" className="size-3.5" /> {pii.length} PII
             </button>
           )}
           {mode === "ai" && (
@@ -1264,6 +1314,39 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* PII — maxfiy ma'lumotlar paneli */}
+      {piiOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setPiiOpen(false)}>
+          <div className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl border border-border bg-card shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-border p-4">
+              <div>
+                <h3 className="flex items-center gap-1.5 font-display text-lg font-semibold">
+                  <ShieldWarning weight="fill" className="size-5 text-red-500" /> Maxfiy ma'lumotlar
+                </h3>
+                <p className="text-xs text-muted-foreground">Hujjatда {pii.length} ta maxfiy ma'lumot topildi</p>
+              </div>
+              <button onClick={() => setPiiOpen(false)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="scroll-clean min-h-0 flex-1 space-y-1.5 overflow-auto p-4">
+              {pii.map((p, i) => (
+                <div key={i} className="flex items-center justify-between gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2">
+                  <span className="font-mono text-sm">{p.value}</span>
+                  <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">{p.type}</span>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-border p-4">
+              <button onClick={maskAllPii} className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.01]">
+                <ShieldWarning weight="fill" className="size-4" /> Hammasini maskalash (••••)
+              </button>
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">Hujjatni tashqariga yuborishдан oldin maxfiy ma'lumotlarni yashiring.</p>
+            </div>
           </div>
         </div>
       )}
