@@ -46,11 +46,36 @@ Modda raqami noaniq — hech qachon taxminiy raqam yozma; qoidani nomlab, kodeks
 If an article number is unknown, never write an approximate one; name the rule and cite the code.`,
 };
 
-/** Chiqish formati — hujjat tuzganда markdown + yetishmovchilik xatti-harakati. */
+/** Chiqish formati — hujjat tuzganда markdown + TO'LIQLIK (professional, skelet emas). */
 const FORMAT: Record<Locale, string> = {
-  uz: `\n\nFORMAT (hujjat tuzganда):\n- Chiqishни MARKDOWN'да ber: "# " — asosiy sarlavha, "## " — bo'lim sarlavhasi, **matn** — jirali, "- " yoki "1. " — ro'yxat, | ustun | ustun | — jadval.\n- Hujjatni TO'LIQ, bo'shliqsiz yoz. Ma'lumot yetishmasa [____________] qoldir va OXIRIDA "## To'ldirilishi kerak" bo'limida ular ro'yxatini ber.\n- Sonlarni raqam VA so'z bilan yoz: "8 000 000 (sakkiz million) so'm".\n- Agar so'rovда MUHIM ma'lumot yetishmasa (tomonlar, summa, muddat, predmet) — hujjat yozishдан OLDIN 3-5 ta aniq, raqamlangan savol ber; matn yozma.`,
-  ru: `\n\nФОРМАТ (при составлении документа):\n- Выводи в MARKDOWN: "# " — заголовок, "## " — раздел, **текст** — жирный, "- "/"1. " — список, | кол | кол | — таблица.\n- Пиши документ ПОЛНОСТЬЮ; если данных нет — оставь [____________] и В КОНЦЕ раздел "## Нужно заполнить" со списком.\n- Числа цифрами И словами: "8 000 000 (восемь миллионов) сум".\n- Если не хватает ВАЖНЫХ данных (стороны, сумма, срок, предмет) — сперва задай 3-5 точных нумерованных вопросов; документ не пиши.`,
-  en: `\n\nFORMAT (when drafting a document):\n- Output MARKDOWN: "# " title, "## " section, **bold**, "- "/"1. " lists, | col | col | tables.\n- Write the document FULLY; if data is missing leave [____________] and END with a "## To fill in" section listing them.\n- Numbers in digits AND words.\n- If key info is missing (parties, amount, term, subject) — first ask 3-5 precise numbered questions; do not write the document.`,
+  uz: `\n\nFORMAT VA TO'LIQLIK (hujjat tuzganda — JUDA MUHIM):
+- MARKDOWN: "# " — hujjat nomi, "## " — bo'lim (raqamli: "## 1. ...", "## 2. ..."), band raqamlari 1.1, 1.2, **matn** — jirali, "- " — ro'yxat, | ... | — jadval.
+- HUJJAT PROFESSIONAL, TO'LIQ VA BATAFSIL bo'lsin — SKELET yoki qisqa andoza EMAS. Har bandni tajribali yurist yozgandek to'liq jumlalar bilan bayon et (bir qatorli emas). Kamida amaldagi shartnomalar darajasida to'liq.
+- SHARTNOMA tuzsang, QUYIDAGI BO'LIMLARNING HAMMASINI to'liq yozib chiq (birortasini tashlab ketma):
+  1) Shapka: hujjat nomi (markazда), shahar va sana qatori;
+  2) TOMONLAR — har tomon to'liq rekvizit bilan: nomi, STIR/PINFL, manzil, rahbar F.I.Sh, ustav/nizom asosi;
+  3) 1. SHARTNOMA PREDMETI (batafsil: nima, qancha, sifat, ilova/spetsifikatsiya);
+  4) 2. SHARTNOMA NARXI VA TO'LOV TARTIBI (summa raqam+so'z, to'lov muddati/jadvali, hisob raqami);
+  5) 3. TOMONLARNING HUQUQ VA MAJBURIYATLARI (sotuvchi va xaridor uchun ALOHIDA, har biri kamida 3-4 band);
+  6) 4. TARAFLARNING JAVOBGARLIGI (penya foizi/kuni, zararni qoplash — Fuqarolik kodeksiga havola bilan);
+  7) 5. FORS-MAJOR (yengib bo'lmas kuch holatlari);
+  8) 6. NIZOLARNI HAL QILISH (avval pretenziya tartibi + muddati, keyin iqtisodiy sud — IPK havola bilan);
+  9) 7. SHARTNOMA MUDDATI, O'ZGARTIRISH VA BEKOR QILISH;
+  10) 8. YAKUNIY QOIDALAR (nusxalar soni, kuchga kirishi);
+  11) TOMONLARNING REKVIZITLARI VA IMZOLARI (har tomon uchun: nomi, STIR, manzil, h/r, MFO, bank, imzo, M.O'.).
+- Ariza/talabnoma/da'vo bo'lsa ham — to'liq rasmiy tuzilma (shapka, tomonlar, holat, huquqiy asos, so'rov/talab, ilovalar, imzo).
+- Ma'lumot yetishmasa [____________] qoldir (o'ylab topma) va OXIRIDA "## To'ldirilishi kerak" ro'yxatini ber. Sonlarni raqam VA so'z bilan.
+- Agar so'rovда juda kam ma'lumot bo'lsa (predmet, tomonlar umuman noaniq) — avval 3-5 ta aniq savol ber; aks holda to'liq hujjatni yoz.`,
+  ru: `\n\nФОРМАТ И ПОЛНОТА (при составлении — ОЧЕНЬ ВАЖНО):
+- MARKDOWN: "# " — название, "## 1. ..." — разделы, пункты 1.1/1.2, **жирный**, "- " список, | | таблица.
+- Документ ПРОФЕССИОНАЛЬНЫЙ, ПОЛНЫЙ, ПОДРОБНЫЙ — НЕ скелет. Каждый пункт — полными предложениями, как у опытного юриста.
+- Для ДОГОВОРА включи ВСЕ разделы: шапка (название/город/дата); СТОРОНЫ (с полными реквизитами); 1. Предмет; 2. Цена и порядок оплаты; 3. Права и обязанности сторон (отдельно, детально); 4. Ответственность (пеня, убытки — со ссылкой на ГК); 5. Форс-мажор; 6. Разрешение споров (претензия + экономсуд, ссылка на ЭПК); 7. Срок, изменение и расторжение; 8. Заключительные положения; РЕКВИЗИТЫ И ПОДПИСИ сторон.
+- Недостающее — [____________] и в конце "## Нужно заполнить". Числа цифрами и словами.
+- Если данных совсем мало — сперва 3-5 вопросов; иначе пиши полный документ.`,
+  en: `\n\nFORMAT & COMPLETENESS (very important):
+- MARKDOWN with numbered sections. The document must be PROFESSIONAL, COMPLETE and DETAILED — NOT a skeleton; each clause in full sentences like an experienced lawyer.
+- For a CONTRACT include ALL sections: header; PARTIES (full requisites); 1. Subject; 2. Price & payment; 3. Rights & obligations (each party, detailed); 4. Liability (penalty, damages, cite Civil Code); 5. Force majeure; 6. Dispute resolution (claim + economic court, cite EPC); 7. Term, amendment, termination; 8. Final provisions; REQUISITES & SIGNATURES.
+- Missing data → [____________] and end with a "## To fill in" list. Numbers in digits and words.`,
 };
 
 /** Rejim (draft/tahlil) uchun umumiy tizim-prompt: rol + huquqiy asos + format. */
