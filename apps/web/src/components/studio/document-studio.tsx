@@ -833,10 +833,43 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
     setTimeout(() => win.print(), 350);
   }
 
-  const QUICK = [
-    { key: "analyze", instruction: t("qAnalyze") },
-    { key: "risks", instruction: t("qRisks") },
-    { key: "simplify", instruction: t("qSimplify") },
+  // Soha bo'yicha kuchli huquqiy tahlil — strukturaviy hisobot beruvchi promptlar.
+  const QUICK: { label: Loc; prompt: Loc }[] = [
+    {
+      label: { uz: "To'liq tahlil", ru: "Полный анализ" },
+      prompt: {
+        uz: "Ushbu hujjatni professional yurist sifatida TO'LIQ tahlil qil. Quyidagi tuzilmада, har bo'lim sarlavha bilan javob ber:\n1) HUJJAT TURI VA MAQSADI\n2) XAVFLI YOKI KAMCHILIKLI BANDLAR — aniq band va nega xavfli\n3) YETISHMAGAN MAJBURIY REKVIZITLAR/ELEMENTLAR va bo'sh [joy]lar\n4) QONUNCHILIKKA MUVOFIQLIK — O'zbekiston qonunlariga mosligi (kodeks NOMINI yoz; modda raqamini FAQAT aniq bilsang)\n5) ANIQ TAVSIYALAR. Qisqa, amaliy.",
+        ru: "Проанализируй документ как профессиональный юрист. Ответь по структуре, каждый раздел с заголовком:\n1) ТИП И ЦЕЛЬ ДОКУМЕНТА\n2) РИСКОВЫЕ/НЕДОСТАЮЩИЕ ПУНКТЫ\n3) НЕДОСТАЮЩИЕ ОБЯЗАТЕЛЬНЫЕ РЕКВИЗИТЫ и пустые [места]\n4) СООТВЕТСТВИЕ ЗАКОНОДАТЕЛЬСТВУ РУз (название кодекса; номер статьи только если уверен)\n5) КОНКРЕТНЫЕ РЕКОМЕНДАЦИИ.",
+      },
+    },
+    {
+      label: { uz: "Xavfli bandlar", ru: "Рисковые пункты" },
+      prompt: {
+        uz: "Hujjatdagi XAVFLI, noaniq yoki bir tomonga zarar keltiruvchi bandlarni top. Har biri uchun: band matni, xavf nima, tavsiya. Ro'yxat shaklida.",
+        ru: "Найди рисковые, неоднозначные или невыгодные пункты. Для каждого: текст пункта, риск, рекомендация. Списком.",
+      },
+    },
+    {
+      label: { uz: "Rekvizit tekshiruvi", ru: "Проверка реквизитов" },
+      prompt: {
+        uz: "Hujjatning majburiy rekvizitlari to'liqmi tekshir: tomonlar nomi va STIR, manzil, sana, hujjat raqami, summa, imzo, ilovalar. Yetishmaganini va bo'sh [joy]larni ro'yxat qil.",
+        ru: "Проверь обязательные реквизиты: стороны и ИНН, адрес, дата, номер, сумма, подпись, приложения. Перечисли недостающее и пустые [места].",
+      },
+    },
+    {
+      label: { uz: "Huquqiy asos", ru: "Правовая основа" },
+      prompt: {
+        uz: "Hujjatni O'zbekiston Fuqarolik kodeksi va Iqtisodiy protsessual kodeks nuqtai nazaridan tekshir: qaysi qoidalarga tayanadi, huquqiy oqibatlar, muvofiqlik. Kodeks NOMINI yoz; modda raqamini FAQAT 100% aniq bilsang.",
+        ru: "Проверь документ с точки зрения ГК и ЭПК РУз: на какие нормы опирается, правовые последствия, соответствие. Название кодекса; номер статьи только при 100% уверенности.",
+      },
+    },
+    {
+      label: { uz: "Soddalashtir", ru: "Упростить" },
+      prompt: {
+        uz: "Hujjatni oddiy, tushunarli tilда qisqacha tushuntir: asosiy mazmun, tomonlar majburiyatlari, muddatlar va summalar.",
+        ru: "Объясни документ простым языком: суть, обязанности сторон, сроки и суммы.",
+      },
+    },
   ];
 
   return (
@@ -1028,18 +1061,23 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
           </div>
         </div>
 
-        {/* Tez amallar */}
-        <div className="flex flex-wrap gap-1.5 border-b border-border px-3 py-2.5">
-          {QUICK.map((q) => (
-            <button
-              key={q.key}
-              onClick={() => docAction(q.instruction)}
-              disabled={!hasDoc || loading}
-              className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
-            >
-              <MagicWand className="size-3.5" /> {t(`quick.${q.key}` as never)}
-            </button>
-          ))}
+        {/* Hujjat tahlili — soha bo'yicha kuchli amallar */}
+        <div className="border-b border-border px-3 py-2.5">
+          <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <MagicWand weight="fill" className="size-3.5 text-primary" /> {locale === "ru" ? "Анализ документа" : "Hujjat tahlili"}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {QUICK.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => docAction(Lc(q.prompt))}
+                disabled={!hasDoc || loading}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
+              >
+                {Lc(q.label)}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Xabarlar */}
