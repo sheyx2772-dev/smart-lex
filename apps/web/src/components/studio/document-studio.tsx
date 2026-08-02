@@ -629,6 +629,8 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
   const [title, setTitle] = useState(searchParams.get("title") ?? (initTpl && initTpl.key !== "blank" ? Lc(initTpl.title) : ""));
   const [docHtml, setDocHtml] = useState(initHtml !== undefined ? applyCase(initHtml, creditor, initDebtor) : "");
   const [picker, setPicker] = useState(initHtml === undefined);
+  // Rejim: "ai" = chapda AI chat; "template" = o'ngda qo'lda to'ldirish paneli (TrustContract uslubi).
+  const [mode, setMode] = useState<"ai" | "template">(initTpl && initTpl.key !== "blank" ? "template" : "ai");
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -880,22 +882,28 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
       <div className="flex items-center">
         <div className="inline-flex rounded-xl border border-border bg-card p-1 text-sm font-medium">
           <button
-            onClick={() => setPicker(false)}
+            onClick={() => {
+              setMode("ai");
+              setPicker(false);
+            }}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-colors",
-              !picker ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
+              mode === "ai" ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <MagicWand weight={!picker ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "С помощью AI" : "AI asosida tayyorlash"}
+            <MagicWand weight={mode === "ai" ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "С помощью AI" : "AI asosida tayyorlash"}
           </button>
           <button
-            onClick={() => setPicker(true)}
+            onClick={() => {
+              setMode("template");
+              setPicker(true);
+            }}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-colors",
-              picker ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
+              mode === "template" ? "bg-gradient-to-br from-primary to-secondary text-white shadow" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <SquaresFour weight={picker ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "Из шаблона" : "Namuna asosida tayyorlash"}
+            <SquaresFour weight={mode === "template" ? "fill" : "regular"} className="size-4" /> {locale === "ru" ? "Из шаблона" : "Namuna asosida tayyorlash"}
           </button>
         </div>
       </div>
@@ -903,9 +911,15 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
       {picker ? (
         <TemplateLibrary locale={locale} t={t} onPick={chooseTemplate} />
       ) : (
-        <div className={cn("grid min-h-0 flex-1 gap-4", aiOpen && "lg:grid-cols-[minmax(340px,380px)_1fr]")}>
-          {/* ── Hujjat muharriri (o'ng tomon) ─────────────────────────── */}
-          <div className="flex min-h-0 min-w-0 flex-col lg:order-2">
+        <div
+          className={cn(
+            "grid min-h-0 flex-1 gap-4",
+            mode === "ai" && aiOpen && "lg:grid-cols-[minmax(340px,380px)_1fr]",
+            mode === "template" && "lg:grid-cols-[1fr_minmax(300px,360px)]",
+          )}
+        >
+          {/* ── Hujjat muharriri ─────────────────────────── */}
+          <div className={cn("flex min-h-0 min-w-0 flex-col", mode === "ai" && "lg:order-2")}>
             <div className="mb-3 flex flex-wrap items-center gap-3">
           <input
             value={title}
@@ -924,17 +938,19 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
               {unfilled.length} joyni to'ldirish
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => setAiOpen((o) => !o)}
-            title="AI yordamchi"
-            className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
-              aiOpen ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40",
-            )}
-          >
-            <Sparkle weight="fill" className="size-4" /> AI
-          </button>
+          {mode === "ai" && (
+            <button
+              type="button"
+              onClick={() => setAiOpen((o) => !o)}
+              title="AI yordamchi"
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                aiOpen ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              <Sparkle weight="fill" className="size-4" /> AI
+            </button>
+          )}
           {debtors.length > 0 && (
             <select
               value={debtorId}
@@ -1050,8 +1066,8 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
             <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" paper />
           </div>
 
-          {/* ── AI Yordamchi paneli (yig'iladigan) ──────────────────────── */}
-          {aiOpen && (
+          {/* ── AI Yordamchi paneli (faqat AI rejimида, chap tomon) ──────────────────────── */}
+          {mode === "ai" && aiOpen && (
           <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card lg:order-1">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
@@ -1174,6 +1190,40 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
           </p>
         </form>
           </aside>
+          )}
+
+          {/* ── Namuna rejimi: qo'lda to'ldirish paneli (o'ng tomon, TrustContract uslubi) ── */}
+          {mode === "template" && (
+            <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
+              <div className="border-b border-border px-4 py-3">
+                <p className="font-display text-sm font-semibold">{locale === "ru" ? "Заполнение данных" : "Ma'lumotlarni to'ldirish"}</p>
+                <p className="text-[11px] text-muted-foreground">{locale === "ru" ? "Заполните поля — попадут в документ" : "Maydonlarni to'ldiring — hujjatga o'zi tushadi"}</p>
+              </div>
+              <div className="scroll-clean min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+                {unfilled.length === 0 ? (
+                  <p className="py-8 text-center text-sm font-medium text-emerald-600">{locale === "ru" ? "Всё заполнено ✓" : "Hammasi to'ldirilgan ✓"}</p>
+                ) : (
+                  unfilled.map((ph) => (
+                    <label key={ph} className="block">
+                      <span className="text-[11px] font-medium text-muted-foreground">{ph.replace(/[[\]]/g, "")}</span>
+                      <input
+                        value={fillValues[ph] ?? ""}
+                        onChange={(e) => setFillValues((v) => ({ ...v, [ph]: e.target.value }))}
+                        placeholder={ph.replace(/[[\]]/g, "")}
+                        className="mt-0.5 w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm outline-none focus:border-primary/50"
+                      />
+                    </label>
+                  ))
+                )}
+              </div>
+              {unfilled.length > 0 && (
+                <div className="border-t border-border p-3">
+                  <button onClick={applyFill} className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform hover:scale-[1.01]">
+                    {locale === "ru" ? "Вставить" : "Joylashtirish"}
+                  </button>
+                </div>
+              )}
+            </aside>
           )}
         </div>
       )}
