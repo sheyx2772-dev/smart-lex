@@ -783,6 +783,9 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
 
   const [exportOpen, setExportOpen] = useState(false);
 
+  // AI yordamchi paneli — yig'iladigan (default yopiq; hujjat A4 qog'oz sifatida asosiy o'rinда).
+  const [aiOpen, setAiOpen] = useState(false);
+
   // ── Qo'lda boshqariladigan to'ldirish: har [joy] uchun aniq input (matn ichidan qidirilmaydi) ──
   const [fillOpen, setFillOpen] = useState(false);
   const [fillValues, setFillValues] = useState<Record<string, string>>({});
@@ -865,7 +868,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
       {picker ? (
         <TemplateLibrary locale={locale} t={t} onPick={chooseTemplate} />
       ) : (
-        <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_360px]">
+        <div className={cn("grid min-h-0 flex-1 gap-4", aiOpen && "lg:grid-cols-[1fr_380px]")}>
           {/* ── Hujjat muharriri ─────────────────────────── */}
           <div className="flex min-h-0 min-w-0 flex-col">
             <div className="mb-3 flex flex-wrap items-center gap-3">
@@ -886,6 +889,17 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
               {unfilled.length} joyni to'ldirish
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setAiOpen((o) => !o)}
+            title="AI yordamchi"
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+              aiOpen ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40",
+            )}
+          >
+            <Sparkle weight="fill" className="size-4" /> AI
+          </button>
           {debtors.length > 0 && (
             <select
               value={debtorId}
@@ -1001,7 +1015,8 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
             <RichEditor value={docHtml} onChange={setDocHtml} onReady={(e) => (editorRef.current = e)} className="min-h-0 flex-1" paper />
           </div>
 
-          {/* ── AI Yordamchi paneli ──────────────────────── */}
+          {/* ── AI Yordamchi paneli (yig'iladigan) ──────────────────────── */}
+          {aiOpen && (
           <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
@@ -1101,6 +1116,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
           </p>
         </form>
           </aside>
+          )}
         </div>
       )}
 

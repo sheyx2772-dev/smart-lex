@@ -28,7 +28,7 @@ export function RichEditor({
     editorProps: {
       attributes: {
         class: paper
-          ? "prose-doc a4-sheet mx-auto my-8 w-[210mm] max-w-full min-h-[297mm] bg-white px-[22mm] py-[20mm] text-[11.5pt] leading-[1.6] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.14),0_14px_34px_-12px_rgba(0,0,0,0.3)] outline-none [font-family:'Times_New_Roman','PT_Serif',Georgia,serif] print:my-0 print:w-full print:shadow-none"
+          ? "prose-doc a4-sheet mx-auto my-8 w-[210mm] min-h-[297mm] bg-white px-[22mm] py-[20mm] text-[11.5pt] leading-[1.6] text-neutral-900 shadow-[0_1px_3px_rgba(0,0,0,0.14),0_14px_34px_-12px_rgba(0,0,0,0.3)] outline-none [font-family:'Times_New_Roman','PT_Serif',Georgia,serif] print:my-0 print:w-full print:shadow-none"
           : "prose-doc min-h-full p-4 text-[13.5px] leading-relaxed outline-none",
       },
     },
