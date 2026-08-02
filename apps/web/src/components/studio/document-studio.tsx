@@ -24,7 +24,6 @@ import {
   MagicWand,
   MagnifyingGlass,
   Megaphone,
-  PenNib,
   Plus,
   Prohibit,
   Receipt,
@@ -674,6 +673,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
     const q = prompt.trim();
     if (!q || loading) return;
     const docText = docOverride ?? text;
+    const wasEmpty = !text.trim() && !docOverride; // hujjat bo'sh → AI natijani o'ng ekranga o'tkazamiz
     setInput("");
     // Foydalanuvchi savoli + bo'sh AI "joy" (oqim shunga to'ldiriladi).
     setMessages((m) => [...m, { role: "user", text: q }, { role: "ai", text: "" }]);
@@ -703,6 +703,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
         toBottom();
       }
       if (!acc.trim()) setLast(t("aiError"));
+      else if (wasEmpty && acc.trim().length > 100) insertToDoc(acc); // birinchi hujjat → o'ng ekranga
     } catch {
       setLast(t("aiError"));
     } finally {
@@ -783,8 +784,9 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
 
   const [exportOpen, setExportOpen] = useState(false);
 
-  // AI yordamchi paneli — yig'iladigan (default yopiq; hujjat A4 qog'oz sifatida asosiy o'rinда).
-  const [aiOpen, setAiOpen] = useState(false);
+  // AI yordamchi paneli — CHAP tomonда (default ochiq). Chat orqali hujjat tayyorlaysiz,
+  // AI natijani o'ng tomondagi A4 ekranga o'tkazadi; o'sha yerда tahrirlaysiz.
+  const [aiOpen, setAiOpen] = useState(true);
 
   // ── Qo'lda boshqariladigan to'ldirish: har [joy] uchun aniq input (matn ichidan qidirilmaydi) ──
   const [fillOpen, setFillOpen] = useState(false);
@@ -901,9 +903,9 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
       {picker ? (
         <TemplateLibrary locale={locale} t={t} onPick={chooseTemplate} />
       ) : (
-        <div className={cn("grid min-h-0 flex-1 gap-4", aiOpen && "lg:grid-cols-[1fr_380px]")}>
-          {/* ── Hujjat muharriri ─────────────────────────── */}
-          <div className="flex min-h-0 min-w-0 flex-col">
+        <div className={cn("grid min-h-0 flex-1 gap-4", aiOpen && "lg:grid-cols-[minmax(340px,380px)_1fr]")}>
+          {/* ── Hujjat muharriri (o'ng tomon) ─────────────────────────── */}
+          <div className="flex min-h-0 min-w-0 flex-col lg:order-2">
             <div className="mb-3 flex flex-wrap items-center gap-3">
           <input
             value={title}
@@ -1050,7 +1052,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
 
           {/* ── AI Yordamchi paneli (yig'iladigan) ──────────────────────── */}
           {aiOpen && (
-          <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card">
+          <aside className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card lg:order-1">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
           <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-secondary text-white">
             <Sparkle weight="fill" className="size-4" />
@@ -1083,10 +1085,28 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
         {/* Xabarlar */}
         <div ref={scrollRef} className="scroll-clean min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-3">
           {messages.length === 0 && (
-            <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center text-muted-foreground">
-              <PenNib weight="fill" className="size-7 text-primary/60" />
-              <p className="text-sm font-medium text-foreground">{t("welcome")}</p>
-              <p className="text-xs">{t("welcomeSub")}</p>
+            <div className="flex h-full flex-col justify-center gap-3 px-1">
+              <div className="text-center">
+                <span className="mx-auto grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-primary to-secondary text-white">
+                  <Sparkle weight="fill" className="size-5" />
+                </span>
+                <p className="mt-2 text-sm font-semibold text-foreground">{t("welcome")}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t("welcomeSub")}</p>
+              </div>
+              <div className="rounded-xl border border-border bg-background/60 p-3">
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{locale === "ru" ? "Я умею:" : "Men:"}</p>
+                <ul className="space-y-1 text-xs text-foreground/90">
+                  {(locale === "ru"
+                    ? ["Готовлю документ (требование, иск, договор...)", "Нахожу риски и недостающие реквизиты", "Объясняю сложный текст простым языком", "Редактирую и переношу документ в правое окно"]
+                    : ["Tayyor hujjat tuzaman (talabnoma, da'vo, shartnoma...)", "Xavflar va yetishmagan rekvizitlarni topaman", "Murakkab matnni oddiy tilда tushuntiraman", "Hujjatni tahrirlab, o'ng ekranga o'tkazaman"]
+                  ).map((s) => (
+                    <li key={s} className="flex gap-1.5">
+                      <span className="text-primary">•</span> {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="px-1 text-center text-[11px] text-muted-foreground">{locale === "ru" ? "Например: «Подготовь требование для GLOBAL SNAB»" : "Masalan: «GLOBAL SNAB MChJ ga talabnoma tayyorla»"}</p>
             </div>
           )}
           {messages.map((m, i) => (
