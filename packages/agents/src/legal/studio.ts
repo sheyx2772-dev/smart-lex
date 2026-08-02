@@ -3,6 +3,28 @@ import { generateText, streamText } from "ai";
 import { getModel } from "../llm";
 import { lawContextText } from "./law-base";
 import { docStructureHint } from "./doc-structures";
+import { guideContextText } from "./court-guide";
+
+/**
+ * Til va ALIFBO ko'rsatmasi — foydalanuvchi so'rovда aniq belgilagan bo'lsa
+ * (rus / o'zbek, kirill / lotin), hujjat AYNAN shu til va alifboда chiqarilsin.
+ * Belgilanmasa — locale bo'yicha (uz uchun lotin standart).
+ */
+function langScriptDirective(instruction: string): string {
+  const s = instruction.toLowerCase();
+  const wantsRu = /\brus(cha|\s*til|\s*tilida)?\b|на\s*русском|русск|по-русски/.test(s);
+  const wantsUz = /\bo.?zbek|ў?збек|узбек/.test(s);
+  const wantsCyr = /kirill|кирилл|krill|cyrillic/.test(s);
+  const wantsLat = /lotin|латин|lotincha|latin/.test(s);
+  const parts: string[] = [];
+  if (wantsRu) parts.push("HUJJATNI TO'LIQ RUS TILIDA yoz.");
+  else if (wantsUz && wantsCyr) parts.push("HUJJATNI O'ZBEK TILIDA, KIRILL ALIFBOSIDA yoz (ҳужжат тўлиқ кирилл ёзувида бўлсин).");
+  else if (wantsUz && wantsLat) parts.push("HUJJATNI O'ZBEK TILIDA, LOTIN ALIFBOSIDA yoz.");
+  else if (wantsCyr) parts.push("HUJJATNI KIRILL ALIFBOSIDA yoz (тўлиқ кирилл ёзувида).");
+  else if (wantsLat) parts.push("HUJJATNI LOTIN ALIFBOSIDA yoz.");
+  else if (wantsUz) parts.push("HUJJATNI O'ZBEK TILIDA yoz.");
+  return parts.length ? `\n\nTIL/ALIFBO (QAT'IY): ${parts.join(" ")} Butun hujjat — sarlavha, bo'limlar, rekvizitlar — shu til va alifboда bo'lsin.` : "";
+}
 
 /**
  * Studio HUJJAT-fokusли AI (chat'дан farqi: DB emas, ochiq HUJJAT konteksti).
@@ -101,6 +123,8 @@ export async function studioReply(opts: { locale: Locale; instruction: string; d
     const sys =
       buildSystem(opts.locale) +
       docStructureHint(opts.instruction, opts.locale) +
+      langScriptDirective(opts.instruction) +
+      guideContextText(`${opts.instruction} ${doc.slice(0, 1500)}`) +
       lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
     const { text } = await generateText({ model, system: sys, prompt });
     return text.trim();
@@ -133,6 +157,8 @@ export function studioReplyStream(opts: { locale: Locale; instruction: string; d
   const sys =
     buildSystem(opts.locale) +
     docStructureHint(opts.instruction, opts.locale) +
+    langScriptDirective(opts.instruction) +
+    guideContextText(`${opts.instruction} ${doc.slice(0, 1500)}`) +
     lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
   const result = streamText({ model, system: sys, prompt });
   return result.textStream;

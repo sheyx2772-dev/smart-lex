@@ -36,15 +36,27 @@ const STOP = new Set([
   "uchun", "yoki", "ular", "ushbu", "bilan", "bolsa", "kerak", "shart", "haqida", "togrisida", "hamda", "boyicha", "hisoblanadi",
   "mumkin", "nazarda", "tutilgan", "boladi", "qilish", "qilinadi", "boyича", "boлган", "orqali", "hollarda", "asosida", "tomonidan",
 ]);
-/** O'zbek matnini normallaydi (oʻ→o, gʻ→g, apostroflar olib tashlanadi) — mos tushishi uchun. */
-function norm(s: string): string {
-  return s
-    .toLowerCase()
+// O'zbek KIRILL → LOTIN transliteratsiyasi (kirill/lotin matnlarni bir fazoда
+// solishtirish uchun — so'rov qaysi alifboда bo'lsa ham moddага mos tushadi).
+const CYR: Record<string, string> = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z", и: "i",
+  й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t",
+  у: "u", ф: "f", х: "x", ц: "ts", ч: "ch", ш: "sh", щ: "sh", ъ: "", ы: "i", ь: "",
+  э: "e", ю: "yu", я: "ya", ў: "o", қ: "q", ғ: "g", ҳ: "h",
+};
+function translit(s: string): string {
+  let out = "";
+  for (const ch of s) out += ch in CYR ? CYR[ch] : ch;
+  return out;
+}
+/** O'zbek matnini normallaydi (kirill→lotin, oʻ→o, gʻ→g, apostroflar) — mos tushishi uchun. */
+export function normUz(s: string): string {
+  return translit(s.toLowerCase())
     .replace(/[ʻʼ'`']/g, "")
     .replace(/oʻ|o'/g, "o")
-    .replace(/gʻ|g'/g, "g")
-    .replace(/[şsh]/g, "sh");
+    .replace(/gʻ|g'/g, "g");
 }
+const norm = normUz;
 function tokenize(s: string): string[] {
   return (norm(s).match(/[\p{L}\p{N}]{4,}/gu) ?? []).filter((w) => !STOP.has(w));
 }
