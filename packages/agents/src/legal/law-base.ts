@@ -8,7 +8,7 @@ import lawDataRaw from "./law-data.json";
 
 export interface LawArticle {
   code: string;
-  n: number;
+  n: number | string; // modda raqami (son) yoki Plenum band kaliti ("163-4")
   title: string;
   text: string;
 }
@@ -23,6 +23,7 @@ const CODE_NAMES: Record<string, string> = {
   SK: "O'zbekiston Respublikasi Soliq kodeksi",
   XSHB: "O'zbekiston Respublikasining «Xo'jalik yurituvchi subyektlar faoliyatining shartnomaviy-huquqiy bazasi to'g'risida»gi Qonuni",
   IJRO: "O'zbekiston Respublikasining «Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to'g'risida»gi Qonuni",
+  PLENUM: "O'zbekiston Respublikasi Oliy sudi Plenumi qarori",
 };
 
 export const LAW_BASE: LawArticle[] = (lawDataRaw as { code: string; n: number; title: string; text: string }[]).map((a) => ({
@@ -144,43 +145,61 @@ export function anchorArticles(query: string): LawArticle[] {
   return out;
 }
 
-/** So'rovga eng mos moddalarни topadi (BM25-lite: tf-idf + sarlavha ustuvorligi). */
-export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
+// Ichki skorlash (BM25-lite: tf-idf + sarlavha ustuvorligi + soha-kodeks boost).
+function scoreAll(query: string): { a: LawArticle; score: number; codeKey: string }[] {
   const qTerms = [...new Set(tokenize(query).map(stem))];
   if (qTerms.length === 0) return [];
-  const boostCodes = domainCodes(query); // so'rov mavzusiga mos kodekslar
-  const scored = LAW_BASE.map((a, i) => {
+  const boostCodes = domainCodes(query);
+  return LAW_BASE.map((a, i) => {
     const d = DOC_TOKENS[i]!;
     let score = 0;
     for (const w of qTerms) {
       const tf = d.text.filter((t) => t === w).length;
       if (tf > 0) score += idf(w) * (tf / (tf + 1.5));
-      if (d.title.has(w)) score += idf(w) * 2.5; // sarlavhada bo'lsa kuchli signal
+      if (d.title.has(w)) score += idf(w) * 2.5;
     }
-    if (score > 0 && boostCodes.has(d.codeKey)) score *= 1.6; // mos kodeksни kuchaytiramiz
-    return { a, score };
-  });
-  return scored
+    if (score > 0 && boostCodes.has(d.codeKey)) score *= 1.6;
+    return { a, score, codeKey: d.codeKey };
+  })
     .filter((s) => s.score > 0)
-    .sort((x, y) => y.score - x.score)
+    .sort((x, y) => y.score - x.score);
+}
+
+/** So'rovga eng mos MODDALARни topadi (Plenum qarorlari alohida — bu yerда emas). */
+export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
+  return scoreAll(query)
+    .filter((s) => s.codeKey !== "PLENUM")
     .slice(0, limit)
     .map((s) => s.a);
 }
 
-/** Topilган moddalarни prompt uchun matnға aylantiradi (ANIQ havola bilan). */
+/** So'rovga eng mos Oliy sud PLENUMI qarori bandlarини topadi (sud amaliyoti). */
+export function retrievePlenum(query: string, limit = 2): LawArticle[] {
+  return scoreAll(query)
+    .filter((s) => s.codeKey === "PLENUM")
+    .slice(0, limit)
+    .map((s) => s.a);
+}
+
+/** Topilган moddalar + sud amaliyotini prompt uchun matnға aylantiradi (ANIQ havola bilan). */
 export function lawContextText(query: string): string {
   const anchors = anchorArticles(query);
   const anchorKeys = new Set(anchors.map((a) => `${a.code}:${a.n}`));
   // Retrieval'дан anchor'lar takrorланmasin; qolganini to'ldiramiz.
   const extra = retrieveLawContext(query, 6).filter((a) => !anchorKeys.has(`${a.code}:${a.n}`)).slice(0, 4);
-  if (!anchors.length && !extra.length) return "";
-  const fmt = (a: LawArticle) => `- ${a.code}, ${a.n}-modda (${a.title}): ${a.text.slice(0, 700)}`;
+  const plenum = retrievePlenum(query, 2);
+  if (!anchors.length && !extra.length && !plenum.length) return "";
+  const fmtArt = (a: LawArticle) => `- ${a.code}, ${a.n}-modda (${a.title}): ${a.text.slice(0, 700)}`;
+  const fmtPle = (a: LawArticle) => `- ${a.title}: ${a.text.slice(0, 650)}`;
   let out = "\n\nRASMIY MODDA BAZASI (lex.uz). Hujjat/tahlilда FAQAT quyidagi moddalarга aniq raqam bilan havola qil; ro'yxatда yo'q modda RAQAMINI umuman yozma (o'ylab topsang — hujjat sudда rad etiladi):";
   if (anchors.length) {
-    out += `\n\n★ ASOSIY MODDALAR (bu tur hujjatда ODATDA shular keltiriladi — "Qonuniy asoslar" bo'limида avvalо shulardan foydalan):\n${anchors.map(fmt).join("\n")}`;
+    out += `\n\n★ ASOSIY MODDALAR (bu tur hujjatда ODATDA shular keltiriladi — "Qonuniy asoslar" bo'limида avvalо shulardan foydalan):\n${anchors.map(fmtArt).join("\n")}`;
   }
   if (extra.length) {
-    out += `\n\nQO'SHIMCHA MOS MODDALAR (agar ishga aloqador bo'lsa):\n${extra.map(fmt).join("\n")}`;
+    out += `\n\nQO'SHIMCHA MOS MODDALAR (agar ishga aloqador bo'lsa):\n${extra.map(fmtArt).join("\n")}`;
+  }
+  if (plenum.length) {
+    out += `\n\nSUD AMALIYOTI — Oliy sud Plenumi qarorlari (huquqiy asosni kuchaytirish uchun havola qilsa bo'ladi, masalan "Oliy sud Plenumining [son]-sonli qarori [band]-bandiga muvofiq"):\n${plenum.map(fmtPle).join("\n")}`;
   }
   return out;
 }
