@@ -29,19 +29,54 @@ export const LAW_BASE: LawArticle[] = (lawDataRaw as { code: string; n: number; 
   text: a.text,
 }));
 
-const STOP = new Set(["uchun", "yoki", "ular", "ushbu", "bilan", "boʻlsa", "bolsa", "kerak", "shart", "haqida", "toʻgʻrisida", "togrisida", "hamda", "boʻyicha", "hisoblanadi", "mumkin", "nazarda", "tutilgan"]);
+const STOP = new Set([
+  "uchun", "yoki", "ular", "ushbu", "bilan", "bolsa", "kerak", "shart", "haqida", "togrisida", "hamda", "boyicha", "hisoblanadi",
+  "mumkin", "nazarda", "tutilgan", "boladi", "qilish", "qilinadi", "boyича", "boлган", "orqali", "hollarda", "asosida", "tomonidan",
+]);
+/** O'zbek matnini normallaydi (oʻ→o, gʻ→g, apostroflar olib tashlanadi) — mos tushishi uchun. */
+function norm(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[ʻʼ'`']/g, "")
+    .replace(/oʻ|o'/g, "o")
+    .replace(/gʻ|g'/g, "g")
+    .replace(/[şsh]/g, "sh");
+}
 function tokenize(s: string): string[] {
-  return (s.toLowerCase().match(/[\p{L}\p{N}]{4,}/gu) ?? []).filter((w) => !STOP.has(w));
+  return (norm(s).match(/[\p{L}\p{N}]{4,}/gu) ?? []).filter((w) => !STOP.has(w));
+}
+// Poyasini olish (o'zbek qo'shimchalarини qisqartirish) — "shartnomasi"≈"shartnoma".
+function stem(w: string): string {
+  return w.replace(/(larining|lariga|lardan|larida|siga|sidan|sining|ning|larni|lari|ini|iga|dan|dagi|ni|ga|da|si|lar)$/g, "");
 }
 
-/** So'rovga eng mos moddalarни topadi (kalit-so'z ustma-ust; keyinchalik embedding). */
+// IDF (bir marта hisoblanadi) — kam uchraydigan so'z og'irroq.
+const DF = new Map<string, number>();
+for (const a of LAW_BASE) {
+  const seen = new Set(tokenize(a.title + " " + a.text).map(stem));
+  for (const w of seen) DF.set(w, (DF.get(w) ?? 0) + 1);
+}
+const N = LAW_BASE.length;
+const idf = (w: string) => Math.log(1 + N / (1 + (DF.get(w) ?? 0)));
+
+// Har modda uchun tokenlarni oldindan tayyorlaymiz.
+const DOC_TOKENS: { title: Set<string>; text: string[] }[] = LAW_BASE.map((a) => ({
+  title: new Set(tokenize(a.title).map(stem)),
+  text: tokenize(a.text).map(stem),
+}));
+
+/** So'rovga eng mos moddalarни topadi (BM25-lite: tf-idf + sarlavha ustuvorligi). */
 export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
-  const q = new Set(tokenize(query));
-  if (q.size === 0) return [];
-  const scored = LAW_BASE.map((a) => {
+  const qTerms = [...new Set(tokenize(query).map(stem))];
+  if (qTerms.length === 0) return [];
+  const scored = LAW_BASE.map((a, i) => {
+    const d = DOC_TOKENS[i]!;
     let score = 0;
-    for (const w of tokenize(a.text)) if (q.has(w)) score++;
-    for (const w of tokenize(a.title)) if (q.has(w)) score += 3; // sarlavha muhimroq
+    for (const w of qTerms) {
+      const tf = d.text.filter((t) => t === w).length;
+      if (tf > 0) score += idf(w) * (tf / (tf + 1.5));
+      if (d.title.has(w)) score += idf(w) * 2.5; // sarlavhada bo'lsa kuchli signal
+    }
     return { a, score };
   });
   return scored
