@@ -1,6 +1,7 @@
 import { type Locale } from "@lex/shared";
 import { generateText, streamText } from "ai";
 import { getModel } from "../llm";
+import { lawContextText } from "./law-base";
 
 /**
  * Studio HUJJAT-fokusли AI (chat'дан farqi: DB emas, ochiq HUJJAT konteksti).
@@ -71,7 +72,8 @@ export async function studioReply(opts: { locale: Locale; instruction: string; d
     const prompt = doc
       ? `Hujjat / Document:\n"""\n${doc.slice(0, 12000)}\n"""\n\nVazifa / Task: ${opts.instruction}`
       : opts.instruction;
-    const { text } = await generateText({ model, system: buildSystem(opts.locale), prompt });
+    const sys = buildSystem(opts.locale) + lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
+    const { text } = await generateText({ model, system: sys, prompt });
     return text.trim();
   } catch {
     return opts.locale === "ru" ? "Ошибка AI. Повторите." : opts.locale === "en" ? "AI error. Try again." : "AI xatosi. Qayta urinib ko'ring.";
@@ -99,6 +101,7 @@ export function studioReplyStream(opts: { locale: Locale; instruction: string; d
   const prompt = doc
     ? `Hujjat / Document:\n"""\n${doc.slice(0, 12000)}\n"""\n\nVazifa / Task: ${opts.instruction}`
     : opts.instruction;
-  const result = streamText({ model, system: buildSystem(opts.locale), prompt });
+  const sys = buildSystem(opts.locale) + lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
+  const result = streamText({ model, system: sys, prompt });
   return result.textStream;
 }
