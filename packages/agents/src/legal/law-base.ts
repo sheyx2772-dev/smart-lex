@@ -98,6 +98,52 @@ function domainCodes(query: string): Set<string> {
   return out;
 }
 
+// Original kod+raqam bo'yicha modda qidirish (anchor uchun).
+const BY_KEY = new Map<string, LawArticle>();
+LAW_BASE.forEach((a, i) => BY_KEY.set(`${RAW[i]!.code}:${a.n}`, a));
+
+/**
+ * KANONIK (anchor) moddalar — real yuristlar hujjat turiga qarab HAR DOIM
+ * keltiradigan asosiy moddalar. Kalit-so'z retrieval ularni bosib qo'ymasin
+ * (masalan "tovar yetkazib berish" davlat-ehtiyoj moddalarini chiqarib, asl
+ * qarz-undiruv moddalarini yo'qotmasin). Hujjat mavzusi so'rovдan aniqlanadi.
+ */
+const ANCHORS: { re: RegExp; refs: [string, number][] }[] = [
+  {
+    // Qarz/penya undirish (da'vo arizasi, talabnoma, pretenziya)
+    re: /qarz|penya|neustoyka|to.?lov|undir|talabnoma|pretenz|debitor|qarzdorlik|majburiyatni bajarma/i,
+    refs: [
+      ["FK-1", 236], // Majburiyatlar lozim darajada bajarilishi
+      ["FK-1", 237], // Bir tomonlama bosh tortishga yo'l qo'yilmaydi
+      ["FK-1", 324], // Qarzdorning zararni to'lash majburiyati
+      ["FK-1", 327], // Pul majburiyatini bajarmaganlik uchun javobgarlik
+      ["XSHB", 24], // Shartnomani bajarmaganlik uchun javobgarlik
+      ["XSHB", 25], // Yetkazib berish/to'lov muddatini kechiktirish jarimasi
+    ],
+  },
+  {
+    // Ijro / xatlov (MIB shikoyati, ijro varaqasi)
+    re: /\bijro\b|xatlov|xatlab|majburiy ijro|ijrochi|hisobvaraq|ijro varaqa/i,
+    refs: [["IJRO", 47]], // Undiruvni pul mablag'lari va mol-mulkka qaratish
+  },
+];
+export function anchorArticles(query: string): LawArticle[] {
+  const out: LawArticle[] = [];
+  const seen = new Set<string>();
+  for (const a of ANCHORS) {
+    if (!a.re.test(query)) continue;
+    for (const [code, n] of a.refs) {
+      const key = `${code}:${n}`;
+      const art = BY_KEY.get(key);
+      if (art && !seen.has(key)) {
+        seen.add(key);
+        out.push(art);
+      }
+    }
+  }
+  return out;
+}
+
 /** So'rovga eng mos moddalarни topadi (BM25-lite: tf-idf + sarlavha ustuvorligi). */
 export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
   const qTerms = [...new Set(tokenize(query).map(stem))];
@@ -123,8 +169,18 @@ export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
 
 /** Topilган moddalarни prompt uchun matnға aylantiradi (ANIQ havola bilan). */
 export function lawContextText(query: string): string {
-  const arts = retrieveLawContext(query);
-  if (!arts.length) return "";
-  const body = arts.map((a) => `- ${a.code}, ${a.n}-modda (${a.title}): ${a.text}`).join("\n");
-  return `\n\nTOPILGAN ANIQ MODDALAR (rasmiy baza — lex.uz). Hujjat/tahlilда FAQAT shu moddalarга aniq raqam bilan havola qil; boshqa modda raqamini O'YLAB TOPMA:\n${body}`;
+  const anchors = anchorArticles(query);
+  const anchorKeys = new Set(anchors.map((a) => `${a.code}:${a.n}`));
+  // Retrieval'дан anchor'lar takrorланmasin; qolganini to'ldiramiz.
+  const extra = retrieveLawContext(query, 6).filter((a) => !anchorKeys.has(`${a.code}:${a.n}`)).slice(0, 4);
+  if (!anchors.length && !extra.length) return "";
+  const fmt = (a: LawArticle) => `- ${a.code}, ${a.n}-modda (${a.title}): ${a.text.slice(0, 700)}`;
+  let out = "\n\nRASMIY MODDA BAZASI (lex.uz). Hujjat/tahlilда FAQAT quyidagi moddalarга aniq raqam bilan havola qil; ro'yxatда yo'q modda RAQAMINI umuman yozma (o'ylab topsang — hujjat sudда rad etiladi):";
+  if (anchors.length) {
+    out += `\n\n★ ASOSIY MODDALAR (bu tur hujjatда ODATDA shular keltiriladi — "Qonuniy asoslar" bo'limида avvalо shulardan foydalan):\n${anchors.map(fmt).join("\n")}`;
+  }
+  if (extra.length) {
+    out += `\n\nQO'SHIMCHA MOS MODDALAR (agar ishga aloqador bo'lsa):\n${extra.map(fmt).join("\n")}`;
+  }
+  return out;
 }
