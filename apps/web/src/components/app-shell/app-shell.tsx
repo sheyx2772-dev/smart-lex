@@ -3,6 +3,7 @@
 import {
   Bell,
   CreditCard,
+  Files,
   Gavel,
   GearSix,
   type Icon,
@@ -32,6 +33,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     items: [
       { href: "/agent", key: "agent", icon: Robot },
       { href: "/studio", key: "studio", icon: NotePencil },
+      { href: "/documents", key: "documents", icon: Files },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
     ],
   },
