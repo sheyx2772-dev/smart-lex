@@ -84,7 +84,14 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
 
     // Tashkilotni STIR bo'yicha aniqlash (B2B — foydalanuvchi yuridik shaxsni ifodalashi kerak).
     const legalTin = primaryLegalTin(id);
-    if (!legalTin) return c.redirect(loginError("no_legal_entity", origin));
+    if (!legalTin) {
+      // DIAGNOSTIKA: nega STIR topilmadi — One-ID qaysi maydonlarni qaytardi?
+      console.warn(
+        `[oneid:login] no_legal_entity pin=${pin} auth=${id.auth_method ?? "?"} ` +
+          `legal_info=${JSON.stringify(id.legal_info ?? null)} pkcs_legal_tin=${id.pkcs_legal_tin ?? "?"}`,
+      );
+      return c.redirect(loginError("no_legal_entity", origin));
+    }
 
     const fullName = id.full_name?.trim() || [id.sur_name, id.first_name, id.mid_name].filter(Boolean).join(" ") || pin;
     let tenant = await findTenantByTin(legalTin);
@@ -99,12 +106,20 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
       // autoProvision o'chirilganda eski xatti-harakat — rad etish.
       if (!env.oneid.autoProvision) return c.redirect(loginError("tenant_not_registered", origin));
       const orgName = primaryLegalName(id) || `Tashkilot ${legalTin}`;
-      const created = await createTenantWithOwner({
-        tin: legalTin,
-        name: orgName,
-        owner: { pin, sub: id.user_id ?? pin, fullName, email: id.user_id ?? "", locale: "uz" },
-      });
-      if (!created) return c.redirect(loginError("exchange_failed", origin));
+      let created: Awaited<ReturnType<typeof createTenantWithOwner>> = null;
+      try {
+        created = await createTenantWithOwner({
+          tin: legalTin,
+          name: orgName,
+          owner: { pin, sub: id.user_id ?? pin, fullName, email: id.user_id ?? "", locale: "uz" },
+        });
+      } catch (e) {
+        console.error(`[oneid:login] createTenantWithOwner XATO tin=${legalTin} org="${orgName}":`, (e as Error)?.message ?? e);
+      }
+      if (!created) {
+        console.warn(`[oneid:login] exchange_failed (tenant yaratilmadi) tin=${legalTin} org="${orgName}" pin=${pin}`);
+        return c.redirect(loginError("exchange_failed", origin));
+      }
       tenant = { id: created.tenant.id, defaultLocale: created.tenant.defaultLocale };
       user = created.user;
     } else {
@@ -125,7 +140,10 @@ oneIdRoutes.get("/oneid/callback", async (c) => {
         });
       }
     }
-    if (!user) return c.redirect(loginError("user_not_found", origin));
+    if (!user) {
+      console.warn(`[oneid:login] user_not_found tin=${legalTin} pin=${pin} autoProvision=${env.oneid.autoProvision}`);
+      return c.redirect(loginError("user_not_found", origin));
+    }
 
     // Kirish usulini audit'ga yozamiz — huquqiy platforma uchun (kim, qanday: E-IMZO/ERI/Mobile-ID).
     try {
