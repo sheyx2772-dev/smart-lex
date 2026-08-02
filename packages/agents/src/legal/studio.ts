@@ -2,6 +2,7 @@ import { type Locale } from "@lex/shared";
 import { generateText, streamText } from "ai";
 import { getModel } from "../llm";
 import { lawContextText } from "./law-base";
+import { docStructureHint } from "./doc-structures";
 
 /**
  * Studio HUJJAT-fokusли AI (chat'дан farqi: DB emas, ochiq HUJJAT konteksti).
@@ -97,7 +98,10 @@ export async function studioReply(opts: { locale: Locale; instruction: string; d
     const prompt = doc
       ? `Hujjat / Document:\n"""\n${doc.slice(0, 12000)}\n"""\n\nVazifa / Task: ${opts.instruction}`
       : opts.instruction;
-    const sys = buildSystem(opts.locale) + lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
+    const sys =
+      buildSystem(opts.locale) +
+      docStructureHint(opts.instruction, opts.locale) +
+      lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
     const { text } = await generateText({ model, system: sys, prompt });
     return text.trim();
   } catch {
@@ -126,7 +130,10 @@ export function studioReplyStream(opts: { locale: Locale; instruction: string; d
   const prompt = doc
     ? `Hujjat / Document:\n"""\n${doc.slice(0, 12000)}\n"""\n\nVazifa / Task: ${opts.instruction}`
     : opts.instruction;
-  const sys = buildSystem(opts.locale) + lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
+  const sys =
+    buildSystem(opts.locale) +
+    docStructureHint(opts.instruction, opts.locale) +
+    lawContextText(`${opts.instruction} ${doc.slice(0, 2500)}`);
   const result = streamText({ model, system: sys, prompt });
   return result.textStream;
 }

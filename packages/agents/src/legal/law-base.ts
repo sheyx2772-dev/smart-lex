@@ -21,6 +21,8 @@ const CODE_NAMES: Record<string, string> = {
   FPK: "O'zbekiston Respublikasi Fuqarolik protsessual kodeksi",
   MK: "O'zbekiston Respublikasi Mehnat kodeksi",
   SK: "O'zbekiston Respublikasi Soliq kodeksi",
+  XSHB: "O'zbekiston Respublikasining «Xo'jalik yurituvchi subyektlar faoliyatining shartnomaviy-huquqiy bazasi to'g'risida»gi Qonuni",
+  IJRO: "O'zbekiston Respublikasining «Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to'g'risida»gi Qonuni",
 };
 
 export const LAW_BASE: LawArticle[] = (lawDataRaw as { code: string; n: number; title: string; text: string }[]).map((a) => ({
@@ -71,6 +73,8 @@ const DOC_TOKENS: { title: Set<string>; text: string[]; codeKey: string }[] = LA
 // Soha aniqlash — so'rov mavzusiga qarab mos kodeksni kuchaytiramiz.
 const DOMAINS: { re: RegExp; codes: string[] }[] = [
   { re: /shartnoma|ijara|sotib|sotish|xarid|qarz|majburiyat|penya|neustoyka|zarar|mulk|meros|garov|renta|pudrat|kelishuv|hadya|omonat/i, codes: ["FK-1", "FK-2"] },
+  { re: /shartnoma|qarz|penya|neustoyka|yetkazib ber|talabnoma|pretenz|xo.?jalik shartnoma|tovar|jarima|majburiyatni bajarma/i, codes: ["XSHB"] },
+  { re: /ijro|xatlov|xatlab|undiruv|majburiy ijro|ijrochi|hisobvaraq|mol-mulk|ijro varaqa|ijro hujjat|MIB|byuro/i, codes: ["IJRO"] },
   { re: /sud|da.?vo|apellyatsiya|kassatsiya|nazorat|arbitraj|hakam|ijro varaqa|xarajat|isbot|dalil/i, codes: ["IPK", "FPK"] },
   { re: /iqtisodiy|tadbirkor|xo.?jalik|korxona/i, codes: ["IPK"] },
   { re: /\bish\b|\bishga\b|\bishdan\b|xodim|mehnat|ta.?til|maosh|ish haqi|bo.?shatish|lavozim|\bshtat\b|intizom|smena|ish vaqti|nafaqa/i, codes: ["MK"] },
