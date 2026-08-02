@@ -295,6 +295,28 @@ const talabnomaDoc = () =>
   `<h3>OGOHLANTIRISH</h3><p>Ushbu talabnoma olingan kundan boshlab [Muddat] bank kuni ichida asosiy qarz summasi to'lanmasa, O'zbekiston Respublikasi amaldagi qonunchiligiga muvofiq qarzni majburiy tartibda undirish, sud xarajatlari va davlat bojini undirish bo'yicha iqtisodiy sudga da'vo arizasi kiritiladi. Bu holda Siz asosiy qarzdan tashqari davlat boji va barcha sud xarajatlarini ham to'lashga majbur bo'lasiz.</p>` +
   `<p><strong>Ilovalar:</strong><br>1. № [Shartnoma raqami] shartnoma nusxasi;<br>2. № [Faktura raqami] hisob-faktura nusxasi.</p>` +
   `<p>Direktor «[Kreditor nomi]» _________________ [Kreditor direktori]</p>`;
+const shikoyatDoc = () =>
+  `<h2 style="text-align:center">SHIKOYAT ARIZASI</h2>` +
+  `<p style="text-align:right">Reg. № [Chiquvchi raqam] · [Sana]</p>` +
+  `<p><strong>Kimdan:</strong> «[Kreditor nomi]»<br>Manzil: [Kreditor manzili] · STIR: [Kreditor STIR]</p>` +
+  `<p><strong>Kimga:</strong> [Organ nomi] boshlig'iga<br><em>(masalan: Majburiy ijro byurosining [Tuman] tuman bo'limi boshlig'iga)</em></p>` +
+  `<p>[Sud nomi]ning [Ajrim sanasi] dagi № [Ish raqami] iqtisodiy ishi bo'yicha da'voni ta'minlash to'g'risidagi ajrimi qabul qilingan. Ushbu ajrimga ko'ra, javobgar «[Qarzdor nomi]» (STIR: [Qarzdor STIR])ga xizmat ko'rsatuvchi tijorat banklardagi hisob raqamlarining chiqim qismiga jami [Jami summa] miqdorida xatlov solinishi belgilangan.</p>` +
+  `<h3>1. Holat</h3><p>1.1. Mazkur ajrim nusxasi «[Kreditor nomi]» tomonidan [Topshirilgan sana] da ijroga qaratish uchun tegishli organga topshirilgan. Biroq, bugungi kunga qadar javobgarning hisob raqamlaridan [Jami summa] miqdoridagi chiqim qismini xatlash choralari amalga oshirilmagan.</p>` +
+  `<h3>2. Huquqiy asos</h3><p>2.1. O'zbekiston Respublikasi Iqtisodiy protsessual kodeksining 98-moddasiga binoan, da'voni ta'minlash to'g'risidagi ajrim belgilangan tartibda darhol ijro etiladi.</p><p>2.2. «Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to'g'risida»gi Qonunning 47-moddasiga ko'ra, qarzdorda undiruvchining talablarini qanoatlantirish uchun yetarli pul mablag'lari bo'lmagan taqdirda, davlat ijrochisi qarzdorning hisobvaraqlaridagi chiqim qismiga qarzdorlik to'liq qoplangunga qadar xatlov soladi.</p><p>2.3. Ijrochilarning harakatsizligi tufayli javobgarning hisob raqamlaridagi mablag'lar xatlanmasdan qolib, bizning qonuniy manfaatlarimizga jiddiy zarar yetishi mumkin.</p>` +
+  `<h3 style="text-align:center">SIZDAN QUYIDAGILARNI SO'RAYMIZ:</h3><p>1) Ajrimni o'z vaqtida ijro etmagan xodimlarning harakatsizligi uchun tegishli intizomiy choralar ko'rilishini;<br>2) Ajrim talablarini darhol va to'liq ijro etib, javobgar «[Qarzdor nomi]»ning hisob raqamlaridan [Jami summa] miqdoridagi chiqim qismiga xatlov qo'yilishini ta'minlashni.</p>` +
+  `<p><strong>Ilova:</strong> [Sud nomi]ning [Ajrim sanasi] dagi № [Ish raqami] da'voni ta'minlash to'g'risidagi ajrim nusxasi.</p>` +
+  `<p>«[Kreditor nomi]»<br>Direktor [Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`;
+const murojaatDoc = () =>
+  `<h2 style="text-align:center">MUROJAAT</h2>` +
+  `<p style="text-align:right">Reg. № [Chiquvchi raqam] · [Sana]</p>` +
+  `<p><strong>Kimga:</strong> [Organ/mansabdor shaxs nomi va lavozimi]</p>` +
+  `<p><strong>Kimdan:</strong> «[Kreditor nomi]»<br>Manzil: [Kreditor manzili] · STIR: [Kreditor STIR] · Tel: [Kreditor telefoni]</p>` +
+  `<p>Hurmatli [Murojaat qilinuvchi]!</p>` +
+  `<h3>1. Murojaat mohiyati</h3><p>[Murojaat qilinayotgan masalani aniq bayon eting — faktlar, sanalar, hujjat va summalar bilan.]</p>` +
+  `<h3>2. Huquqiy asos</h3><p>O'zbekiston Respublikasi Konstitutsiyasining 44-moddasiga ko'ra, har bir shaxsga o'z huquq va manfaatlarini himoya qilish kafolatlanadi. [Ishga tegishli qonun yoki kodeks moddalarini shu yerga kiriting.]</p>` +
+  `<h3>3. So'rov</h3><p>Yuqoridagilarga asosan, Sizdan [aniq so'rov yoki talabni bayon eting]ni so'raymiz.</p>` +
+  `<p><strong>Ilova:</strong> [tegishli hujjatlar nusxasi].</p>` +
+  `<p>Hurmat bilan,<br>«[Kreditor nomi]»<br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`;
 
 const CATALOG: Template[] = [
   // ── Undiruv (qarz undirish hujjatlari) ──
@@ -342,6 +364,15 @@ const CATALOG: Template[] = [
     desc: { uz: "Kelib tushgan xat yoki da'voga rasmiy javob", ru: "Официальный ответ на входящее письмо или претензию" },
     kw: "javob xati pismo otvet rasmiy xat",
     html: `<h2 style="text-align:center">JAVOB XATI</h2><p style="text-align:right">[Sana] · № [Chiquvchi raqam]</p><p><strong>Kimga:</strong> «[Qarzdor nomi]»<br><strong>Manzil:</strong> [Qarzdor manzili]</p><p>Hurmatli [Qarzdor direktori]!</p><p>Sizning [Kiruvchi sana] dagi № [Kiruvchi raqam] xatingiz (murojaatingiz) ko'rib chiqildi. Bayon etilgan masala yuzasidan quyidagilarni ma'lum qilamiz:</p><p>[Javob mazmunini shu yerga batafsil yozing — faktlar, huquqiy asos, tomonning pozitsiyasi va takliflar]</p><p>Bildirilgan pozitsiya O'zbekiston Respublikasi amaldagi qonunchiligiga asoslanadi. Qo'shimcha savollar yuzasidan biz bilan bog'lanishingizni so'raymiz.</p><p>Hurmat bilan,<br>«[Kreditor nomi]»<br>[Kreditor direktori] _________________&nbsp;&nbsp; M.O'.</p>`,
+  },
+  {
+    key: "shikoyat",
+    cat: "collection",
+    icon: WarningCircle,
+    title: { uz: "Shikoyat (MIB)", ru: "Жалоба (БПИ)" },
+    desc: { uz: "Majburiy ijro byurosi harakatsizligi ustidan shikoyat", ru: "Жалоба на бездействие Бюро принудительного исполнения" },
+    kw: "shikoyat jaloba mib majburiy ijro xatlov ijrochi bezdeystvie",
+    html: shikoyatDoc(),
   },
   // ── Shartnomalar ──
   {
@@ -507,6 +538,15 @@ const CATALOG: Template[] = [
     html: `<h2 style="text-align:center">KO'P TOMONLAMA SHARTNOMA № [Shartnoma raqami]</h2><p style="text-align:center">[Shahar] sh.&nbsp;&nbsp;&nbsp;[Sana]</p><p>Quyidagi Tomonlar:<br>1) «[Kreditor nomi]» (STIR: [Kreditor STIR]), [Kreditor direktori] shaxsida;<br>2) «[Qarzdor nomi]» (STIR: [Qarzdor STIR]), [Qarzdor direktori] shaxsida;<br>3) «[Uchinchi tomon]» (STIR: [Uchinchi tomon STIR]), [Uchinchi tomon rahbari] shaxsida —<br>birgalikda «Tomonlar» deb ataluvchi, quyidagilar to'g'risida ushbu shartnomani tuzdilar:</p><h3>1. SHARTNOMA PREDMETI</h3><p>1.1. Tomonlar [Hamkorlik predmeti] bo'yicha birgalikda harakat qilish to'g'risida kelishdilar. Umumiy qiymat (yoki hissalar): <strong>[Jami summa]</strong>.</p><h3>2. HAR BIR TOMONNING MAJBURIYATLARI</h3><p>2.1. Tomon 1: [1-tomon majburiyati].</p><p>2.2. Tomon 2: [2-tomon majburiyati].</p><p>2.3. Tomon 3: [3-tomon majburiyati].</p><h3>3. TOMONLARNING JAVOBGARLIGI</h3><p>3.1. Majburiyatni buzgan Tomon boshqa Tomonlarga yetkazilgan real zararni O'zbekiston Respublikasi Fuqarolik kodeksiga muvofiq qoplaydi.</p><h3>4. NIZOLARNI HAL QILISH</h3><p>4.1. Nizolar muzokara va sudgacha (pretenziya) tartibida hal etiladi; kelishuvga erishilmasa, nizo Iqtisodiy protsessual kodeksga muvofiq iqtisodiy sudda ko'rib chiqiladi.</p><h3>5. YAKUNIY QOIDALAR</h3><p>5.1. Shartnoma Tomonlar soniga teng nusxada, har biri teng yuridik kuchga ega holda tuzildi.</p><p>5.2. O'zgartirishlar barcha Tomonlar imzolagan yozma kelishuv bilan kiritiladi.</p><p><strong>Tomon 1:</strong> «[Kreditor nomi]» _________________&nbsp; M.O'.<br><strong>Tomon 2:</strong> «[Qarzdor nomi]» _________________&nbsp; M.O'.<br><strong>Tomon 3:</strong> «[Uchinchi tomon]» _________________&nbsp; M.O'.</p>`,
   },
   // ── Boshqa hujjatlar ──
+  {
+    key: "murojaat",
+    cat: "other",
+    icon: Receipt,
+    title: { uz: "Murojaat / Ariza", ru: "Обращение / Заявление" },
+    desc: { uz: "Davlat organi yoki mansabdor shaxsga rasmiy murojaat", ru: "Официальное обращение в госорган или к должностному лицу" },
+    kw: "murojaat ariza obrashenie zayavlenie rasmiy xat organ",
+    html: murojaatDoc(),
+  },
   {
     key: "ishonchnoma",
     cat: "other",
