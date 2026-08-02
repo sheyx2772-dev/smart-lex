@@ -199,7 +199,7 @@ export function lawContextText(query: string): string {
     out += `\n\nQO'SHIMCHA MOS MODDALAR (agar ishga aloqador bo'lsa):\n${extra.map(fmtArt).join("\n")}`;
   }
   if (plenum.length) {
-    out += `\n\nSUD AMALIYOTI — Oliy sud Plenumi qarorlari (huquqiy asosni kuchaytirish uchun havola qilsa bo'ladi, masalan "Oliy sud Plenumining [son]-sonli qarori [band]-bandiga muvofiq"):\n${plenum.map(fmtPle).join("\n")}`;
+    out += `\n\nSUD AMALIYOTI — Oliy sud Plenumi qarorlari. Hujjatning "Qonuniy asoslar" bo'limида modda iqtiboslaridan KEYIN quyidagi tegishli Plenum bandiga ham havola qil (real sud hujjatlari shunday — huquqiy asosni kuchaytiradi), masalan "O'zbekiston Respublikasi Oliy sudi Plenumining [son]-sonli qarori [band]-bandiga muvofiq, ...":\n${plenum.map(fmtPle).join("\n")}`;
   }
   return out;
 }
