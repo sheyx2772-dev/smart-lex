@@ -73,7 +73,7 @@ const DOMAINS: { re: RegExp; codes: string[] }[] = [
   { re: /shartnoma|ijara|sotib|sotish|xarid|qarz|majburiyat|penya|neustoyka|zarar|mulk|meros|garov|renta|pudrat|kelishuv|hadya|omonat/i, codes: ["FK-1", "FK-2"] },
   { re: /sud|da.?vo|apellyatsiya|kassatsiya|nazorat|arbitraj|hakam|ijro varaqa|xarajat|isbot|dalil/i, codes: ["IPK", "FPK"] },
   { re: /iqtisodiy|tadbirkor|xo.?jalik|korxona/i, codes: ["IPK"] },
-  { re: /ish\b|xodim|mehnat|ta.?til|maosh|ish haqi|bo.?shat|lavozim|shtat|intizom|smena|ish vaqti/i, codes: ["MK"] },
+  { re: /\bish\b|\bishga\b|\bishdan\b|xodim|mehnat|ta.?til|maosh|ish haqi|bo.?shatish|lavozim|\bshtat\b|intizom|smena|ish vaqti|nafaqa/i, codes: ["MK"] },
   { re: /soliq|qqs|qo.?shilgan qiymat|aksiz|foyda solig|davlat boji|deklaratsiya/i, codes: ["SK", "IPK"] },
 ];
 function domainCodes(query: string): Set<string> {
