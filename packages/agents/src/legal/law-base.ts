@@ -60,16 +60,33 @@ for (const a of LAW_BASE) {
 const N = LAW_BASE.length;
 const idf = (w: string) => Math.log(1 + N / (1 + (DF.get(w) ?? 0)));
 
-// Har modda uchun tokenlarni oldindan tayyorlaymiz.
-const DOC_TOKENS: { title: Set<string>; text: string[] }[] = LAW_BASE.map((a) => ({
+// Har modda uchun tokenlarni + kodeks-kalitini oldindan tayyorlaymiz.
+const RAW = lawDataRaw as { code: string; n: number; title: string; text: string }[];
+const DOC_TOKENS: { title: Set<string>; text: string[]; codeKey: string }[] = LAW_BASE.map((a, i) => ({
   title: new Set(tokenize(a.title).map(stem)),
   text: tokenize(a.text).map(stem),
+  codeKey: RAW[i]!.code,
 }));
+
+// Soha aniqlash — so'rov mavzusiga qarab mos kodeksni kuchaytiramiz.
+const DOMAINS: { re: RegExp; codes: string[] }[] = [
+  { re: /shartnoma|ijara|sotib|sotish|xarid|qarz|majburiyat|penya|neustoyka|zarar|mulk|meros|garov|renta|pudrat|kelishuv|hadya|omonat/i, codes: ["FK-1", "FK-2"] },
+  { re: /sud|da.?vo|apellyatsiya|kassatsiya|nazorat|arbitraj|hakam|ijro varaqa|xarajat|isbot|dalil/i, codes: ["IPK", "FPK"] },
+  { re: /iqtisodiy|tadbirkor|xo.?jalik|korxona/i, codes: ["IPK"] },
+  { re: /ish\b|xodim|mehnat|ta.?til|maosh|ish haqi|bo.?shat|lavozim|shtat|intizom|smena|ish vaqti/i, codes: ["MK"] },
+  { re: /soliq|qqs|qo.?shilgan qiymat|aksiz|foyda solig|davlat boji|deklaratsiya/i, codes: ["SK", "IPK"] },
+];
+function domainCodes(query: string): Set<string> {
+  const out = new Set<string>();
+  for (const d of DOMAINS) if (d.re.test(query)) d.codes.forEach((c) => out.add(c));
+  return out;
+}
 
 /** So'rovga eng mos moddalarни topadi (BM25-lite: tf-idf + sarlavha ustuvorligi). */
 export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
   const qTerms = [...new Set(tokenize(query).map(stem))];
   if (qTerms.length === 0) return [];
+  const boostCodes = domainCodes(query); // so'rov mavzusiga mos kodekslar
   const scored = LAW_BASE.map((a, i) => {
     const d = DOC_TOKENS[i]!;
     let score = 0;
@@ -78,6 +95,7 @@ export function retrieveLawContext(query: string, limit = 5): LawArticle[] {
       if (tf > 0) score += idf(w) * (tf / (tf + 1.5));
       if (d.title.has(w)) score += idf(w) * 2.5; // sarlavhada bo'lsa kuchli signal
     }
+    if (score > 0 && boostCodes.has(d.codeKey)) score *= 1.6; // mos kodeksни kuchaytiramiz
     return { a, score };
   });
   return scored
