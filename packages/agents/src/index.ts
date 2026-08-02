@@ -7,4 +7,5 @@ export * from "./collection/reminder-text";
 export * from "./collection/decide";
 export * from "./chat/reply";
 export * from "./legal/studio";
+export * from "./legal/extract";
 export * from "./legal/agent";

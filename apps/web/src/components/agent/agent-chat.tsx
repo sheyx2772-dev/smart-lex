@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, CircleNotch, FileText, type Icon, MagnifyingGlass, Robot, SealCheck, Sparkle } from "@phosphor-icons/react";
+import { ArrowRight, CircleNotch, FileText, type Icon, MagnifyingGlass, Paperclip, Robot, SealCheck, Sparkle, X } from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 import { agentChat, type AgentStep } from "@/app/(app)/chat/actions";
+import { extractFileText, MAX_ATTACH_BYTES } from "@/lib/file-extract";
 import { cn } from "@/lib/utils";
 
 interface Msg {
@@ -20,7 +21,10 @@ export function AgentChat() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [attachments, setAttachments] = useState<{ name: string; text: string }[]>([]);
+  const [attaching, setAttaching] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const suggestions = ru
     ? ["Покажи 5 самых просроченных долгов", "Составь требование для крупнейшего должника", "Сколько всего непогашенного долга?"]
@@ -41,7 +45,8 @@ export function AgentChat() {
             : "tasdiqqa qo'ydi"
           : s.tool;
 
-  async function send(text: string) {
+  // context — biriktirilgan fayllar matni: AI'ga uzatiladi, lekin xabar puffagida ko'rinmaydi.
+  async function send(text: string, context?: string) {
     const q = text.trim();
     if (!q || loading) return;
     setInput("");
@@ -49,7 +54,10 @@ export function AgentChat() {
     setMessages(history);
     setLoading(true);
     try {
-      const res = await agentChat(history.map((m) => ({ role: m.role, content: m.content })));
+      const api = history.map((m, i) =>
+        i === history.length - 1 && context ? { role: m.role, content: `${m.content}\n\n${context}` } : { role: m.role, content: m.content },
+      );
+      const res = await agentChat(api);
       setMessages((m) => [...m, { role: "assistant", content: res.reply || (ru ? "Пустой ответ." : "Bo'sh javob."), steps: res.steps }]);
     } catch {
       setMessages((m) => [...m, { role: "assistant", content: ru ? "Ошибка. Повторите." : "Xato. Qayta urinib ko'ring." }]);
@@ -57,6 +65,34 @@ export function AgentChat() {
       setLoading(false);
       requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }));
     }
+  }
+
+  async function attachFiles(files: FileList | File[]) {
+    const list = Array.from(files).slice(0, 5);
+    if (!list.length || attaching) return;
+    setAttaching(true);
+    for (const file of list) {
+      if (file.size > MAX_ATTACH_BYTES) continue;
+      try {
+        const txt = (await extractFileText(file)).trim();
+        if (txt) setAttachments((a) => [...a, { name: file.name, text: txt }]);
+      } catch {
+        /* o'qib bo'lmadi — jimgina o'tkazamiz */
+      }
+    }
+    setAttaching(false);
+  }
+
+  function submitAgent() {
+    if (loading || attaching) return;
+    const hasAtt = attachments.length > 0;
+    if (!input.trim() && !hasAtt) return;
+    const base = input.trim() || (ru ? "Проанализируй прикреплённый документ." : "Biriktirilgan hujjatni tahlil qil.");
+    const names = attachments.map((a) => a.name).join(", ");
+    const visible = hasAtt ? `${base}\n📎 ${names}` : base;
+    const context = hasAtt ? attachments.map((a) => `[Fayl: ${a.name}]\n${a.text}`).join("\n\n") : undefined;
+    setAttachments([]);
+    send(visible, context);
   }
 
   return (
@@ -131,18 +167,63 @@ export function AgentChat() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          send(input);
+          submitAgent();
         }}
         className="shrink-0 border-t border-border pt-3"
       >
+        {(attachments.length > 0 || attaching) && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <span key={i} className="inline-flex max-w-[200px] items-center gap-1 rounded-md bg-primary-soft px-2 py-1 text-[11px] font-medium text-foreground">
+                <Paperclip className="size-3 shrink-0 text-primary" />
+                <span className="truncate">{a.name}</span>
+                <button type="button" onClick={() => setAttachments((x) => x.filter((_, j) => j !== i))} className="shrink-0 opacity-60 hover:opacity-100">
+                  <X className="size-3" />
+                </button>
+              </span>
+            ))}
+            {attaching && (
+              <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">
+                <CircleNotch className="size-3 animate-spin" /> {ru ? "Чтение…" : "O'qilmoqda…"}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 focus-within:border-primary/40">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.docx,.doc,.rtf,.html,.htm,.txt,.md,.csv,image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) attachFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={attaching || loading}
+            title={ru ? "Прикрепить (изображение, Word, PDF)" : "Biriktirish (rasm, Word, PDF)"}
+            className="grid size-9 shrink-0 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+          >
+            <Paperclip className="size-4" />
+          </button>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onPaste={(e) => {
+              const files = e.clipboardData?.files;
+              if (files && files.length) {
+                e.preventDefault();
+                attachFiles(files);
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                send(input);
+                submitAgent();
               }
             }}
             rows={1}
@@ -151,7 +232,7 @@ export function AgentChat() {
           />
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={(!input.trim() && attachments.length === 0) || loading || attaching}
             className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             <ArrowRight weight="bold" className="size-4" />

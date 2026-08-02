@@ -25,6 +25,7 @@ import {
   MagicWand,
   MagnifyingGlass,
   Megaphone,
+  Paperclip,
   Plus,
   Prohibit,
   Receipt,
@@ -214,10 +215,34 @@ function rtfToText(rtf: string): string {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
-/** Yuklangan fayldan tekis matn (docx/rtf/html/txt/md). */
+/** Faylni base64'ga (katta fayllar uchun bo'lak-bo'lak — stack toshmasin). */
+async function fileToBase64(file: File): Promise<string> {
+  const buf = new Uint8Array(await file.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+/** PDF/rasm → server (Gemini) orqali matn ajratish. */
+async function extractViaServer(file: File): Promise<string> {
+  const data = await fileToBase64(file);
+  const mimeType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+  const res = await fetch("/api/studio/extract", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ data, mimeType }),
+  });
+  if (!res.ok) throw new Error("extract");
+  const j = (await res.json()) as { data?: { text?: string } };
+  return String(j?.data?.text ?? "").trim();
+}
+/** Yuklangan fayldan tekis matn (docx/rtf/html/txt/md client'да; pdf/rasm serverда). */
 async function extractFileText(file: File): Promise<string> {
   const name = file.name.toLowerCase();
+  const mime = file.type || "";
   if (name.endsWith(".docx")) return extractDocx(await file.arrayBuffer());
+  if (mime === "application/pdf" || name.endsWith(".pdf") || mime.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|heic|heif)$/.test(name)) {
+    return extractViaServer(file);
+  }
   const raw = await file.text();
   if (name.endsWith(".html") || name.endsWith(".htm")) return plainText(raw);
   if (name.endsWith(".rtf")) return rtfToText(raw);
@@ -800,9 +825,13 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
   const [messages, setMessages] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  // Chatga biriktirilgan fayllar (rasm/PDF/Word) — matni AI kontekstiga tushadi.
+  const [attachments, setAttachments] = useState<{ name: string; text: string }[]>([]);
+  const [attaching, setAttaching] = useState(false);
   const editorRef = useRef<Editor | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const chatFileRef = useRef<HTMLInputElement>(null);
 
   // Versiyalar (hujjat tarixi) — snapshotlar, tiklash imkoni bilan.
   interface DocVersion {
@@ -886,6 +915,43 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
       setLoading(false);
       requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }));
     }
+  }
+
+  // Chatga fayl biriktirish: matn ajratiladi (docx/txt client'да, PDF/rasm serverда)
+  // va AI kontekstiga qo'shiladi. Foydalanuvchi rasm/Word/PDF yuborishi mumkin.
+  async function attachFiles(files: FileList | File[]) {
+    const list = Array.from(files).slice(0, 5);
+    if (!list.length || attaching) return;
+    setAttaching(true);
+    for (const file of list) {
+      if (file.size > 8 * 1024 * 1024) {
+        setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? `«${file.name}» слишком большой (макс. 8 МБ).` : `«${file.name}» juda katta (maks. 8 MB).` }]);
+        continue;
+      }
+      try {
+        const txt = (await extractFileText(file)).trim();
+        if (txt) setAttachments((a) => [...a, { name: file.name, text: txt }]);
+        else setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? `В «${file.name}» не найден текст.` : `«${file.name}»да matn topilmadi.` }]);
+      } catch {
+        setMessages((m) => [...m, { role: "ai", text: locale === "ru" ? `Не удалось прочитать «${file.name}».` : `«${file.name}»ни o'qib bo'lmadi.` }]);
+      }
+    }
+    setAttaching(false);
+  }
+
+  // Chatni yuborish: biriktirilgan fayllar matni + (bo'lsa) joriy hujjat AI kontekstiga.
+  function submitChat() {
+    if (loading || attaching) return;
+    const hasAtt = attachments.length > 0;
+    if (!input.trim() && !hasAtt) return;
+    const q = input.trim() || (locale === "ru" ? "Проанализируй прикреплённый документ." : "Biriktirilgan hujjatni tahlil qil.");
+    let docOverride: string | undefined;
+    if (hasAtt) {
+      const attachText = attachments.map((a) => `[Fayl: ${a.name}]\n${a.text}`).join("\n\n");
+      docOverride = attachText + (text.trim() ? `\n\n[Joriy hujjat]\n${text}` : "");
+      setAttachments([]);
+    }
+    ask(q, docOverride);
   }
 
   // Tez amallar — hujjat matni AI'ga kontekst sifatida (ask ichida) uzatiladi.
@@ -1371,18 +1437,64 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            ask(input);
+            submitChat();
           }}
           className="border-t border-border p-2.5"
         >
+          {/* Biriktirilgan fayllar (chip'lar) */}
+          {(attachments.length > 0 || attaching) && (
+            <div className="mb-1.5 flex flex-wrap gap-1.5">
+              {attachments.map((a, i) => (
+                <span key={i} className="inline-flex max-w-[180px] items-center gap-1 rounded-md bg-primary-soft px-2 py-1 text-[11px] font-medium text-foreground">
+                  <Paperclip className="size-3 shrink-0 text-primary" />
+                  <span className="truncate">{a.name}</span>
+                  <button type="button" onClick={() => setAttachments((x) => x.filter((_, j) => j !== i))} className="shrink-0 opacity-60 hover:opacity-100">
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+              {attaching && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-[11px] text-muted-foreground">
+                  <CircleNotch className="size-3 animate-spin" /> {locale === "ru" ? "Чтение…" : "O'qilmoqda…"}
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-end gap-2 rounded-xl border border-border bg-background p-1.5 focus-within:border-primary/40">
+            <input
+              ref={chatFileRef}
+              type="file"
+              accept=".pdf,.docx,.doc,.rtf,.html,.htm,.txt,.md,.csv,image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files?.length) attachFiles(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => chatFileRef.current?.click()}
+              disabled={attaching || loading}
+              title={locale === "ru" ? "Прикрепить (изображение, Word, PDF)" : "Biriktirish (rasm, Word, PDF)"}
+              className="grid size-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+            >
+              <Paperclip className="size-4" />
+            </button>
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onPaste={(e) => {
+                const files = e.clipboardData?.files;
+                if (files && files.length) {
+                  e.preventDefault();
+                  attachFiles(files);
+                }
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  ask(input);
+                  submitChat();
                 }
               }}
               rows={1}
@@ -1391,7 +1503,7 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
             />
             <button
               type="submit"
-              disabled={!input.trim() || loading}
+              disabled={(!input.trim() && attachments.length === 0) || loading || attaching}
               className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-40"
             >
               <ArrowRight weight="bold" className="size-4" />
