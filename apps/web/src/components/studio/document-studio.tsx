@@ -14,6 +14,7 @@ import {
   FileDoc,
   FileHtml,
   FilePdf,
+  FileXls,
   FileDashed,
   Gavel,
   Hammer,
@@ -876,6 +877,31 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
     setExportOpen(false);
     setTimeout(() => win.print(), 350);
   }
+  /** Excel (CSV) — hujjatdagi jadval(lar)ni, bo'lmasa matn qatorlarini CSV'ga (Excel ochadi). */
+  function exportExcel() {
+    const name = docName();
+    const div = document.createElement("div");
+    div.innerHTML = docHtml;
+    const esc = (s: string) => `"${s.replace(/"/g, '""')}"`;
+    const rows: string[] = [];
+    const tables = div.querySelectorAll("table");
+    if (tables.length) {
+      tables.forEach((tbl) => {
+        tbl.querySelectorAll("tr").forEach((tr) => {
+          const cells = Array.from(tr.querySelectorAll("th,td")).map((c) => esc((c.textContent ?? "").trim()));
+          rows.push(cells.join(","));
+        });
+        rows.push("");
+      });
+    } else {
+      (div.textContent ?? "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .forEach((l) => rows.push(esc(l)));
+    }
+    saveBlob(new Blob(["﻿" + rows.join("\r\n")], { type: "text/csv;charset=utf-8" }), `${name}.csv`);
+  }
 
   // Soha bo'yicha kuchli huquqiy tahlil — strukturaviy hisobot beruvchi promptlar.
   const QUICK: { label: Loc; prompt: Loc }[] = [
@@ -1104,6 +1130,9 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
                   </button>
                   <button onClick={exportPdf} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
                     <FilePdf weight="fill" className="size-4 text-red-500" /> {t("exportPdf")}
+                  </button>
+                  <button onClick={exportExcel} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
+                    <FileXls weight="fill" className="size-4 text-emerald-600" /> Excel (CSV)
                   </button>
                   <button onClick={exportHtml} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
                     <FileHtml weight="fill" className="size-4 text-orange-500" /> {t("exportHtml")}
