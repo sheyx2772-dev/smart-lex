@@ -453,6 +453,17 @@ function DetailBody({
   const a = AI_ACTION[detail.type] ?? AI_ACTION.other!;
   const AIcon = a.icon;
 
+  /** Hujjat matnini Studioga o'tkazadi (tahrirlash + AI tahlil uchun). */
+  function openInStudio() {
+    if (!body) return;
+    try {
+      sessionStorage.setItem("lex:studio-doc", JSON.stringify({ title: detail.title, html: body }));
+      window.location.href = "/studio?handoff=1";
+    } catch {
+      /* ignore */
+    }
+  }
+
   async function doSign() {
     if (signing) return;
     setSigning(true);
@@ -489,6 +500,14 @@ function DetailBody({
         <Link href={a.href} className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
           <AIcon weight="fill" className="size-4" /> {t(`ai.${a.cat}.action` as never)} <ArrowRight className="size-3.5" />
         </Link>
+        {body && (
+          <button
+            onClick={openInStudio}
+            className="ml-2 mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40"
+          >
+            <NotePencil weight="fill" className="size-4" /> {locale === "ru" ? "Открыть в Studio (ред. + анализ)" : "Studioda ochish (tahrirlash + tahlil)"}
+          </button>
+        )}
       </div>
 
       {/* E-IMZO */}
