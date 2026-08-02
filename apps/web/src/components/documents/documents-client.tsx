@@ -127,6 +127,7 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [connect, setConnect] = useState(false);
   const [didoxOpened, setDidoxOpened] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -163,7 +164,15 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
 
   async function sync() {
     setSyncing(true);
-    await syncDidox();
+    setSyncMsg(null);
+    const res = await syncDidox();
+    if (res && !res.success) {
+      setSyncMsg({ kind: "err", text: res.message || "Sinxronlash amalga oshmadi." });
+    } else {
+      const c = (res?.data ?? {}) as { documents?: number; invoices?: number; contractors?: number };
+      const added = (c.documents ?? 0) + (c.invoices ?? 0);
+      setSyncMsg({ kind: "ok", text: added > 0 ? `Didox: ${added} ta yozuv sinxronlandi.` : "Didox: yangi hujjat yo'q." });
+    }
     const d = await fetchDocuments({ page: 1, type, q });
     if (d) setData(d);
     setSyncing(false);
@@ -205,6 +214,20 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
           </Link>
         </div>
       </div>
+
+      {syncMsg && (
+        <div
+          className={cn(
+            "mb-3 flex items-start justify-between gap-3 rounded-lg border px-3.5 py-2.5 text-sm",
+            syncMsg.kind === "err" ? "border-danger/30 bg-danger-soft text-danger" : "border-success/30 bg-success-soft text-success",
+          )}
+        >
+          <span>{syncMsg.text}</span>
+          <button onClick={() => setSyncMsg(null)} className="shrink-0 opacity-60 hover:opacity-100">
+            <X className="size-4" />
+          </button>
+        </div>
+      )}
 
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[184px_1fr]">
         {/* Papkalar (Didox yon paneli) */}

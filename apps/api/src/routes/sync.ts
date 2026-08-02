@@ -21,8 +21,22 @@ syncRoutes.post("/integrations/sync", async (c) => {
   const [tenant] = await withTenant(tenantId, (tx) => tx.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1));
   if (!tenant) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
 
-  const source = createDataSource(tenant.type);
-  const snap = await source.fetchSnapshot();
+  // Didox user-key AVVAL tenant sozlamasidan (har firma o'z kaliti), aks holda global env.
+  const settings = (tenant.settings ?? {}) as Record<string, unknown>;
+  const integrations = (settings.integrations ?? {}) as Record<string, string>;
+  const source = createDataSource(tenant.type, { userKey: integrations.didoxToken });
+
+  let snap;
+  try {
+    snap = await source.fetchSnapshot();
+  } catch (err) {
+    // Didox 401 / "Invalid user key" → tushunarli "qayta ulaning" xabari (500 emas).
+    const msg = String((err as { message?: unknown })?.message ?? err).toLowerCase();
+    if (msg.includes("401") || msg.includes("invalid user key") || msg.includes("unauthorized")) {
+      return c.json(fail(ERROR_CODE.UNAUTHORIZED, "integrations.didox_reconnect", locale), 400);
+    }
+    throw err;
+  }
 
   const counts = await withTenant(tenantId, async (tx) => {
     // 1) Kontragentlar (STIR bo'yicha, takrorlanmaydi).

@@ -15,14 +15,15 @@ export { BankMockDataSource } from "./bank.mock";
  * - bank: bank kredit reyestri (hozircha mock).
  * Interfeys o'zgarmaydi — real token kelganda faqat adapter almashadi (SMS/Groq patterni).
  */
-export function createDataSource(tenantType: TenantType): DataSource {
+export function createDataSource(tenantType: TenantType, opts?: { userKey?: string }): DataSource {
   if (tenantType === "bank") return new BankMockDataSource();
 
   // Didox oilasi (company / marketplace / government).
   // REAL adapter uchun ikkalasi ham kerak: partner token + user-key (ECP login natijasi).
-  // user-key hozircha env orqali; keyinchalik har tenant sozlamasidan (E-IMZO login).
+  // user-key AVVAL tenant sozlamasidan (har firma o'z Didox kaliti — E-IMZO login), aks
+  // holda global env (demo). Shu tufayli har tenant o'z hujjatlarini ko'radi.
   const partnerToken = process.env.DIDOX_PARTNER_TOKEN;
-  const userKey = process.env.DIDOX_USER_KEY;
+  const userKey = opts?.userKey?.trim() || process.env.DIDOX_USER_KEY;
   if (partnerToken && userKey) {
     return new DidoxDataSource({
       baseUrl: process.env.DIDOX_API_URL ?? "https://api2.didox.uz",

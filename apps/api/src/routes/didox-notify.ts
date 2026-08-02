@@ -15,9 +15,10 @@ import { canUsePaid } from "../lib/subscription";
  */
 export const didoxNotifyRoutes = new Hono<{ Variables: Variables }>();
 
-/** Didox real adapteri (env kaliti bo'lsa), aks holda null. */
-function didoxSource(): DidoxDataSource | null {
-  const src = createDataSource("company"); // Didox oilasi (company/marketplace/government)
+/** Didox real adapteri — tenant kaliti (yoki env), aks holda null. */
+function didoxSource(settings?: unknown): DidoxDataSource | null {
+  const integrations = ((settings as Record<string, unknown>)?.integrations ?? {}) as Record<string, string>;
+  const src = createDataSource("company", { userKey: integrations.didoxToken }); // company/marketplace/government
   return src instanceof DidoxDataSource ? src : null;
 }
 
@@ -29,7 +30,7 @@ didoxNotifyRoutes.post("/approvals/:id/didox/prepare", async (c) => {
   // Obuna gate — Didox rasmiy yuborish PULLI amal (trial/active kerak).
   const [subRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, c.get("auth").tenantId)).limit(1);
   if (!canUsePaid(subRow?.settings)) return c.json(ok({ available: false, reason: "subscription_required" }, "common.ok", locale));
-  const src = didoxSource();
+  const src = didoxSource(subRow?.settings);
   if (!src) return c.json(ok({ available: false, reason: "not_configured" }, "common.ok", locale));
 
   const info = await withTenant(tenantId, async (tx) => {
@@ -68,7 +69,8 @@ didoxNotifyRoutes.post("/approvals/:id/didox/sign", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as { pkcs7?: string };
   const pkcs7 = String(body.pkcs7 ?? "");
   if (!pkcs7) return c.json(ok({ status: "failed", error: "no_signature" }, "common.ok", locale));
-  const src = didoxSource();
+  const [signRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+  const src = didoxSource(signRow?.settings);
   if (!src) return c.json(ok({ status: "failed", error: "not_configured" }, "common.ok", locale));
 
   try {

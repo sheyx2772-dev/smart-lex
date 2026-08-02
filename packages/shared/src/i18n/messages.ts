@@ -42,6 +42,11 @@ export const MESSAGES = {
     ru: "Произошла внутренняя ошибка",
     en: "An internal error occurred",
   },
+  "integrations.didox_reconnect": {
+    uz: "Didox ulanishi muddati tugagan yoki kalit yaroqsiz. Sozlamalar → Didox'ga ulanish orqali kalitni yangilang.",
+    ru: "Сессия Didox истекла или ключ недействителен. Обновите ключ в Настройки → Подключить Didox.",
+    en: "Didox session expired or key is invalid. Reconnect via Settings → Connect Didox.",
+  },
   "common.validation_failed": {
     uz: "Ma'lumotlar noto'g'ri",
     ru: "Ошибка валидации данных",
