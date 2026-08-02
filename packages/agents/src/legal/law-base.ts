@@ -18,6 +18,7 @@ const CODE_NAMES: Record<string, string> = {
   "FK-1": "O'zbekiston Respublikasi Fuqarolik kodeksi (1-qism)",
   "FK-2": "O'zbekiston Respublikasi Fuqarolik kodeksi (2-qism)",
   IPK: "O'zbekiston Respublikasi Iqtisodiy protsessual kodeksi",
+  FPK: "O'zbekiston Respublikasi Fuqarolik protsessual kodeksi",
   MK: "O'zbekiston Respublikasi Mehnat kodeksi",
   SK: "O'zbekiston Respublikasi Soliq kodeksi",
 };
