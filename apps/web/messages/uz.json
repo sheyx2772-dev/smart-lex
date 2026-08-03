@@ -781,7 +781,15 @@
     "newActivity": "Yangi faoliyat",
     "review": "Ko'rib chiqish",
     "viewAll": "Barchasi",
-    "worked": "Agent bugun {count} ta ishni bajardi"
+    "worked": "Agent bugun {count} ta ishni bajardi",
+    "tabActivity": "Faoliyat",
+    "tabChat": "Suhbat",
+    "chatHi": "Salom! Men LEX.AI agentiман",
+    "chatHint": "Qarzdorlar, hujjatlar yoki sud ishlari haqida so'rang — yoki buyruq bering.",
+    "chatPlaceholder": "So'rang yoki buyuring...",
+    "chatSuggestions": "Bugungi muddati o'tgan qarzlarni ko'rsat|Eng katta qarzdor kim?|Talabnoma qanday tayyorlanadi?",
+    "chatEmptyReply": "Bo'sh javob.",
+    "chatError": "Xatolik. Qayta urinib ko'ring."
   },
   "reports": {
     "title": "Hisobotlar",

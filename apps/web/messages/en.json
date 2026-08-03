@@ -781,7 +781,15 @@
     "newActivity": "New activity",
     "review": "Review",
     "viewAll": "View all",
-    "worked": "The agent completed {count} tasks today"
+    "worked": "The agent completed {count} tasks today",
+    "tabActivity": "Activity",
+    "tabChat": "Chat",
+    "chatHi": "Hi! I'm the LEX.AI agent",
+    "chatHint": "Ask about debtors, documents or court cases — or give a command.",
+    "chatPlaceholder": "Ask or command...",
+    "chatSuggestions": "Show today's overdue debts|Who is the biggest debtor?|How do I prepare a demand?",
+    "chatEmptyReply": "Empty response.",
+    "chatError": "Error. Try again."
   },
   "reports": {
     "title": "Reports",
