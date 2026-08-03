@@ -43,7 +43,13 @@ const STATUS_TONE: Record<string, BadgeProps["tone"]> = {
 };
 
 function fmtMinor(minor: string, currency = "UZS"): string {
-  const abs = BigInt(minor || "0");
+  // Mudofaaviy: nuqta/vergul/probel yoki noto'g'ri qiymat kelsa ham CRASH bo'lmaydi.
+  let abs = 0n;
+  try {
+    abs = BigInt(String(minor ?? "").replace(/[^\d]/g, "") || "0");
+  } catch {
+    abs = 0n;
+  }
   const major = (abs / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   const frac = (abs % 100n).toString().padStart(2, "0");
   return `${major},${frac} ${currency}`;
