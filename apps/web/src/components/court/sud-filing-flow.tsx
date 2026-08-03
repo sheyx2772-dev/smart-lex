@@ -1,79 +1,89 @@
 "use client";
 
-import { CheckCircle, CircleNotch, Gavel, PlugsConnected, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, PlugsConnected, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { connectCourtToken, getCourtEntities, getCourtTokenStatus, prepareCourtFiling, submitCourtFiling, type SudEntity } from "@/app/(app)/court/actions";
-import { openSitePopup } from "@/lib/open-window";
 
-type Stage = "connect" | "connecting" | "entities" | "prepare" | "ready" | "confirm" | "filing" | "done";
+type Stage = "checking" | "connect" | "entities" | "prepare" | "ready" | "confirm" | "filing" | "done";
+
+const TOKEN_HASH_KEY = "sudtoken=";
+
+/** Bookmarklet kodi — cabinet.sud.uz'da bosilganda sessionStorage'dan tokenni o'qib, bizning domenimizga # (fragment) orqali qaytaradi (serverga hech qachon yuborilmaydi/log'lanmaydi). */
+function bookmarkletHref(origin: string): string {
+  const js = `(function(){var t=sessionStorage.getItem('X-AUTH-TOKEN');if(!t){alert('X-AUTH-TOKEN topilmadi. Avval One ID bilan kiring.');return;}location.href='${origin}/court#${TOKEN_HASH_KEY}'+encodeURIComponent(t);})();`;
+  return `javascript:${js}`;
+}
+
+/**
+ * Backend'dan kelgan xom xatoni (HTTP status/HTML/JSON aralashmasi — cabinet.sud.uz'ning
+ * o'z javobi) oddiy foydalanuvchiga tushunarli xabarga aylantiradi. Texnik tafsilot
+ * konsolga yoziladi (debugging uchun), ekranга chiqmaydi.
+ */
+function friendlyCourtError(t: ReturnType<typeof useTranslations>, detail?: string, reason?: string): string {
+  if (detail) console.error("[SudFilingFlow] cabinet.sud.uz error detail:", detail);
+  const status = detail?.match(/HTTP (\d{3})/)?.[1];
+  if (status === "502" || status === "503" || status === "504") return t("sudErrorGateway");
+  if (status === "401") return t("sudErrorAuth");
+  if (reason === "not_connected") return t("notConnected");
+  return t("sudErrorRetry");
+}
 
 /**
  * cabinet.sud.uz REAL API orqali topshirish — Playwright/DOM-to'ldirish EMAS.
- * Foydalanuvchi faqat bitta jonli qadam bajaradi: One ID bilan cabinet.sud.uz'da
- * kirish (alohida haqiqiy oynada — iframe EMAS, chunki kengaytma content-script'i
- * faqat top-level sahifada ishlaydi). Undan keyingi hamma narsa (entity, javobgar,
- * PDF, hisob-faktura, save-suit) serverda, bizning backend orqali bajariladi.
+ * Token — bookmarklet orqali olinadi (kengaytmasiz, kengaytmasiz VA serverда
+ * boshqariladigan brauzersiz — shu ikkalasi ham E-IMZO'ga (mahalliy 127.0.0.1
+ * demoni) yeta olmasligi sababli rad etildi). Foydalanuvchi cabinet.sud.uz'da
+ * O'ZINING haqiqiy brauzerida, O'ZI xohlagan usul bilan (parol/Mobile-ID/ERI)
+ * kiradi — E-IMZO shu sababli to'liq ishlaydi. Bookmarklet faqat sessionStorage'dan
+ * o'qib, tokenni URL FRAGMENT orqali (# — serverga yuborilmaydi/log'lanmaydi)
+ * bizning saytimizga qaytaradi. Undan keyingi hamma narsa (entity, javobgar,
+ * PDF, hisob-faktura, save-suit) serverda bajariladi.
  */
 export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: string | null }) {
   const t = useTranslations("court.sudFiling");
-  const [stage, setStage] = useState<Stage>("connect");
+  const [stage, setStage] = useState<Stage>("checking");
   const [error, setError] = useState<string | null>(null);
   const [entities, setEntities] = useState<SudEntity[]>([]);
   const [entityId, setEntityId] = useState<string>("");
   const [summary, setSummary] = useState<{ defendantName: string; defendantTin: string } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
+  const bookmarkletRef = useRef<HTMLAnchorElement>(null);
 
+  // React JSX `href` React'ning javascript: URL xavfsizlik filtridan o'tolmaydi
+  // ("React has blocked a javascript: URL as a security precaution") — shuning
+  // uchun DOM'ga to'g'ridan-to'g'ri (ref orqali) qo'yiladi.
   useEffect(() => {
+    if (bookmarkletRef.current) bookmarkletRef.current.setAttribute("href", bookmarkletHref(window.location.origin));
+  }, [stage]);
+
+  // Bookmarklet cabinet.sud.uz'dan qaytganda #sudtoken=... bilan shu sahifaga tushadi.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith(`#${TOKEN_HASH_KEY}`)) {
+      const token = decodeURIComponent(hash.slice(1 + TOKEN_HASH_KEY.length));
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      connectCourtToken(token).then((res) => {
+        if (res.success) void loadEntities();
+        else {
+          setError(t("sudErrorRetry"));
+          setStage("connect");
+        }
+      });
+      return;
+    }
     getCourtTokenStatus().then((s) => {
-      if (s.connected) loadEntities();
+      if (s.connected) void loadEntities();
+      else setStage("connect");
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function askExtensionForToken(): Promise<string | null> {
-    return new Promise((resolve) => {
-      function onMsg(e: MessageEvent) {
-        const d = e.data as { __smartlex_court_token?: boolean; token?: string | null };
-        if (e.source !== window || !d || d.__smartlex_court_token !== true) return;
-        window.removeEventListener("message", onMsg);
-        resolve(d.token ?? null);
-      }
-      window.addEventListener("message", onMsg);
-      window.postMessage({ __smartlex_get_court_token: true }, "*");
-      setTimeout(() => {
-        window.removeEventListener("message", onMsg);
-        resolve(null);
-      }, 2000);
-    });
-  }
-
-  async function connect() {
-    setError(null);
-    setStage("connecting");
-    openSitePopup("https://cabinet.sud.uz/sign-in", "sud");
-
-    const deadline = Date.now() + 3 * 60_000;
-    while (Date.now() < deadline) {
-      await new Promise((r) => setTimeout(r, 2500));
-      const token = await askExtensionForToken();
-      if (token) {
-        const res = await connectCourtToken(token);
-        if (res.success) {
-          await loadEntities();
-          return;
-        }
-      }
-    }
-    setError(t("extMissing"));
-    setStage("connect");
-  }
-
   async function loadEntities() {
     const res = await getCourtEntities(id);
     if (!res.available || !res.entities) {
-      setError(res.reason === "not_connected" ? t("notConnected") : `${t("sudError")}: ${res.detail ?? res.reason ?? ""}`);
+      setError(friendlyCourtError(t, res.detail, res.reason));
       setStage("connect");
       return;
     }
@@ -93,7 +103,7 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
           ? t("notApprovedFile")
           : res.reason === "soliq_not_configured"
             ? t("soliqNotConfigured")
-            : `${t("sudError")}: ${res.detail ?? res.reason ?? ""}`,
+            : friendlyCourtError(t, res.detail, res.reason),
       );
       setStage("entities");
       return;
@@ -107,7 +117,7 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
     setStage("filing");
     const res = await submitCourtFiling(id);
     if (!res.available || !res.caseId) {
-      setError(`${t("sudError")}: ${res.detail ?? res.reason ?? ""}`);
+      setError(friendlyCourtError(t, res.detail, res.reason));
       setStage("ready");
       return;
     }
@@ -127,15 +137,39 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
         </div>
       )}
 
-      {(stage === "connect" || stage === "connecting") && (
-        <button
-          onClick={connect}
-          disabled={stage === "connecting"}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
-          {stage === "connecting" ? <CircleNotch className="size-4 animate-spin" /> : <PlugsConnected weight="fill" className="size-4" />}
-          {stage === "connecting" ? t("connecting") : t("connect")}
-        </button>
+      {stage === "checking" && (
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <CircleNotch className="size-4 animate-spin" /> {t("checkingConnection")}
+        </p>
+      )}
+
+      {stage === "connect" && (
+        <div className="space-y-3">
+          <ol className="list-inside list-decimal space-y-2 text-sm">
+            <li>
+              {t("bookmarkletDrag")}{" "}
+              <a
+                ref={bookmarkletRef}
+                draggable
+                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 font-medium text-primary"
+              >
+                <PlugsConnected weight="fill" className="size-3.5" /> {t("bookmarkletName")}
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://cabinet.sud.uz/sign-in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-primary underline underline-offset-2"
+              >
+                {t("openSudSite")} <ArrowSquareOut className="size-3.5" />
+              </a>{" "}
+              {t("bookmarkletLoginHint")}
+            </li>
+            <li>{t("bookmarkletClickHint")}</li>
+          </ol>
+        </div>
       )}
 
       {stage === "entities" && (

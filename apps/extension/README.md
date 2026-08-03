@@ -1,37 +1,28 @@
 # SmartLex.AI — brauzer kengaytmasi (prototip)
 
-Ikki xil integratsiya bor:
+**cabinet.sud.uz (E-SUD) endi bu kengaytmani ISHLATMAYDI.** Real API
+integratsiyasi (`@lex/integrations` `court` moduli) uchun token endi
+bookmarklet orqali olinadi — qarang `apps/web/src/components/court/sud-filing-flow.tsx`.
+Sabab: E-IMZO mahalliy `127.0.0.1` demoniga faqat foydalanuvchining O'Z
+haqiqiy brauzerida (kengaytma HAM, serverда boshqariladigan brauzer HAM
+EMAS — ikkalasi ham sinovdan o'tib, E-IMZO'ga yeta olmagani aniqlandi)
+yeta oladi; bookmarklet buni to'liq hal qiladi va o'rnatish kengaytmadan
+ancha yengil (faqat bitta havolani xatchoʻplar paneliga tortish).
 
-- **cabinet.sud.uz (E-SUD)** — REAL API integratsiyasi (`@lex/integrations`
-  `court` moduli). Kengaytma bu yerda formani TO'LDIRMAYDI — faqat One ID
-  login'dan keyin `sessionStorage['X-AUTH-TOKEN']`ni o'qib backendga
-  yetkazadi (`capture-token.js`); qolgan hamma narsa (entity, javobgar,
-  hujjat, hisob-faktura, save-suit) serverda bajariladi.
-- **Gibrid pochta (`hybrid.pochta.uz`) va xarid (`xarid.uzex.uz`)** — hali
-  eski usul: DOM-to'ldirish (`fill.js`/`profiles.js`), chunki bu saytlar
-  uchun hali real API integratsiyasi yo'q.
+Bu kengaytma endi faqat quyidagilar uchun ishlatiladi:
+
+- **Gibrid pochta (`hybrid.pochta.uz`) va xarid (`xarid.uzex.uz`)** — DOM-
+  to'ldirish (`fill.js`/`profiles.js`), chunki bu saytlar uchun hali real
+  API integratsiyasi yo'q.
 
 ## Nega kengaytma?
 
-Oddiy veb-sahifa (SmartLex) boshqa domendagi (sud.uz, pochta.uz) ochilgan
+Oddiy veb-sahifa (SmartLex) boshqa domendagi (pochta.uz, uzex.uz) ochilgan
 sahifa ma'lumotini o'qiy/to'ldira olmaydi — brauzer xavfsizligi (same-origin)
 buni taqiqlaydi. Brauzer kengaytmasi esa `host_permissions` orqali shu
 saytga ruxsat oladi.
 
-## Ishlash oqimi — cabinet.sud.uz (E-SUD API)
-
-1. Foydalanuvchi «Cabinet.sud.uz'ga ulanish»ni bosadi — sayt **alohida
-   haqiqiy oynada** ochiladi (iframe EMAS — kengaytma content-script'i
-   faqat top-level sahifada ishlaydi).
-2. Foydalanuvchi One ID bilan kiradi (E-IMZO/parol — o'zi tasdiqlaydi).
-3. `check-token` sahifasiga qaytganda `capture-token.js` tokenni o'qib
-   `background.js`ga yuboradi; SmartLex sahifasi (`relay.js`) so'rab oladi
-   va backendga (`POST /api/court/token`) jo'natadi.
-4. Backend endi shu token bilan cabinet.sud.uz API'sini to'g'ridan-to'g'ri
-   chaqiradi — hujjat yuklash, hisob-faktura, va (foydalanuvchi tasdig'idan
-   keyin) yakuniy topshirish.
-
-## Ishlash oqimi — Gibrid pochta / xarid (eski, DOM-to'ldirish)
+## Ishlash oqimi — Gibrid pochta / xarid (DOM-to'ldirish)
 
 1. SmartLex.AI → **«Kengaytmaga yuborish»** — da'vo ma'lumoti kengaytmaga
    saqlanadi (`relay.js` → `background.js` → `storage`).

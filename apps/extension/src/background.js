@@ -24,23 +24,5 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     });
     return true;
   }
-  // cabinet.sud.uz'dan olingan X-AUTH-TOKEN — capture-token.js yozadi,
-  // relay.js (SmartLex sahifasida) o'qib backendga yuboradi.
-  if (msg && msg.type === "lex:court-token:set") {
-    chrome.storage.local.set({ courtToken: msg.token, courtTokenAt: msg.capturedAt }, () => {
-      chrome.action.setBadgeText({ text: "✓" });
-      chrome.action.setBadgeBackgroundColor({ color: "#16a34a" });
-      sendResponse({ ok: true });
-    });
-    return true;
-  }
-  if (msg && msg.type === "lex:court-token:get") {
-    chrome.storage.local.get(["courtToken", "courtTokenAt"], (r) => sendResponse(r));
-    return true;
-  }
-  if (msg && msg.type === "lex:court-token:clear") {
-    chrome.storage.local.remove(["courtToken", "courtTokenAt"], () => sendResponse({ ok: true }));
-    return true;
-  }
   return false;
 });

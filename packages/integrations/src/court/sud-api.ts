@@ -135,7 +135,14 @@ export function buildSaveSuitPayload(args: {
   claimantEntityId: string;
   defendant: { pinfl?: number; tin: string; not_citizen?: boolean; entity_details: Record<string, unknown> };
   documents: Array<{ fileId: string; typeId: string }>;
-  invoiceResponses: CourtInvoiceResponse[];
+  /**
+   * O'zimiz SO'RAGAN `amount_type`ni har javob bilan birga saqlaymiz — javobning
+   * o'z `receipt.type` maydoniga ISHONMAYMIZ, chunki uning haqiqiy nomi/qiymati
+   * tasdiqlanmagan (jonli sinovda "Квитанция" тўлов тури хато" bilan rad etildi,
+   * 2026-08-03 — sabab: noto'g'ri/mavjud bo'lmagan maydon nomi tufayli `type`
+   * `undefined` bo'lib, JSON.stringify uni tushirib qoldirgan edi).
+   */
+  invoices: Array<{ type: "STATE" | "POST"; response: CourtInvoiceResponse }>;
   claimAmount: { amount: string; forfeit: string; currency_id: "UZS" };
   claimAmountParts: Array<{ amount: string; amount_type: string }>;
   stateDutyAmount: number;
@@ -145,11 +152,11 @@ export function buildSaveSuitPayload(args: {
     claim_categories: [
       { category_id: args.categoryId, sub_category_id: args.subCategoryId, second_category_id: null, fields_data: {}, is_main: true },
     ],
-    receipts: args.invoiceResponses.map((inv) => ({
+    receipts: args.invoices.map(({ type, response: inv }) => ({
       responseModel: null,
       receipt: {
         currency_id: "UZS" as const,
-        type: inv.receipt.type,
+        type,
         receipt_date: new Date(inv.receipt.issued).toISOString(),
         receipt_number: inv.receipt.number,
         total: inv.receipt.amount,

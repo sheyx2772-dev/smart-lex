@@ -13,6 +13,7 @@ import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
+import { saveCourtToken } from "../lib/court-token";
 import { renderTextPdf } from "../lib/pdf";
 
 export const courtRoutes = new Hono<{ Variables: Variables }>();
@@ -22,10 +23,11 @@ const CAN_MANAGE = new Set(["owner", "admin", "legal"]);
 const CAN_FILE = new Set(["owner", "admin", "legal"]);
 
 /**
- * cabinet.sud.uz (E-SUD) sessiya tokeni — brauzer kengaytmasi One ID login'dan
- * keyin `sessionStorage['X-AUTH-TOKEN']`ni o'qib shu yerga jo'natadi (qarang:
- * apps/extension/src/capture-token.js). Token — jonli sessiya kredensiali,
- * shuning uchun javobda hech qachon qaytarilmaydi va log'ga yozilmaydi.
+ * cabinet.sud.uz (E-SUD) sessiya tokeni — bookmarklet cabinet.sud.uz'da bosilganda
+ * sessionStorage'dan o'qib, URL fragment orqali shu domenimizga qaytaradi; sahifa
+ * shu yerga POST qiladi (qarang apps/web/src/components/court/sud-filing-flow.tsx).
+ * Token — jonli sessiya kredensiali, shuning uchun javobda hech qachon
+ * qaytarilmaydi va log'ga yozilmaydi.
  */
 courtRoutes.post("/court/token", async (c) => {
   const locale = c.get("locale");
@@ -34,9 +36,7 @@ courtRoutes.post("/court/token", async (c) => {
   const token = String(body.token ?? "").trim();
   if (!token) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
 
-  await withTenant(tenantId, (tx) =>
-    tx.update(users).set({ courtAuthToken: token, courtAuthTokenAt: new Date() }).where(eq(users.id, userId)),
-  );
+  await saveCourtToken(tenantId, userId, token);
   return c.json(ok({ connected: true }, "common.ok", locale));
 });
 
@@ -186,7 +186,7 @@ courtRoutes.post("/court/:id/file/submit", async (c) => {
       claimantEntityId: prepare.entityId,
       defendant: { tin: prepare.defendant.tin, entity_details: prepare.defendant.details },
       documents: [{ fileId: prepare.uploadId, typeId: CLAIM_STATEMENT_DOCUMENT_TYPE_ID }],
-      invoiceResponses,
+      invoices: invoiceResponses.map((response) => ({ type: "STATE" as const, response })),
       claimAmount: { amount: (Number(principalMinor) / 100).toFixed(2), forfeit: (Number(penaltyMinor) / 100).toFixed(2), currency_id: "UZS" },
       claimAmountParts: [
         { amount: (Number(principalMinor) / 100).toFixed(2), amount_type: "DEPT" },

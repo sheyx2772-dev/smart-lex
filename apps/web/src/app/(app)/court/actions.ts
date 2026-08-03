@@ -15,7 +15,7 @@ export async function setCourtStatus(id: string, status: string) {
   return res;
 }
 
-/** Kengaytma cabinet.sud.uz'dan olgan X-AUTH-TOKEN'ni serverga saqlaydi. */
+/** Bookmarklet cabinet.sud.uz'dan olgan X-AUTH-TOKEN'ni serverga saqlaydi. */
 export async function connectCourtToken(token: string) {
   return apiServer<{ connected: boolean }>("/api/court/token", { method: "POST", body: JSON.stringify({ token }) });
 }

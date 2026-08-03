@@ -23,7 +23,13 @@ export interface AutopilotData {
   recovery?: { recoveredMinor: string; outstandingMinor: string; recoveryRate: number | null };
 }
 
-const som = (minor: string | undefined) => new Intl.NumberFormat("uz-UZ").format(Number(minor ?? "0") / 100) + " so'm";
+// Intl.NumberFormat("uz-UZ") ISHLATILMAYDI — server (Node ICU) va klient (brauzer)
+// har xil natija berishi mumkin (masalan "6,000,000" vs "6 000 000"), bu esa
+// hydration xatosiga olib keladi. Shuning uchun guruhlash qo'lda, aniq qilinadi.
+const som = (minor: string | undefined) => {
+  const major = BigInt(minor ?? "0") / 100n;
+  return major.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
+};
 
 const MODES: { key: Mode; label: string; desc: string }[] = [
   { key: "off", label: "O'chirilgan", desc: "Agent faqat kuzatadi, hech narsa qilmaydi" },

@@ -549,7 +549,16 @@
       "notApprovedFile": "The claim must be approved first",
       "sudError": "cabinet.sud.uz error",
       "soliqNotConfigured": "Soliq API key not configured (server)",
-      "extMissing": "Browser extension not found — check it is installed"
+      "extMissing": "Browser extension not found — check it is installed",
+      "bookmarkletDrag": "Drag this link to your bookmarks bar (or right-click it and choose \"Bookmark link\"):",
+      "bookmarkletName": "Connect court",
+      "openSudSite": "Open cabinet.sud.uz",
+      "bookmarkletLoginHint": "— sign in via One ID however you like (password/Mobile-ID/E-IMZO).",
+      "bookmarkletClickHint": "After logging in, click \"Connect court\" in your bookmarks bar — you'll land back on this page.",
+      "sudErrorRetry": "Could not reach cabinet.sud.uz. Please try again shortly.",
+      "sudErrorGateway": "cabinet.sud.uz is temporarily unavailable. Please try again in a few minutes.",
+      "sudErrorAuth": "Session expired. Please reconnect.",
+      "checkingConnection": "Checking connection..."
     }
   },
   "overdue": {
