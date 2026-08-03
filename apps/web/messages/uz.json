@@ -733,7 +733,22 @@
     "prMsg": "Hurmatli {name}! Sizda {amount} miqdorda muddati oʻtgan qarzdorlik mavjud. Iltimos, 5 kun ichida toʻlovni amalga oshiring. Aks holda qonuniy chora koʻriladi.",
     "prCopy": "Nusxalash",
     "prCopied": "Nusxalandi",
-    "prHint": "SMS yoki Telegram orqali yuboring"
+    "prHint": "SMS yoki Telegram orqali yuboring",
+    "pipeHeading": "Undiruv bosqichi",
+    "pipeNextLabel": "Keyingi qadam",
+    "pipe0": "Qarzdorlik",
+    "pipe1": "Eslatma",
+    "pipe2": "Talabnoma / Da'vo",
+    "pipe3": "Tasdiq",
+    "pipe4": "Sud",
+    "pipe5": "Ijro",
+    "pipeNext0": "Qarzdorga to'lov eslatmasi yuboring.",
+    "pipeNext1": "Talabnoma yoki da'vo arizasini tayyorlang.",
+    "pipeNext2": "Tayyor hujjatni Tasdiqlar bo'limida tasdiqlang.",
+    "pipeNext3": "Tasdiqlangan da'voni Sud bo'limida cabinet.sud.uz'ga topshiring.",
+    "pipeNext5": "Sud qarori bo'yicha Ijro bo'limida undiruvni boshlang.",
+    "pipeCtaApprove": "Tasdiqlashga",
+    "pipeCtaFile": "Sudga"
   },
   "newContract": {
     "title": "Yangi qarzdorlik ishi",

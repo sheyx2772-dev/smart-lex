@@ -696,7 +696,22 @@
     "prMsg": "Dear {name}! You have an overdue debt of {amount}. Please pay within 5 days, otherwise legal action will be taken.",
     "prCopy": "Copy",
     "prCopied": "Copied",
-    "prHint": "Send via SMS or Telegram"
+    "prHint": "Send via SMS or Telegram",
+    "pipeHeading": "Collection stage",
+    "pipeNextLabel": "Next step",
+    "pipe0": "Debt",
+    "pipe1": "Reminder",
+    "pipe2": "Demand / Claim",
+    "pipe3": "Approval",
+    "pipe4": "Court",
+    "pipe5": "Enforcement",
+    "pipeNext0": "Send the debtor a payment reminder.",
+    "pipeNext1": "Prepare a demand letter or court claim.",
+    "pipeNext2": "Approve the prepared document in Approvals.",
+    "pipeNext3": "File the approved claim to cabinet.sud.uz in the Court section.",
+    "pipeNext5": "Start enforcement on the court decision.",
+    "pipeCtaApprove": "To approvals",
+    "pipeCtaFile": "To court"
   },
   "newContract": {
     "title": "New debt case",

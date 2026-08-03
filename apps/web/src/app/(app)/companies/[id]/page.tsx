@@ -21,6 +21,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollectionPipeline } from "@/components/companies/collection-pipeline";
 import { InteractionLog, type Interaction } from "@/components/companies/interaction-log";
 import { LawsuitButton } from "@/components/companies/lawsuit-button";
 import { PaymentReminderButton } from "@/components/companies/payment-reminder-button";
@@ -128,6 +129,26 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
     }
   }
 
+  // ── Undiruv voronkasi: hozirgi bosqich (0..5) + keyingi qadam ──────────
+  const approvedAny = d.approvals.some((a) => a.status === "approved");
+  const approvedClaim = d.approvals.some((a) => (a.type || "").includes("court") && a.status === "approved");
+  let pipeStage = 0; // Qarzdorlik
+  if (s.remindersCount > 0) pipeStage = 1; // Eslatma yuborildi
+  if (d.approvals.length > 0) pipeStage = 2; // Talabnoma/Da'vo tayyorlandi
+  if (approvedAny) pipeStage = 3; // Tasdiqlandi
+  if (approvedClaim) pipeStage = 4; // Sudga tayyor
+  const pipeNext =
+    pipeStage === 0
+      ? { text: t("pipeNext0") }
+      : pipeStage === 1
+        ? { text: t("pipeNext1") }
+        : pipeStage === 2
+          ? { text: t("pipeNext2"), href: "/approvals", cta: t("pipeCtaApprove") }
+          : pipeStage === 3 || pipeStage === 4
+            ? { text: t("pipeNext3"), href: "/court", cta: t("pipeCtaFile") }
+            : { text: t("pipeNext5") };
+  const pipeLabels = [t("pipe0"), t("pipe1"), t("pipe2"), t("pipe3"), t("pipe4"), t("pipe5")];
+
   return (
     <div className="w-full space-y-5">
       {/* Back */}
@@ -167,6 +188,9 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
           <Info icon={TelegramLogo} label={t("telegram")} value={d.contractor.telegramId} />
         </dl>
       </Card>
+
+      {/* Undiruv voronkasi — hozirgi bosqich + keyingi qadam (chalkashlikni kamaytiradi) */}
+      <CollectionPipeline current={pipeStage} labels={pipeLabels} heading={t("pipeHeading")} nextLabel={t("pipeNextLabel")} next={pipeNext} />
 
       {/* Stat tiles */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
