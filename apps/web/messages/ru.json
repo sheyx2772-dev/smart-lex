@@ -529,7 +529,28 @@
     "submitEsud": "Подать в E-SUD",
     "eimzoHint": "Подпись и окончательную подачу вы выполняете сами на портале cabinet.sud.uz с помощью E-IMZO.",
     "editInStudio": "Редактировать иск",
-    "prepareClaim": "Подготовить иск в суд"
+    "prepareClaim": "Подготовить иск в суд",
+    "sudFiling": {
+      "connect": "Подключиться к cabinet.sud.uz",
+      "connecting": "Подключение...",
+      "connected": "Подключено",
+      "reconnect": "Переподключиться",
+      "chooseEntity": "От чьего имени подаёте иск?",
+      "prepare": "Подготовить документ",
+      "preparing": "Подготовка...",
+      "prepared": "Готово к подаче",
+      "summaryTitle": "Итоги подачи",
+      "summaryDefendant": "Ответчик",
+      "fileNow": "Подать электронно",
+      "fileConfirm": "ВНИМАНИЕ: это действие необратимо — на cabinet.sud.uz откроется ОФИЦИАЛЬНОЕ судебное дело. Продолжить?",
+      "filing": "Подача...",
+      "filedCase": "Номер дела (case_id)",
+      "notConnected": "Сначала подключитесь к cabinet.sud.uz",
+      "notApprovedFile": "Сначала иск должен быть подтверждён",
+      "sudError": "Ошибка cabinet.sud.uz",
+      "soliqNotConfigured": "Ключ Soliq API не настроен (сервер)",
+      "extMissing": "Расширение браузера не найдено — проверьте установку"
+    }
   },
   "overdue": {
     "title": "Просроченная задолженность",

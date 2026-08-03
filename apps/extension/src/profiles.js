@@ -16,14 +16,9 @@ self.LEX_PROFILES = {
     { get: (c) => c.contractNumber, selectors: ['[formcontrolname*="contract" i]', '[formcontrolname*="dogovor" i]'], keys: ["shartnoma", "договор", "contract"] },
     { get: (c) => c.body, selectors: ['[formcontrolname*="text" i]', '[formcontrolname*="content" i]', '[formcontrolname*="claim" i]', "textarea"], keys: ["mazmun", "содержание", "ariza", "da'vo", "text"] },
   ],
-  "cabinet.sud.uz": [
-    { get: (c) => c.tin, selectors: ['input[name*="inn" i]', 'input[name*="stir" i]', 'input[id*="inn" i]', 'input[id*="stir" i]'], keys: ["stir", "инн", "tin", "inn"] },
-    { get: (c) => c.debtor, selectors: ['input[name*="respondent" i]', 'input[name*="defendant" i]', 'input[name*="org" i]', 'input[name*="name" i]'], keys: ["nomi", "название", "наименование", "javobgar", "ответчик"] },
-    { get: (c) => c.amountNumber, selectors: ['input[name*="amount" i]', 'input[name*="summa" i]', 'input[name*="price" i]', 'input[name*="sum" i]'], keys: ["summa", "сумма", "amount", "qiymat"] },
-    { get: (c) => c.court, selectors: ['select[name*="court" i]', 'input[name*="court" i]', 'select[name*="sud" i]'], keys: ["sud", "суд", "court"] },
-    { get: (c) => c.contractNumber, selectors: ['input[name*="contract" i]', 'input[name*="dogovor" i]'], keys: ["shartnoma", "договор", "contract"] },
-    { get: (c) => c.body, selectors: ['textarea[name*="text" i]', 'textarea[name*="content" i]', 'textarea[name*="claim" i]', "textarea"], keys: ["mazmun", "содержание", "text", "ariza", "da'vo"] },
-  ],
+  // cabinet.sud.uz — DOM-to'ldirish O'RNIGA endi haqiqiy API integratsiyasi ishlatiladi
+  // (packages/integrations/src/court + apps/extension/src/capture-token.js). Profil kerak
+  // emas — kengaytma shu domenda faqat X-AUTH-TOKEN'ni sessionStorage'dan o'qiydi.
   "hybrid.pochta.uz": [
     { get: (c) => c.debtor, selectors: ['input[name*="recipient" i]', 'input[name*="receiver" i]', 'input[name*="to" i]', 'input[name*="name" i]'], keys: ["qabul", "получатель", "recipient", "nomi"] },
     { get: (c) => c.tin, selectors: ['input[name*="inn" i]', 'input[name*="stir" i]'], keys: ["stir", "инн", "tin"] },

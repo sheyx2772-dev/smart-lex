@@ -29,6 +29,13 @@
       "when": 1784747000000,
       "tag": "0003_oneid_sso",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785732845134,
+      "tag": "0004_true_patriot",
+      "breakpoints": true
     }
   ]
 }

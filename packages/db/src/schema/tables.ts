@@ -71,6 +71,10 @@ export const users = pgTable(
     // ── One-ID (sso.egov.uz) identifikatori ──
     oneidPin: text("oneid_pin"), // JShShIR (jismoniy shaxs PIN)
     oneidSub: text("oneid_sub"), // One-ID user_id (login)
+    // ── cabinet.sud.uz (E-SUD) sessiya tokeni — kengaytma orqali olinadi ──
+    // Jonli sessiya kredensiali: muddati tugaydi, 401 kelsa qayta ulanish kerak.
+    courtAuthToken: text("court_auth_token"),
+    courtAuthTokenAt: timestamp("court_auth_token_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

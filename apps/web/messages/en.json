@@ -529,7 +529,28 @@
     "submitEsud": "Submit via E-SUD",
     "eimzoHint": "You complete signing and final submission yourself on cabinet.sud.uz using E-IMZO.",
     "editInStudio": "Edit the claim",
-    "prepareClaim": "Prepare a court claim"
+    "prepareClaim": "Prepare a court claim",
+    "sudFiling": {
+      "connect": "Connect to cabinet.sud.uz",
+      "connecting": "Connecting...",
+      "connected": "Connected",
+      "reconnect": "Reconnect",
+      "chooseEntity": "Which entity are you filing as?",
+      "prepare": "Prepare the filing",
+      "preparing": "Preparing...",
+      "prepared": "Ready to submit",
+      "summaryTitle": "Filing summary",
+      "summaryDefendant": "Defendant",
+      "fileNow": "File electronically",
+      "fileConfirm": "WARNING: this cannot be undone — it opens a REAL case on cabinet.sud.uz. Continue?",
+      "filing": "Filing...",
+      "filedCase": "Case number (case_id)",
+      "notConnected": "Connect to cabinet.sud.uz first",
+      "notApprovedFile": "The claim must be approved first",
+      "sudError": "cabinet.sud.uz error",
+      "soliqNotConfigured": "Soliq API key not configured (server)",
+      "extMissing": "Browser extension not found — check it is installed"
+    }
   },
   "overdue": {
     "title": "Overdue receivables",

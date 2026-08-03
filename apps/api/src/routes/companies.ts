@@ -13,7 +13,7 @@ import {
   tenants,
   withTenant,
 } from "@lex/db";
-import { ERROR_CODE, fail, ok } from "@lex/shared";
+import { ERROR_CODE, fail, ok, type Currency } from "@lex/shared";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
@@ -250,4 +250,112 @@ companyRoutes.post("/companies/:id/interaction", async (c) => {
     }),
   );
   return c.json(ok({ ok: true }, "common.created", locale));
+});
+
+// ─── Sudga da'vo arizasi tayyorlash — /court sahifasi va sud.uz filing kutgan ────
+// documents(court_claim) + approvalRequests juftligini yaratadi (matn DETERMINISTIK
+// hisob-kitob + shablon, LLM faqat uslubni sayqallaydi — raqamlarga tegmaydi).
+companyRoutes.post("/companies/:id/lawsuit", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_GENERATE.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+
+  const result = await withTenant(tenantId, async (tx) => {
+    const [contractor] = await tx.select().from(contractors).where(eq(contractors.id, id)).limit(1);
+    if (!contractor) return null;
+    const [tenant] = await tx.select().from(tenants).where(eq(tenants.id, tenantId)).limit(1);
+    if (!tenant) return null;
+
+    const recRows = await tx
+      .select({
+        id: receivables.id,
+        outstandingMinor: receivables.outstandingMinor,
+        penaltyMinor: receivables.penaltyMinor,
+        currency: receivables.currency,
+        overdueDays: receivables.overdueDays,
+        invoiceId: receivables.invoiceId,
+      })
+      .from(receivables)
+      .where(and(eq(receivables.contractorId, id), eq(receivables.status, "overdue")));
+    if (!recRows.length) return "no_receivables" as const;
+
+    const invIds = recRows.map((r) => r.invoiceId);
+    const invRows = await tx.select().from(invoices).where(inArray(invoices.id, invIds));
+    const contractIds = [...new Set(invRows.map((i) => i.contractId).filter((x): x is string => !!x))];
+    const contractRows = contractIds.length ? await tx.select().from(contracts).where(inArray(contracts.id, contractIds)) : [];
+
+    let principalMinor = 0n;
+    let penaltyMinor = 0n;
+    let maxOverdueDays = 0;
+    const currency: Currency = recRows[0]?.currency ?? "UZS";
+    for (const r of recRows) {
+      principalMinor += r.outstandingMinor;
+      penaltyMinor += r.penaltyMinor;
+      if (r.overdueDays > maxOverdueDays) maxOverdueDays = r.overdueDays;
+    }
+    const totalMinor = principalMinor + penaltyMinor;
+    const duty = calcStateDuty(totalMinor);
+    const court = determineCourt(contractor.legalAddress);
+
+    const lawsuit = await generateLawsuitSmart({
+      locale,
+      court: court.name,
+      plaintiff: {
+        name: tenant.name,
+        tin: tenant.tin,
+        address: tenant.legalAddress ?? undefined,
+        bankAccount: tenant.bankAccount ?? undefined,
+        bankMfo: tenant.bankMfo ?? undefined,
+      },
+      defendant: { name: contractor.name, tin: contractor.tin, address: contractor.legalAddress ?? undefined },
+      contractNumbers: contractRows.map((k) => k.number),
+      invoiceNumbers: invRows.map((i) => i.number),
+      principal: money(principalMinor, currency),
+      penalty: money(penaltyMinor, currency),
+      total: money(totalMinor, currency),
+      stateDuty: money(duty.dutyMinor, currency),
+      overdueDays: maxOverdueDays,
+    });
+
+    const [doc] = await tx
+      .insert(documents)
+      .values({ tenantId, type: "court_claim", contractorId: id, title: lawsuit.subject, extracted: { body: lawsuit.body, courtStatus: "draft" } })
+      .returning();
+
+    const [appr] = await tx
+      .insert(approvalRequests)
+      .values({
+        tenantId,
+        type: "court_claim",
+        documentId: doc!.id,
+        payload: {
+          court: court.name,
+          totalMinor: totalMinor.toString(),
+          stateDutyMinor: duty.dutyMinor.toString(),
+          principalMinor: principalMinor.toString(),
+          penaltyMinor: penaltyMinor.toString(),
+          currency,
+          contractNumbers: contractRows.map((k) => k.number),
+          invoiceNumbers: invRows.map((i) => i.number),
+        },
+      })
+      .returning();
+
+    await tx.insert(auditLogs).values({
+      tenantId,
+      actorType: "user",
+      actorId: userId,
+      action: "court.lawsuit_generated",
+      entityType: "contractor",
+      entityId: id,
+      detail: { approvalId: appr!.id, documentId: doc!.id },
+    });
+
+    return { approvalId: appr!.id, court: court.name, stateDuty: format(money(duty.dutyMinor, currency)), total: format(money(totalMinor, currency)) };
+  });
+
+  if (result === null) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  if (result === "no_receivables") return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  return c.json(ok(result, "common.created", locale));
 });

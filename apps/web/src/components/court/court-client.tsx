@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setCourtStatus } from "@/app/(app)/court/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { EimzoImportFlow } from "@/components/integration/eimzo-import";
 import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
+import { SudFilingFlow } from "@/components/court/sud-filing-flow";
 import { cn } from "@/lib/utils";
 
 interface CourtItem {
@@ -148,7 +148,6 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
-  const ti = useTranslations("integration");
   const router = useRouter();
   const approved = item.approvalStatus === "approved";
 
@@ -239,31 +238,8 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
         </button>
       </div>
 
-      {approved && (
-        <EimzoImportFlow
-          url="https://cabinet.sud.uz/sign-in"
-          siteName="sud"
-          extensionPayload={{
-            debtor: item.contractorName ?? "",
-            tin: item.contractorTin ?? "",
-            amount: fmtMinor(item.total, item.currency),
-            amountNumber: (BigInt(item.total || "0") / 100n).toString(),
-            court: item.court,
-            body: item.body,
-          }}
-          onImport={async () => {
-            await setCourtStatus(item.id, "submitted");
-            setStatus("submitted");
-            const yr = (item.createdAt || "2026").slice(0, 4);
-            const no = (item.id.replace(/\D/g, "") || "0").slice(-6).padStart(6, "0");
-            return [
-              { label: t("court"), value: item.court },
-              { label: ti("caseNo"), value: `E-SUD-${yr}/${no}` },
-              { label: t("total"), value: fmtMinor(item.total, item.currency) },
-              { label: ti("statusLabel"), value: ti("accepted"), tone: "success" as const },
-            ];
-          }}
-        />
+      {approved && status !== "submitted" && status !== "accepted" && status !== "completed" && (
+        <SudFilingFlow id={item.id} defendantTin={item.contractorTin} />
       )}
 
       {open && (

@@ -566,7 +566,28 @@
     "submitEsud": "E-SUD'da topshirish",
     "eimzoHint": "Imzo va yakuniy topshirishni cabinet.sud.uz portalida E-IMZO bilan o'zingiz bajarasiz.",
     "editInStudio": "Da’voni tahrirlash",
-    "prepareClaim": "Sudga da’vo tayyorlash"
+    "prepareClaim": "Sudga da’vo tayyorlash",
+    "sudFiling": {
+      "connect": "cabinet.sud.uz'ga ulanish",
+      "connecting": "Ulanmoqda...",
+      "connected": "Ulandi",
+      "reconnect": "Qayta ulanish",
+      "chooseEntity": "Da'vogar sifatida kim nomidan topshirasiz?",
+      "prepare": "Hujjatni tayyorlash",
+      "preparing": "Tayyorlanmoqda...",
+      "prepared": "Tayyor — topshirish uchun",
+      "summaryTitle": "Topshirish xulosasi",
+      "summaryDefendant": "Javobgar",
+      "fileNow": "Elektron topshirish",
+      "fileConfirm": "DIQQAT: bu amalni qaytarib bo'lmaydi — cabinet.sud.uz'da RASMIY sud ishi ochiladi. Davom etasizmi?",
+      "filing": "Topshirilmoqda...",
+      "filedCase": "Ish raqami (case_id)",
+      "notConnected": "Avval cabinet.sud.uz'ga ulaning",
+      "notApprovedFile": "Avval da'vo tasdiqlanishi kerak",
+      "sudError": "cabinet.sud.uz xatosi",
+      "soliqNotConfigured": "Soliq API kaliti sozlanmagan (server)",
+      "extMissing": "Brauzer kengaytmasi topilmadi — o'rnatilganini tekshiring"
+    }
   },
   "overdue": {
     "title": "Muddati o'tgan qarzdorlik",

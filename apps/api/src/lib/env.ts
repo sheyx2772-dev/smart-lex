@@ -35,4 +35,6 @@ export const env = {
   isProd: process.env.NODE_ENV === "production",
   // Platforma egasi (super-admin) tenant IDsi — admin panel faqat shunga ochiq.
   platformTenantId: process.env.PLATFORM_TENANT_ID ?? "",
+  // my.soliq.uz remote-access API — javobgar reyestr ma'lumoti (Sud integratsiyasi fallback).
+  soliqApiKey: process.env.SOLIQ_API_KEY ?? "",
 };
