@@ -9,9 +9,29 @@ type Stage = "checking" | "connect" | "entities" | "prepare" | "ready" | "confir
 
 const TOKEN_HASH_KEY = "sudtoken=";
 
-/** Bookmarklet kodi — cabinet.sud.uz'da bosilganda sessionStorage'dan tokenni o'qib, bizning domenimizga # (fragment) orqali qaytaradi (serverga hech qachon yuborilmaydi/log'lanmaydi). */
+/**
+ * Bookmarklet kodi — cabinet.sud.uz'da bosilganda sessionStorage'dan tokenni o'qib,
+ * bizning domenimizga # (fragment) orqali qaytaradi (serverga hech qachon
+ * yuborilmaydi/log'lanmaydi).
+ *
+ * `location.origin === bizning domen` tekshiruvi — haqiqiy "xatchoʻplangan
+ * yoki yo'q" holatini brauzer JS'ga ochiq qilmaydi (shu sababli bunday API
+ * umuman yo'q), lekin agar skript hali ham BIZNING sahifamizda ishlab
+ * turgan bo'lsa, bu deyarli har doim "hali xatchoʻqqa qo'shilmagan, havola
+ * to'g'ridan-to'g'ri bosilgan" degani — chunki to'g'ri oqimda foydalanuvchi
+ * avval cabinet.sud.uz'ga o'tishi kerak edi.
+ */
 function bookmarkletHref(origin: string): string {
-  const js = `(function(){var t=sessionStorage.getItem('X-AUTH-TOKEN');if(!t){alert('X-AUTH-TOKEN topilmadi. Avval One ID bilan kiring.');return;}location.href='${origin}/court#${TOKEN_HASH_KEY}'+encodeURIComponent(t);})();`;
+  const notBookmarked =
+    "Avval markur tugmani «Закладки» paneliga qo'shing, so'ng One ID bilan Cabinet.sud.uz ga kiring va ochilgan oynada qaytadan shu tugmani bosing";
+  const notLoggedIn = "Avval One ID bilan Cabinet.sud.uz ga kiring va ochilgan oynada qaytadan shu tugmani bosing";
+  const js =
+    `(function(){` +
+    `if(location.origin===${JSON.stringify(origin)}){alert(${JSON.stringify(notBookmarked)});return;}` +
+    `var t=sessionStorage.getItem(${JSON.stringify("X-AUTH-TOKEN")});` +
+    `if(!t){alert(${JSON.stringify(notLoggedIn)});return;}` +
+    `location.href=${JSON.stringify(origin)}+${JSON.stringify(`/court#${TOKEN_HASH_KEY}`)}+encodeURIComponent(t);` +
+    `})();`;
   return `javascript:${js}`;
 }
 
