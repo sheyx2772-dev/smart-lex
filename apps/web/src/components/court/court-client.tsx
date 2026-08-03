@@ -1,7 +1,8 @@
 "use client";
 
-import { CaretDown, CheckCircle, Copy, FileText, Gavel, PencilSimpleLine, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
+import { ArrowRight, CaretDown, CheckCircle, Copy, FileText, Gavel, PencilSimpleLine, Scales, UploadSimple, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { setCourtStatus } from "@/app/(app)/court/actions";
@@ -197,7 +198,10 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
             </p>
           </div>
         </div>
-        <Badge tone={STATUS_TONE[status]}>{t(`st.${status}` as never)}</Badge>
+        {/* Statusni ANIQ ko'rsatamiz: tasdiq holati + sud-topshirish bosqichi (chalkashlik bo'lmasin). */}
+        <Badge tone={!approved ? "warning" : status === "draft" || status === "ready" ? "success" : STATUS_TONE[status]}>
+          {!approved ? t("stPending") : status === "draft" || status === "ready" ? t("stReady") : t(`st.${status}` as never)}
+        </Badge>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -215,9 +219,15 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
       <CourtStepper status={status} t={t} />
 
       {!approved && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-sm text-warning">
+        <Link
+          href="/approvals"
+          className="mt-3 flex items-center gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-sm font-medium text-warning transition-colors hover:bg-warning/15"
+        >
           <Warning weight="fill" className="size-4 shrink-0" /> {t("notApproved")}
-        </div>
+          <span className="ml-auto inline-flex items-center gap-1 whitespace-nowrap">
+            {t("goApprove")} <ArrowRight className="size-3.5" />
+          </span>
+        </Link>
       )}
 
       {/* Actions */}

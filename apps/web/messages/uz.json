@@ -596,7 +596,10 @@
       "sudErrorGateway": "Cabinet.sud.uz hozir vaqtincha ishlamayapti. Bir necha daqiqadan so'ng qayta urinib ko'ring.",
       "sudErrorAuth": "Sessiya muddati tugagan. Qaytadan ulaning.",
       "checkingConnection": "Ulanish tekshirilmoqda..."
-    }
+    },
+    "stPending": "Tasdiq kutmoqda",
+    "stReady": "Tasdiqlandi · Topshirishga tayyor",
+    "goApprove": "Tasdiqlashga o'tish"
   },
   "overdue": {
     "title": "Muddati o'tgan qarzdorlik",

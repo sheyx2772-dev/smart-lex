@@ -559,7 +559,10 @@
       "sudErrorGateway": "cabinet.sud.uz is temporarily unavailable. Please try again in a few minutes.",
       "sudErrorAuth": "Session expired. Please reconnect.",
       "checkingConnection": "Checking connection..."
-    }
+    },
+    "stPending": "Awaiting approval",
+    "stReady": "Approved · Ready to file",
+    "goApprove": "Go to approve"
   },
   "overdue": {
     "title": "Overdue receivables",
