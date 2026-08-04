@@ -59,7 +59,7 @@ settingsRoutes.get("/", async (c) => {
   return c.json(
     ok(
       {
-        profile: data.user ? { fullName: data.user.fullName, email: data.user.email, locale: data.user.locale, role: data.user.role } : null,
+        profile: data.user ? { id: data.user.id, fullName: data.user.fullName, email: data.user.email, locale: data.user.locale, role: data.user.role } : null,
         company: data.tenant
           ? {
               name: data.tenant.name,

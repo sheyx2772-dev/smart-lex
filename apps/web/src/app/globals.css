@@ -3,8 +3,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ── Design tokens ──────────────────────────────────────────
-   Identity: chuqur ishonchli ko'k (primary), binafsha (secondary),
-   sovuq slate neytrallar. Moliyaviy-huquqiy "mission control". */
+   Identity: LEX.AI brend qirmizisi (primary) — marketing sahifasidagi
+   qora/qizil identifikatsiyaning ilova ichidagi aks-sadosi — binafsha
+   (secondary), sovuq slate neytrallar. Moliyaviy-huquqiy "mission control".
+   MUHIM: primary --danger'dan atayin farqli tuslangan (chuqurroq, to'qroq
+   qirmizi vs ochiqroq/za'faron-qizil xavf rangi) — asosiy harakat va
+   xavfli/qaytarib bo'lmaydigan harakat (masalan sudga yuborish) ko'zga
+   bir xil ko'rinib qolmasligi uchun. */
 :root {
   --background: #f6f8fc;
   --foreground: #0d1526;
@@ -18,9 +23,9 @@
   --input: #dce0e6;
   --ring: #2b313c;
 
-  --primary: #262c38;
+  --primary: #c31432;
   --primary-foreground: #ffffff;
-  --primary-soft: #eef0f3;
+  --primary-soft: #fbe6ea;
 
   --secondary: #545c6b;
   --secondary-foreground: #ffffff;
@@ -50,9 +55,9 @@
   --input: #2a313f;
   --ring: #e6ebf5;
 
-  --primary: #f4f6fb;
-  --primary-foreground: #0b0e15;
-  --primary-soft: #1c2230;
+  --primary: #ef2748;
+  --primary-foreground: #ffffff;
+  --primary-soft: #34121a;
 
   --secondary: #c2cad8;
   --secondary-foreground: #0b0e15;

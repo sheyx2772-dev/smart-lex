@@ -213,7 +213,11 @@ export function AgentAutopilot({ initial }: { initial: AutopilotData | null }) {
         <Stat icon={<Brain weight="fill" className="size-4" />} label="Bugungi qarorlar" value={stats.decisionsToday} />
         <Stat icon={<PaperPlaneTilt weight="fill" className="size-4" />} label="Yuborilgan" value={stats.remindersToday} />
         <Stat icon={<Gavel weight="fill" className="size-4" />} label="Eskalatsiya" value={stats.escalationsToday} />
-        <Stat icon={<ChartLineUp weight="fill" className="size-4" />} label="O'rtacha undirish" value={stats.avgRecovery === null ? "—" : `${stats.avgRecovery}%`} />
+        <Stat
+          icon={<ChartLineUp weight="fill" className="size-4" />}
+          label="AI ehtimol bahosi"
+          value={stats.avgRecovery === null ? "—" : `${stats.avgRecovery}%`}
+        />
       </div>
 
       {/* Live feed */}

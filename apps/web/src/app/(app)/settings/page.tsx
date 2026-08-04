@@ -15,7 +15,7 @@ export default async function SettingsPage() {
   const role = res.data.profile?.role ?? "viewer";
   return (
     <div className="space-y-6">
-      <SettingsClient data={res.data} users={usersRes.data ?? []} currentRole={role} />
+      <SettingsClient data={res.data} users={usersRes.data ?? []} currentRole={role} currentUserId={res.data.profile?.id ?? ""} />
       {(role === "owner" || role === "admin") && <MerchantConnect initial={merchantRes.data ?? null} webUrl="https://api.lexai.com.uz" />}
     </div>
   );

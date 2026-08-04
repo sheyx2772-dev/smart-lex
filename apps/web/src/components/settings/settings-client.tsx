@@ -58,7 +58,7 @@ interface Step {
   requiresApproval: boolean;
 }
 export interface SettingsData {
-  profile: { fullName: string; email: string; locale: string; role: string };
+  profile: { id: string; fullName: string; email: string; locale: string; role: string };
   company: {
     name: string;
     tin: string;
@@ -116,10 +116,12 @@ export function SettingsClient({
   data,
   users,
   currentRole,
+  currentUserId,
 }: {
   data: SettingsData;
   users: TeamUser[];
   currentRole: string;
+  currentUserId: string;
 }) {
   const t = useTranslations("settings");
   const searchParams = useSearchParams();
@@ -167,7 +169,7 @@ export function SettingsClient({
         <div className="min-w-0">
           {tab === "profile" && <ProfileSection profile={data.profile} />}
           {tab === "company" && <CompanySection company={company} setCompany={setCompany} />}
-          {tab === "team" && <TeamSection users={users} currentRole={currentRole} />}
+          {tab === "team" && <TeamSection users={users} currentRole={currentRole} currentUserId={currentUserId} />}
           {tab === "collection" && <CollectionSection steps={data.collection.steps} />}
           {tab === "penalty" && <PenaltySection company={company} setCompany={setCompany} />}
           {tab === "channels" && <ChannelsSection company={company} setCompany={setCompany} />}
@@ -423,7 +425,7 @@ const ROLE_TONE: Record<string, "primary" | "secondary" | "success" | "warning" 
   viewer: "neutral",
 };
 
-function TeamSection({ users, currentRole }: { users: TeamUser[]; currentRole: string }) {
+function TeamSection({ users, currentRole, currentUserId }: { users: TeamUser[]; currentRole: string; currentUserId: string }) {
   const t = useTranslations("settings");
   const canManage = currentRole === "owner" || currentRole === "admin";
   const adder = useSaver();
@@ -451,7 +453,7 @@ function TeamSection({ users, currentRole }: { users: TeamUser[]; currentRole: s
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
                   {u.fullName}
-                  {u.role === currentRole && <span className="ml-1.5 text-xs text-muted-foreground">({t("team.you")})</span>}
+                  {u.id === currentUserId && <span className="ml-1.5 text-xs text-muted-foreground">({t("team.you")})</span>}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>
               </div>
