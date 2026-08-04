@@ -1153,6 +1153,34 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
         ru: "Объясни документ простым языком: суть, обязанности сторон, сроки и суммы.",
       },
     },
+    {
+      label: { uz: "Qisqartir", ru: "Сократить" },
+      prompt: {
+        uz: "Hujjatni QISQARTIR — takrorlanuvchi va ortiqcha jumlalarni olib tashla, lekin barcha majburiy bo'lim, rekvizit, summa va muddatlarni saqlab qol. Natijani TO'LIQ hujjat sifatida (# sarlavha bilan) qayta yoz.",
+        ru: "СОКРАТИ документ — убери повторы и лишние фразы, сохранив все обязательные разделы, реквизиты, суммы и сроки. Выдай результат как ПОЛНЫЙ документ (с заголовком #).",
+      },
+    },
+    {
+      label: { uz: "Rasmiy uslubga o'tkaz", ru: "Официальный стиль" },
+      prompt: {
+        uz: "Hujjat matnini QAT'IY RASMIY, yuridik hujjatlarga xos uslubga o'tkaz (so'zlashuv iboralarini olib tashla, aniq va rasmiy atamalar ishlat). Mazmun, summa va rekvizitlarni o'zgartirma. Natijani TO'LIQ hujjat sifatida (# sarlavha bilan) qayta yoz.",
+        ru: "Перепиши текст документа в СТРОГО ОФИЦИАЛЬНОМ, юридическом стиле (без разговорных оборотов, точные формулировки). Суть, суммы и реквизиты не меняй. Выдай результат как ПОЛНЫЙ документ (с заголовком #).",
+      },
+    },
+    {
+      label: { uz: "Qonun moddasi qo'sh", ru: "Добавить статьи закона" },
+      prompt: {
+        uz: "Hujjatdagi har bir muhim shart/band uchun tegishli O'zbekiston qonun (Fuqarolik kodeksi, Iqtisodiy protsessual kodeks va h.k.) moddasiga havola qo'sh — kodeks NOMINI to'liq yoz, modda RAQAMINI faqat 100% aniq bo'lsang yoz (aks holda \"tegishli modda\" deb yoz, o'ylab topma). Natijani TO'LIQ hujjat sifatida (# sarlavha bilan) qayta yoz.",
+        ru: "Добавь к каждому важному пункту документа ссылку на соответствующую статью закона РУз (ГК, ЭПК и т.д.) — название кодекса полностью, номер статьи только при 100% уверенности (иначе «соответствующая статья», не выдумывай). Выдай результат как ПОЛНЫЙ документ (с заголовком #).",
+      },
+    },
+    {
+      label: { uz: "Tomonlarni almashtir", ru: "Поменять стороны" },
+      prompt: {
+        uz: "Hujjatdagi ikki tomonning (masalan kreditor/qarzdor, ijaraga beruvchi/ijarachi, sotuvchi/xaridor) rollarini bir-biriga ALMASHTIR — huquq va majburiyatlar mos ravishda qayta yozilsin, boshqa mazmun o'zgarmasin. Natijani TO'LIQ hujjat sifatida (# sarlavha bilan) qayta yoz.",
+        ru: "ПОМЕНЯЙ МЕСТАМИ роли двух сторон документа (например кредитор/должник, арендодатель/арендатор, продавец/покупатель) — права и обязанности перепиши соответственно, остальное не меняй. Выдай результат как ПОЛНЫЙ документ (с заголовком #).",
+      },
+    },
   ];
 
   return (
