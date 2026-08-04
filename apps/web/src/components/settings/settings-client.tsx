@@ -19,7 +19,7 @@ import { type Editor } from "@tiptap/react";
 import { connectDidox, createUser, saveCollection, saveCompany, saveDocTemplates, saveIntegrations, savePassword, saveProfile, updateUser } from "@/app/(app)/settings/actions";
 import { plainToHtml } from "@/lib/doc-html";
 import { DEFAULT_DOC_TEMPLATES, DOC_TEMPLATE_VARS, type DocTemplateType } from "@/lib/doc-templates";
-import { signTinForDidox } from "@/lib/eimzo";
+import { type EimzoKeyOption, listEimzoKeys, signTinForDidox } from "@/lib/eimzo";
 import { formatPhoneInput } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { RichEditor } from "@/components/ui/rich-editor";
@@ -625,6 +625,7 @@ function IntegrationsSection({ integrations, tin }: { integrations: IntegrationS
   const router = useRouter();
   const [didoxConnecting, setDidoxConnecting] = useState(false);
   const [didoxError, setDidoxError] = useState<string | null>(null);
+  const [eimzoKeys, setEimzoKeys] = useState<EimzoKeyOption[] | null>(null);
 
   async function connectDidoxViaEimzo() {
     if (didoxConnecting) return;
@@ -635,7 +636,24 @@ function IntegrationsSection({ integrations, tin }: { integrations: IntegrationS
     }
     setDidoxConnecting(true);
     try {
-      const sig = await signTinForDidox(tin);
+      const { keys } = await listEimzoKeys();
+      if (keys.length > 1) {
+        setEimzoKeys(keys);
+        setDidoxConnecting(false);
+        return;
+      }
+      await finishDidoxConnect(keys[0]!);
+    } catch (e) {
+      setDidoxError(e instanceof Error ? e.message : String(e));
+      setDidoxConnecting(false);
+    }
+  }
+
+  async function finishDidoxConnect(key: EimzoKeyOption) {
+    setEimzoKeys(null);
+    setDidoxConnecting(true);
+    try {
+      const sig = await signTinForDidox(tin, key);
       const res = await connectDidox({ pkcs7: sig.pkcs7, signatureHex: sig.signatureHex });
       if (!res.success) throw new Error(res.message);
       router.refresh();
@@ -708,6 +726,22 @@ function IntegrationsSection({ integrations, tin }: { integrations: IntegrationS
               {didoxConnecting ? ui("didoxConnecting") : ui("didoxConnectButton")}
             </Button>
             {didoxError && <p className="text-xs text-danger">{didoxError}</p>}
+            {eimzoKeys && (
+              <div className="space-y-1.5 rounded-lg border border-border bg-card p-2">
+                <p className="px-1 text-xs font-medium text-muted-foreground">{ui("didoxChooseKey")}</p>
+                {eimzoKeys.map((k, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => finishDidoxConnect(k)}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                  >
+                    <span className="font-medium">{k.CN || k.O}</span>
+                    <span className="text-xs text-muted-foreground">{k.TIN || k.PINFL}{k.validTo ? ` · ${k.validTo}` : ""}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Maxfiy kalitlar */}

@@ -259,6 +259,7 @@
       "bankApiKey": "Bank API key",
       "configured": "Configured",
       "desc": "Keys for external services (Didox, bank, E-IMZO, SMS, Telegram)",
+      "didoxChooseKey": "Which profile do you want to connect with?",
       "didoxConnectButton": "Connect via E-IMZO",
       "didoxConnectDesc": "Connect your Didox account with your E-IMZO key — no password, just one click",
       "didoxConnectTitle": "Connect to Didox via E-IMZO",
@@ -489,17 +490,7 @@
       "contractNo": "Contract №"
     },
     "connect": {
-      "button": "Connect Didox",
-      "title": "Didox integration",
-      "subtitle": "Sign in with E-IMZO and exchange documents",
-      "step1": "Sign in to didox.uz with E-IMZO (in a separate window)",
-      "openDidox": "Open didox.uz",
-      "opened": "Window opened — sign in with E-IMZO",
-      "step2": "Fetch documents",
-      "fetch": "Fetch documents",
-      "step3": "Send a document to Didox",
-      "send": "Prepare a document",
-      "note": "The separate window is for E-IMZO sign-in. Real document exchange runs via the Didox API (DIDOX_PARTNER_TOKEN) — with the token set, real documents flow in."
+      "button": "Connect Didox"
     }
   },
   "court": {

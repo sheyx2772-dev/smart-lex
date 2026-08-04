@@ -259,6 +259,7 @@
       "bankApiKey": "API-ключ банка",
       "configured": "Подключено",
       "desc": "Ключи для внешних сервисов (Didox, банк, E-IMZO, SMS, Telegram)",
+      "didoxChooseKey": "С каким профилем подключиться?",
       "didoxConnectButton": "Подключить через E-IMZO",
       "didoxConnectDesc": "Подключите свой аккаунт Didox с помощью ключа E-IMZO — без пароля, одним нажатием",
       "didoxConnectTitle": "Подключение к Didox через E-IMZO",
@@ -489,17 +490,7 @@
       "contractNo": "№ договора"
     },
     "connect": {
-      "button": "Подключить Didox",
-      "title": "Интеграция Didox",
-      "subtitle": "Войдите через E-IMZO и обменивайтесь документами",
-      "step1": "Войдите на didox.uz через E-IMZO (в отдельном окне)",
-      "openDidox": "Открыть didox.uz",
-      "opened": "Окно открыто — войдите через E-IMZO",
-      "step2": "Загрузить документы",
-      "fetch": "Получить документы",
-      "step3": "Отправить документ в Didox",
-      "send": "Подготовить документ",
-      "note": "Отдельное окно — для входа через E-IMZO. Реальный обмен документами идёт через Didox API (DIDOX_PARTNER_TOKEN) — при наличии токена придут настоящие документы."
+      "button": "Подключить Didox"
     }
   },
   "court": {

@@ -206,7 +206,12 @@ settingsRoutes.post("/didox/connect", async (c) => {
     method: "POST",
     headers,
     body: JSON.stringify({ pkcs7: parsed.data.pkcs7, signatureHex: parsed.data.signatureHex }),
-  }).catch(() => null);
+  }).catch((e) => {
+    console.error("[didox/connect] timestamp fetch throw:", e);
+    return null;
+  });
+  const tsText = tsRes ? await tsRes.clone().text().catch(() => "") : "";
+  console.error("[didox/connect] timestamp", tsRes?.status, tsText.slice(0, 500));
   const tsData = tsRes && tsRes.ok ? ((await tsRes.json().catch(() => null)) as { timeStampTokenB64?: string } | null) : null;
   if (!tsData?.timeStampTokenB64) {
     return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
@@ -216,7 +221,12 @@ settingsRoutes.post("/didox/connect", async (c) => {
     method: "POST",
     headers,
     body: JSON.stringify({ signature: tsData.timeStampTokenB64 }),
-  }).catch(() => null);
+  }).catch((e) => {
+    console.error("[didox/connect] auth fetch throw:", e);
+    return null;
+  });
+  const authText = authRes ? await authRes.clone().text().catch(() => "") : "";
+  console.error("[didox/connect] auth", authRes?.status, authText.slice(0, 500));
   const authData = authRes && authRes.ok ? ((await authRes.json().catch(() => null)) as { token?: string } | null) : null;
   if (!authData?.token) {
     return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);

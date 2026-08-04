@@ -96,19 +96,23 @@ export async function signWithEimzo(content: string, signerHint?: string): Promi
     const items = await p<any[]>((ok, fail) =>
       C.listAllUserKeys(
         (_vo: any, rec: number) => "k" + rec,
-        (id: string, vo: any) => ({ id, vo }),
+        (id: string, vo: any) => ({ id, ...vo }),
         (arr: any[]) => ok(arr),
         fail,
       ),
     );
     if (!items || items.length === 0) throw new Error("E-IMZO: kalit topilmadi");
     const item = items[0]; // prototip: birinchi kalit (real appda tanlov oynasi)
+    // EIMZOClient.loadKey vo maydonlarini (type/disk/path/name/alias) TO'G'RIDAN item'dan
+    // o'qiydi — {id, vo} qilib o'rab yuborilsa, item.type aniqlanmay, funksiya HECH NARSA
+    // qilmay (dialog ochilmay, xato ham bermay) jim qoladi. Shu sabab vo maydonlari item
+    // ustiga yoyiladi (spread).
     const keyId = await p<string>((ok, fail) => C.loadKey(item, (id: string) => ok(id), fail));
     const pkcs7 = await p<string>((ok, fail) => C.createPkcs7(keyId, content, null, (s: string) => ok(s), fail));
     return {
       pkcs7,
-      signerName: item.vo?.CN || item.vo?.O || "E-IMZO",
-      certSerial: item.vo?.serialNumber || item.vo?.TIN || "—",
+      signerName: item.CN || item.O || "E-IMZO",
+      certSerial: item.serialNumber || item.TIN || "—",
       signedAt: new Date().toISOString(),
       provider: "eimzo",
     };
@@ -134,17 +138,27 @@ export interface DidoxEimzoSignature {
   provider: "eimzo" | "mock";
 }
 
+export interface EimzoKeyOption {
+  /** loadKey/createPkcs7'ga to'g'ridan yuborsa bo'ladigan xom vo obyekti (yoki mock uchun null). */
+  raw: any;
+  CN: string;
+  O: string;
+  TIN: string;
+  PINFL: string;
+  validTo: string;
+}
+
+const MOCK_KEY: EimzoKeyOption = { raw: null, CN: "DEMO imzo", O: "", TIN: "", PINFL: "", validTo: "" };
+
 /**
- * Didox self-service ulanish uchun maxsus imzo — pkcs7_64 BILAN BIRGA signature_hex
- * ham kerak (Didox /v1/dsvs/timestamp shuni talab qiladi). EIMZOClient.createPkcs7
- * faqat pkcs7_64'ni tashqariga beradi, shuning uchun bu yerda pastki darajadagi
- * CAPIWS.callFunction to'g'ridan chaqiriladi (xuddi shu WebSocket protokoli,
- * lekin xom javob — signature_hex ham qaytadi).
+ * Foydalanuvchining barcha E-IMZO kalitlarini (bir nechta bo'lishi mumkin — turli
+ * tashkilot/shaxs sertifikatlari) ro'yxat qiladi. Chaqiruvchi (UI) shu ro'yxatdan
+ * TANLOV taklif qilishi kerak — birinchisini avtomatik olish noto'g'ri kalit bilan
+ * imzolanishiga olib kelishi mumkin.
  */
-export async function signTinForDidox(tin: string): Promise<DidoxEimzoSignature> {
+export async function listEimzoKeys(): Promise<{ keys: EimzoKeyOption[]; provider: "eimzo" | "mock" }> {
   const loaded = await loadEimzoScripts();
   const C = loaded ? (window as AnyWin).EIMZOClient : null;
-  const CW = loaded ? (window as AnyWin & { CAPIWS?: any }).CAPIWS : null;
 
   let clientLive = false;
   if (C) {
@@ -156,43 +170,78 @@ export async function signTinForDidox(tin: string): Promise<DidoxEimzoSignature>
     }
   }
 
-  if (clientLive && C && CW) {
-    await p((ok, fail) => C.installApiKeys(() => ok(true), fail));
-    const items = await p<any[]>((ok, fail) =>
-      C.listAllUserKeys(
-        (_vo: any, rec: number) => "k" + rec,
-        (id: string, vo: any) => ({ id, vo }),
-        (arr: any[]) => ok(arr),
-        fail,
-      ),
-    );
-    if (!items || items.length === 0) throw new Error("E-IMZO: kalit topilmadi");
-    const item = items[0]; // prototip: birinchi kalit (real appda tanlov oynasi)
-    const keyId = await p<string>((ok, fail) => C.loadKey(item, (id: string) => ok(id), fail));
-    const tinB64 = typeof btoa === "function" ? btoa(tin) : Buffer.from(tin).toString("base64");
-    const raw = await p<{ pkcs7_64: string; signature_hex: string }>((ok, fail) =>
-      CW.callFunction(
-        { plugin: "pkcs7", name: "create_pkcs7", arguments: [tinB64, keyId, "no"] },
-        (_event: unknown, data: any) => (data?.success ? ok(data) : fail(null, data?.reason)),
-        (e: unknown) => fail(e, undefined),
-      ),
-    );
+  if (!clientLive || !C) return { keys: [MOCK_KEY], provider: "mock" };
+
+  await p((ok, fail) => C.installApiKeys(() => ok(true), fail));
+  const items = await p<any[]>((ok, fail) =>
+    C.listAllUserKeys(
+      (_vo: any, rec: number) => "k" + rec,
+      (id: string, vo: any) => ({ id, ...vo }),
+      (arr: any[]) => ok(arr),
+      fail,
+    ),
+  );
+  if (!items || items.length === 0) throw new Error("E-IMZO: kalit topilmadi");
+  return {
+    provider: "eimzo",
+    keys: items.map((it) => ({
+      raw: it,
+      CN: it.CN || it.O || "Noma'lum",
+      O: it.O || "",
+      TIN: it.TIN || "",
+      PINFL: it.PINFL || "",
+      validTo: it.validTo instanceof Date && !isNaN(it.validTo.getTime()) ? it.validTo.toISOString().slice(0, 10) : "",
+    })),
+  };
+}
+
+/**
+ * Didox self-service ulanish uchun maxsus imzo — pkcs7_64 BILAN BIRGA signature_hex
+ * ham kerak (Didox /v1/dsvs/timestamp shuni talab qiladi). EIMZOClient.createPkcs7
+ * faqat pkcs7_64'ni tashqariga beradi, shuning uchun bu yerda pastki darajadagi
+ * CAPIWS.callFunction to'g'ridan chaqiriladi (xuddi shu WebSocket protokoli,
+ * lekin xom javob — signature_hex ham qaytadi).
+ *
+ * `key` — listEimzoKeys() natijasidan foydalanuvchi TANLAGAN element (bir nechta
+ * kalit bo'lsa, avtomatik birinchisini olish noto'g'ri profil bilan ulanishga
+ * olib kelishi mumkin edi).
+ */
+export async function signTinForDidox(tin: string, key: EimzoKeyOption): Promise<DidoxEimzoSignature> {
+  if (key.raw === null) {
+    // ── DEMO (mock) — E-IMZO Client yo'q bo'lsa ham oqim strukturasini sinash mumkin ──
+    await new Promise((r) => setTimeout(r, 900));
     return {
-      pkcs7: raw.pkcs7_64,
-      signatureHex: raw.signature_hex,
-      signerName: item.vo?.CN || item.vo?.O || "E-IMZO",
-      certSerial: item.vo?.serialNumber || item.vo?.TIN || "—",
-      provider: "eimzo",
+      pkcs7: "MOCK.PKCS7.DIDOX_DEMO",
+      signatureHex: "6d6f636b2d7369676e61747572652d6865782d64656d6f",
+      signerName: "DEMO imzo",
+      certSerial: "6F2A9C4E-DEMO-0001",
+      provider: "mock",
     };
   }
 
-  // ── DEMO (mock) — E-IMZO Client yo'q bo'lsa ham oqim strukturasini sinash mumkin ──
-  await new Promise((r) => setTimeout(r, 900));
+  const loaded = await loadEimzoScripts();
+  const C = loaded ? (window as AnyWin).EIMZOClient : null;
+  const CW = loaded ? (window as AnyWin & { CAPIWS?: any }).CAPIWS : null;
+  if (!C || !CW) throw new Error("E-IMZO Client ishlamayapti");
+
+  // EIMZOClient.loadKey vo maydonlarini (type/disk/path/name/alias) TO'G'RIDAN item'dan
+  // o'qiydi — {id, vo} qilib o'rab yuborilsa, item.type aniqlanmay, funksiya HECH NARSA
+  // qilmay (dialog ochilmay, xato ham bermay) jim qoladi. Shu sabab listEimzoKeys() vo
+  // maydonlarini item ustiga yoygan (spread) holda saqlaydi.
+  const keyId = await p<string>((ok, fail) => C.loadKey(key.raw, (id: string) => ok(id), fail));
+  const tinB64 = typeof btoa === "function" ? btoa(tin) : Buffer.from(tin).toString("base64");
+  const raw = await p<{ pkcs7_64: string; signature_hex: string }>((ok, fail) =>
+    CW.callFunction(
+      { plugin: "pkcs7", name: "create_pkcs7", arguments: [tinB64, keyId, "no"] },
+      (_event: unknown, data: any) => (data?.success ? ok(data) : fail(null, data?.reason)),
+      (e: unknown) => fail(e, undefined),
+    ),
+  );
   return {
-    pkcs7: "MOCK.PKCS7.DIDOX_DEMO",
-    signatureHex: "6d6f636b2d7369676e61747572652d6865782d64656d6f",
-    signerName: "DEMO imzo",
-    certSerial: "6F2A9C4E-DEMO-0001",
-    provider: "mock",
+    pkcs7: raw.pkcs7_64,
+    signatureHex: raw.signature_hex,
+    signerName: key.CN || key.O || "E-IMZO",
+    certSerial: key.TIN || key.PINFL || "—",
+    provider: "eimzo",
   };
 }

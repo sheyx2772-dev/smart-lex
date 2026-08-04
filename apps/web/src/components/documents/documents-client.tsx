@@ -2,8 +2,6 @@
 
 import {
   ArrowRight,
-  ArrowSquareOut,
-  CheckCircle,
   ClipboardText,
   CloudArrowDown,
   Envelope,
@@ -24,7 +22,6 @@ import {
   Tray,
   TrayArrowUp,
   Truck,
-  UploadSimple,
   Wallet,
   Warning,
   X,
@@ -35,7 +32,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { fetchDocuments, getDocumentDetail, signDocument, syncDidox } from "@/app/(app)/documents/actions";
 import { signWithEimzo } from "@/lib/eimzo";
-import { openSiteWindow } from "@/lib/open-window";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DocumentView } from "@/components/ui/document-view";
@@ -111,8 +107,17 @@ const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; h
   other: { cat: "reply", href: "/studio", icon: NotePencil },
 };
 
-function fmtDate(s: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(s));
+/**
+ * Intl.DateTimeFormat ishlatilmaydi — "uz" lokal uchun Node (server) va brauzer
+ * (client) ICU'lari boshqacha naqsh tanlashi mumkin (masalan "04/08/2026" vs
+ * "2026-08-04"), bu esa hydration mismatch'ga olib keladi. Shu sabab qo'lda,
+ * har doim bir xil formatlanadi.
+ */
+function fmtDate(s: string): string {
+  const d = new Date(s);
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getUTCFullYear()}`;
 }
 
 export function DocumentsClient({ initial }: { initial: DocumentsData }) {
@@ -128,8 +133,6 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
-  const [connect, setConnect] = useState(false);
-  const [didoxOpened, setDidoxOpened] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<DocDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -178,11 +181,6 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
     setSyncing(false);
   }
 
-  function openDidox() {
-    openSiteWindow("https://didox.uz/documents/new?tab=all&page=1&limit=20", "didox");
-    setDidoxOpened(true);
-  }
-
   const tabs = ["all", ...TYPE_ORDER.filter((ty) => data.byType[ty])];
   const isIncoming = folder === "incoming";
   const rows = isIncoming ? data.items : [];
@@ -196,12 +194,12 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setConnect(true)}
+          <Link
+            href="/settings?tab=integrations"
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-primary-foreground shadow-sm shadow-primary/30 transition-opacity hover:opacity-90"
           >
             <Plugs weight="fill" className="size-4" /> {t("connect.button")}
-          </button>
+          </Link>
           <button
             onClick={sync}
             disabled={syncing}
@@ -335,7 +333,7 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
                             <span className="font-medium">{tType(r.type as never)}</span>
                           </span>
                         </td>
-                        <td className="tabular px-4 py-3 text-muted-foreground">{fmtDate(r.createdAt, locale)}</td>
+                        <td className="tabular px-4 py-3 text-muted-foreground">{fmtDate(r.createdAt)}</td>
                         <td className="max-w-[220px] px-4 py-3">
                           <span className="line-clamp-2 font-medium">{r.contractorName ?? "—"}</span>
                         </td>
@@ -388,70 +386,6 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
         </div>
       )}
 
-      {/* Didox integratsiyasi — alohida oyna (E-IMZO) + API sinxronlash */}
-      {connect && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setConnect(false)}>
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5">
-                <span className="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary">
-                  <Plugs weight="fill" className="size-5" />
-                </span>
-                <div>
-                  <h2 className="font-display text-lg font-semibold">{t("connect.title")}</h2>
-                  <p className="text-xs text-muted-foreground">{t("connect.subtitle")}</p>
-                </div>
-              </div>
-              <button onClick={() => setConnect(false)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <ol className="mt-5 space-y-2.5">
-              <li className="rounded-xl border border-border p-3">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">1</span> {t("connect.step1")}
-                </p>
-                <button onClick={openDidox} className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90">
-                  <ArrowSquareOut weight="fill" className="size-4" /> {t("connect.openDidox")}
-                </button>
-                {didoxOpened && (
-                  <p className="mt-1.5 flex items-center gap-1 text-xs text-success">
-                    <CheckCircle weight="fill" className="size-3.5" /> {t("connect.opened")}
-                  </p>
-                )}
-              </li>
-              <li className="rounded-xl border border-border p-3">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">2</span> {t("connect.step2")}
-                </p>
-                <button
-                  onClick={() => {
-                    setConnect(false);
-                    sync();
-                  }}
-                  disabled={syncing}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40 disabled:opacity-60"
-                >
-                  <CloudArrowDown className="size-4" /> {t("connect.fetch")}
-                </button>
-              </li>
-              <li className="rounded-xl border border-border p-3">
-                <p className="flex items-center gap-2 text-sm font-medium">
-                  <span className="grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">3</span> {t("connect.step3")}
-                </p>
-                <Link href="/studio" className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium transition-colors hover:border-primary/40">
-                  <UploadSimple className="size-4" /> {t("connect.send")}
-                </Link>
-              </li>
-            </ol>
-
-            <p className="mt-4 flex items-start gap-1.5 text-xs text-muted-foreground">
-              <Warning className="mt-0.5 size-3.5 shrink-0" /> {t("connect.note")}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -502,7 +436,7 @@ function DetailBody({
   return (
     <>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-        <Field label={tType(detail.type as never)} value={fmtDate(detail.createdAt, locale)} />
+        <Field label={tType(detail.type as never)} value={fmtDate(detail.createdAt)} />
         <Field label={t("contractor")} value={detail.contractorName} />
         <Field label={t("contract")} value={detail.contractNumber} />
         <Field label={t("didox")} value={detail.didoxId} />

@@ -284,6 +284,7 @@
       "secretNote": "Maxfiy kalitlar xavfsiz saqlanadi va qayta ko'rsatilmaydi. Yangilash uchun qayta kiriting.",
       "replaceHint": "O'zgartirish uchun yangi qiymat kiriting",
       "didoxToken": "Didox partner token",
+      "didoxChooseKey": "Qaysi profil bilan ulanmoqchisiz?",
       "didoxConnectTitle": "Didox'ga E-IMZO orqali ulanish",
       "didoxConnectDesc": "O'zingizning E-IMZO kalitingiz bilan Didox hisobingizga ulaning — parolsiz, bir marta bosish yetarli",
       "didoxConnectButton": "E-IMZO bilan ulanish",
@@ -526,17 +527,7 @@
       "contractNo": "Shartnoma №"
     },
     "connect": {
-      "button": "Didox'ga ulanish",
-      "title": "Didox integratsiyasi",
-      "subtitle": "E-IMZO bilan kiring va hujjatlarni ayirboshlang",
-      "step1": "didox.uz'ga E-IMZO bilan kiring (alohida oynada)",
-      "openDidox": "didox.uz'ni ochish",
-      "opened": "Oyna ochildi — E-IMZO bilan kiring",
-      "step2": "Hujjatlarni yuklab olish",
-      "fetch": "Hujjatlarni olish",
-      "step3": "Didox'ga hujjat yuborish",
-      "send": "Hujjat tayyorlash",
-      "note": "Alohida oyna — E-IMZO kirish uchun. Hujjatlarni haqiqiy olish/yuborish Didox API (DIDOX_PARTNER_TOKEN) orqali ishlaydi — token qo'yilganda real hujjatlar keladi."
+      "button": "Didox'ga ulanish"
     }
   },
   "court": {
