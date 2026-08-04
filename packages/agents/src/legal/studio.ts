@@ -49,7 +49,7 @@ const LEGAL_KB: Record<Locale, string> = {
 - Pul majburiyati o'z vaqtida bajarilmasa — shartnomadagi penya va/yoki qonuniy foizlar qo'llaniladi.
 - Da'vo muddati (iskovaya davnost): umumiy muddat — 3 (uch) yil, huquq buzilgani ma'lum bo'lган kundan.
 - Iqtisodiy protsessual kodeks (IPK): tadbirkorlik subyektlari o'rtasidagi pul nizolarida sudgacha (pretenziya) tartibi majburiy; pretenziyaga javob muddati odatда 30 kun.
-- Davlat boji: da'vo narxidan kelib chiqib, qonunchilikда belgilangan stavka bo'yicha hisoblanadi (aniq foizni O'YLAB TOPMA — "qonunда belgilangan stavka" deb yoz yoki [Davlat boji] joyini qoldir).
+- Davlat boji ("Davlat boji to'g'risida"gi Qonun ilovasi, O'RQ-600): iqtisodiy sudga mulkiy xususiyatga ega da'vo (qarz undirish) uchun — da'vo bahosining 2 foizi, biroq bazaviy hisoblash miqdori (BHM)ning 1 baravaridan kam bo'lmagan miqdorda; nomulkiy da'vo uchun — BHMning 10 baravari. BHMning joriy aniq so'm qiymatini O'YLAB TOPMA (yiliga o'zgaradi) — foizni/formulani yoz, BHM sonini [joriy BHM] deb qoldir.
 Modda raqami noaniq — hech qachon taxminiy raqam yozma; qoidani nomlab, kodeks nomini ko'rsat.`,
   ru: `ПРАВОВАЯ ОСНОВА — опирайся только на следующие проверенные положения. При цитировании пиши ПОЛНОЕ название кодекса (например «Гражданский кодекс Республики Узбекистан»). НОМЕР СТАТЬИ указывай ТОЛЬКО если уверен на 100%; иначе пиши «соответствующая статья» — ВЫДУМЫВАТЬ НОМЕРА СТРОГО ЗАПРЕЩЕНО:
 - Гражданский кодекс (ГК): обязательства должны исполняться надлежаще и в срок; односторонний отказ от исполнения не допускается. При нарушении договора кредитор вправе требовать основной долг, неустойку (пеню) и реальный ущерб.
@@ -57,7 +57,7 @@ Modda raqami noaniq — hech qachon taxminiy raqam yozma; qoidani nomlab, kodeks
 - При просрочке денежного обязательства применяются договорная пеня и/или законные проценты.
 - Исковая давность: общий срок — 3 (три) года со дня, когда стало известно о нарушении права.
 - Экономический процессуальный кодекс (ЭПК): по денежным спорам между субъектами предпринимательства досудебный (претензионный) порядок обязателен; срок ответа на претензию обычно 30 дней.
-- Госпошлина: рассчитывается от цены иска по ставке, установленной законодательством (НЕ выдумывай точный процент — пиши «по установленной законом ставке» или оставь [Госпошлина]).
+- Госпошлина (приложение к Закону «О государственной пошлине», ЗРУ-600): по имущественному иску в экономический суд (взыскание долга) — 2% от цены иска, но не менее 1-кратного БРВ; по неимущественному иску — 10-кратный БРВ. Точную сумму БРВ в сумах НЕ выдумывай (меняется ежегодно) — пиши формулу/процент, сумму БРВ оставляй как [текущий БРВ].
 Если номер статьи неизвестен — никогда не пиши приблизительный номер; назови положение и укажи название кодекса.`,
   en: `LEGAL BASIS — rely only on the following verified rules. When citing, write the FULL code name (e.g. "Civil Code of the Republic of Uzbekistan"). Give an ARTICLE NUMBER ONLY if 100% certain; otherwise write "the relevant article" — INVENTING NUMBERS IS STRICTLY FORBIDDEN:
 - Civil Code: obligations must be performed properly and on time; unilateral refusal to perform is not allowed. On breach, the creditor may claim principal debt, penalty (neustoyka/penya) and actual damages.
@@ -65,7 +65,7 @@ Modda raqami noaniq — hech qachon taxminiy raqam yozma; qoidani nomlab, kodeks
 - On delay of a monetary obligation, contractual penalty and/or statutory interest apply.
 - Limitation period: general term is 3 (three) years from when the breach became known.
 - Economic Procedure Code: for monetary disputes between business entities the pre-trial (claim/pretenzia) procedure is mandatory; the usual reply term is 30 days.
-- State duty: computed from the claim value at the statutory rate (do NOT invent the exact percentage — write "at the statutory rate" or leave [State duty]).
+- State duty (Annex to the Law "On State Duty", ORQ-600): for a property claim in economic court (debt recovery) — 2% of the claim value, but not less than 1x the base calculation value (BHM); for a non-property claim — 10x BHM. Do NOT invent the exact sum-value of BHM (it changes yearly) — state the percentage/formula, leave the BHM amount as [current BHM].
 If an article number is unknown, never write an approximate one; name the rule and cite the code.`,
 };
 

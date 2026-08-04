@@ -25,6 +25,7 @@ const CODE_NAMES: Record<string, string> = {
   IJRO: "O'zbekiston Respublikasining «Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to'g'risida»gi Qonuni",
   PLENUM: "O'zbekiston Respublikasi Oliy sudi Plenumi qarori",
   KONST: "O'zbekiston Respublikasi Konstitutsiyasi",
+  DBOJI: "O'zbekiston Respublikasining «Davlat boji to'g'risida»gi Qonuni (O'RQ-600, 06.01.2020)",
 };
 
 export const LAW_BASE: LawArticle[] = (lawDataRaw as { code: string; n: number; title: string; text: string }[]).map((a) => ({
@@ -110,7 +111,7 @@ LAW_BASE.forEach((a, i) => BY_KEY.set(`${RAW[i]!.code}:${a.n}`, a));
  * (masalan "tovar yetkazib berish" davlat-ehtiyoj moddalarini chiqarib, asl
  * qarz-undiruv moddalarini yo'qotmasin). Hujjat mavzusi so'rovдan aniqlanadi.
  */
-const ANCHORS: { re: RegExp; refs: [string, number][] }[] = [
+const ANCHORS: { re: RegExp; refs: [string, number | string][] }[] = [
   {
     // Qarz/penya undirish (da'vo arizasi, talabnoma, pretenziya)
     re: /qarz|penya|neustoyka|to.?lov|undir|talabnoma|pretenz|debitor|qarzdorlik|majburiyatni bajarma/i,
@@ -143,6 +144,12 @@ const ANCHORS: { re: RegExp; refs: [string, number][] }[] = [
       ["KONST", 65], // Mulk shakllarining teng huquqliligi, tadbirkorlik erkinligi, xususiy mulk daxlsizligi
       ["KONST", 66], // Mulkdorning egalik/foydalanish/tasarruf etish huquqi
     ],
+  },
+  {
+    // Davlat boji — iqtisodiy sudga da'vo (qarz undirish) uchun ANIQ stavka (2%, min 1 BHM).
+    // Manba: "Davlat boji to'g'risida"gi Qonun ilovasi (lex.uz/docs/-4680944).
+    re: /davlat boj|gosposhlin|davlat bojini/i,
+    refs: [["DBOJI", "ilova-2a"], ["DBOJI", "ilova-2b"]],
   },
 ];
 export function anchorArticles(query: string): LawArticle[] {
