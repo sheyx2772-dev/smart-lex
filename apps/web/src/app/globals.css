@@ -3,13 +3,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ── Design tokens ──────────────────────────────────────────
-   Identity: LEX.AI brend qirmizisi (primary) — marketing sahifasidagi
-   qora/qizil identifikatsiyaning ilova ichidagi aks-sadosi — binafsha
-   (secondary), sovuq slate neytrallar. Moliyaviy-huquqiy "mission control".
-   MUHIM: primary --danger'dan atayin farqli tuslangan (chuqurroq, to'qroq
-   qirmizi vs ochiqroq/za'faron-qizil xavf rangi) — asosiy harakat va
-   xavfli/qaytarib bo'lmaydigan harakat (masalan sudga yuborish) ko'zga
-   bir xil ko'rinib qolmasligi uchun. */
+   Identity: "enterprise/fintech mission control" — banklar va yirik
+   korxona mijozlari uchun jiddiy, ishonchli chuqur ko'k/grafit asosiy
+   rang (primary); LEX.AI brend qirmizisi (--brand) endi TIZIMLI emas,
+   faqat asosiy CTA va muhim urg'ular uchun ATAYIN CHEKLANGAN holda
+   ishlatiladi (marketing sahifasi bilan bog'liqlik saqlanadi, lekin
+   ish ekranlari "startap" emas, "bank dashboard" his qildirsin).
+   --danger --brand'dan farqli tuslangan — asosiy va xavfli/qaytarib
+   bo'lmaydigan harakat (masalan sudga yuborish) aralashib ketmasin. */
 :root {
   --background: #f6f8fc;
   --foreground: #0d1526;
@@ -21,11 +22,15 @@
   --muted-foreground: #5b6b85;
   --border: #e4e7ec;
   --input: #dce0e6;
-  --ring: #2b313c;
+  --ring: #1c2e4a;
 
-  --primary: #c31432;
+  --primary: #1c2e4a;
   --primary-foreground: #ffffff;
-  --primary-soft: #fbe6ea;
+  --primary-soft: #e7ecf5;
+
+  --brand: #c31432;
+  --brand-foreground: #ffffff;
+  --brand-soft: #fbe6ea;
 
   --secondary: #545c6b;
   --secondary-foreground: #ffffff;
@@ -39,7 +44,7 @@
   --danger-foreground: #ffffff;
   --danger-soft: #fce9e9;
 
-  --radius: 0.7rem;
+  --radius: 0.6rem;
 }
 
 .dark {
@@ -53,11 +58,15 @@
   --muted-foreground: #8b9bb8;
   --border: #232935;
   --input: #2a313f;
-  --ring: #e6ebf5;
+  --ring: #4c7dd9;
 
-  --primary: #ef2748;
+  --primary: #4c7dd9;
   --primary-foreground: #ffffff;
-  --primary-soft: #34121a;
+  --primary-soft: #16223a;
+
+  --brand: #ef2748;
+  --brand-foreground: #ffffff;
+  --brand-soft: #34121a;
 
   --secondary: #c2cad8;
   --secondary-foreground: #0b0e15;
@@ -89,6 +98,9 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary-soft: var(--secondary-soft);

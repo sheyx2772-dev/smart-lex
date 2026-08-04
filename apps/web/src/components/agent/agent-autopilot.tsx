@@ -160,7 +160,7 @@ export function AgentAutopilot({ initial }: { initial: AutopilotData | null }) {
           <button
             onClick={runNow}
             disabled={running}
-            className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:scale-[1.02] disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-2xl bg-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-lg shadow-brand/25 transition-transform hover:scale-[1.02] disabled:opacity-60"
           >
             {running ? <CircleNotch className="size-4 animate-spin" /> : <Play weight="fill" className="size-4" />}
             Hoziroq ishga tushir
