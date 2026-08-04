@@ -24,6 +24,7 @@ const CODE_NAMES: Record<string, string> = {
   XSHB: "O'zbekiston Respublikasining «Xo'jalik yurituvchi subyektlar faoliyatining shartnomaviy-huquqiy bazasi to'g'risida»gi Qonuni",
   IJRO: "O'zbekiston Respublikasining «Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to'g'risida»gi Qonuni",
   PLENUM: "O'zbekiston Respublikasi Oliy sudi Plenumi qarori",
+  KONST: "O'zbekiston Respublikasi Konstitutsiyasi",
 };
 
 export const LAW_BASE: LawArticle[] = (lawDataRaw as { code: string; n: number; title: string; text: string }[]).map((a) => ({
@@ -126,6 +127,22 @@ const ANCHORS: { re: RegExp; refs: [string, number][] }[] = [
     // Ijro / xatlov (MIB shikoyati, ijro varaqasi)
     re: /\bijro\b|xatlov|xatlab|majburiy ijro|ijrochi|hisobvaraq|ijro varaqa/i,
     refs: [["IJRO", 47]], // Undiruvni pul mablag'lari va mol-mulkka qaratish
+  },
+  {
+    // Sud/da'vo hujjatlari — konstitutsiyaviy asos (sud orqali himoyalanish huquqi)
+    // MUHIM: 2023-yilgi tahrirда modda raqamlari qayta raqamlangan (155 modda,
+    // eski 128 modдали tahrirдан farqli) — raqamlar lex.uz'ning joriy (30.04.2023)
+    // matnidan tasdiqlangan, eski tahrirdagi raqamlar QAYTA ISHLATILMASIN.
+    re: /\bsud\b|da.?vo|apellyatsiya|kassatsiya|shikoyat/i,
+    refs: [["KONST", 55]], // Har kimga o'z huquq va erkinliklarini sud orqali himoya qilish huquqi
+  },
+  {
+    // Shartnoma/tadbirkorlik hujjatlari — mulk va tadbirkorlik erkinligi konstitutsiyaviy kafolati
+    re: /shartnoma|tadbirkor|mulk|ijara|oldi-sotdi/i,
+    refs: [
+      ["KONST", 65], // Mulk shakllarining teng huquqliligi, tadbirkorlik erkinligi, xususiy mulk daxlsizligi
+      ["KONST", 66], // Mulkdorning egalik/foydalanish/tasarruf etish huquqi
+    ],
   },
 ];
 export function anchorArticles(query: string): LawArticle[] {
