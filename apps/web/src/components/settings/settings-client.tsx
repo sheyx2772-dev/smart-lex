@@ -13,12 +13,13 @@ import {
 } from "@phosphor-icons/react";
 import { Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { cloneElement, isValidElement, type ReactElement, useRef, useState, useTransition } from "react";
 import { type Editor } from "@tiptap/react";
-import { createUser, saveCollection, saveCompany, saveDocTemplates, saveIntegrations, savePassword, saveProfile, updateUser } from "@/app/(app)/settings/actions";
+import { connectDidox, createUser, saveCollection, saveCompany, saveDocTemplates, saveIntegrations, savePassword, saveProfile, updateUser } from "@/app/(app)/settings/actions";
 import { plainToHtml } from "@/lib/doc-html";
 import { DEFAULT_DOC_TEMPLATES, DOC_TEMPLATE_VARS, type DocTemplateType } from "@/lib/doc-templates";
+import { signTinForDidox } from "@/lib/eimzo";
 import { formatPhoneInput } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { RichEditor } from "@/components/ui/rich-editor";
@@ -171,7 +172,7 @@ export function SettingsClient({
           {tab === "penalty" && <PenaltySection company={company} setCompany={setCompany} />}
           {tab === "channels" && <ChannelsSection company={company} setCompany={setCompany} />}
           {tab === "templates" && <DocTemplatesSection saved={(data.company.settings?.docTemplates ?? {}) as Record<string, string>} />}
-          {tab === "integrations" && <IntegrationsSection integrations={data.company.integrations} />}
+          {tab === "integrations" && <IntegrationsSection integrations={data.company.integrations} tin={company.tin} />}
         </div>
       </div>
     </div>
@@ -618,9 +619,33 @@ function IntegrationBadge({ set, tOn, tOff }: { set: boolean; tOn: string; tOff:
   return set ? <Badge tone="success">{tOn}</Badge> : <Badge tone="neutral">{tOff}</Badge>;
 }
 
-function IntegrationsSection({ integrations }: { integrations: IntegrationStatus }) {
+function IntegrationsSection({ integrations, tin }: { integrations: IntegrationStatus; tin: string }) {
   const t = useTranslations("settings");
   const ui = useTranslations("settings.integrations_ui");
+  const router = useRouter();
+  const [didoxConnecting, setDidoxConnecting] = useState(false);
+  const [didoxError, setDidoxError] = useState<string | null>(null);
+
+  async function connectDidoxViaEimzo() {
+    if (didoxConnecting) return;
+    setDidoxError(null);
+    if (!tin) {
+      setDidoxError(ui("didoxTinMissing"));
+      return;
+    }
+    setDidoxConnecting(true);
+    try {
+      const sig = await signTinForDidox(tin);
+      const res = await connectDidox({ pkcs7: sig.pkcs7, signatureHex: sig.signatureHex });
+      if (!res.success) throw new Error(res.message);
+      router.refresh();
+    } catch (e) {
+      setDidoxError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDidoxConnecting(false);
+    }
+  }
+
   const saver = useSaver();
   const [form, setForm] = useState<Record<string, string>>({
     eimzoSiteId: integrations.eimzoSiteId,
@@ -668,6 +693,21 @@ function IntegrationsSection({ integrations }: { integrations: IntegrationStatus
             <Field label={ui("smsProvider")}>
               <Input value={form.smsProvider ?? ""} onChange={(e) => set("smsProvider", e.target.value)} placeholder="eskiz / playmobile" />
             </Field>
+          </div>
+
+          {/* Didox — E-IMZO orqali o'z-o'zini ulash */}
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">{ui("didoxConnectTitle")}</p>
+                <p className="text-xs text-muted-foreground">{ui("didoxConnectDesc")}</p>
+              </div>
+              <IntegrationBadge set={integrations.didoxSet} tOn={ui("configured")} tOff={ui("notConfigured")} />
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={connectDidoxViaEimzo} disabled={didoxConnecting}>
+              {didoxConnecting ? ui("didoxConnecting") : ui("didoxConnectButton")}
+            </Button>
+            {didoxError && <p className="text-xs text-danger">{didoxError}</p>}
           </div>
 
           {/* Maxfiy kalitlar */}

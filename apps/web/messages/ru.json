@@ -166,7 +166,8 @@
       "penalty": "Пеня и проценты",
       "channels": "Каналы и шаблоны",
       "integrations": "Интеграции",
-      "team": "Команда"
+      "team": "Команда",
+      "templates": "Шаблоны документов"
     },
     "profile": {
       "heading": "Личный профиль",
@@ -258,6 +259,11 @@
       "bankApiKey": "API-ключ банка",
       "configured": "Подключено",
       "desc": "Ключи для внешних сервисов (Didox, банк, E-IMZO, SMS, Telegram)",
+      "didoxConnectButton": "Подключить через E-IMZO",
+      "didoxConnectDesc": "Подключите свой аккаунт Didox с помощью ключа E-IMZO — без пароля, одним нажатием",
+      "didoxConnectTitle": "Подключение к Didox через E-IMZO",
+      "didoxConnecting": "Подключение...",
+      "didoxTinMissing": "Сначала укажите ИНН в разделе «Компания»",
       "didoxToken": "Didox partner token",
       "eimzoSiteId": "E-IMZO SiteID",
       "heading": "Интеграции",

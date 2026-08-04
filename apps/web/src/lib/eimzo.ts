@@ -125,3 +125,74 @@ export async function signWithEimzo(content: string, signerHint?: string): Promi
     provider: "mock",
   };
 }
+
+export interface DidoxEimzoSignature {
+  pkcs7: string;
+  signatureHex: string;
+  signerName: string;
+  certSerial: string;
+  provider: "eimzo" | "mock";
+}
+
+/**
+ * Didox self-service ulanish uchun maxsus imzo — pkcs7_64 BILAN BIRGA signature_hex
+ * ham kerak (Didox /v1/dsvs/timestamp shuni talab qiladi). EIMZOClient.createPkcs7
+ * faqat pkcs7_64'ni tashqariga beradi, shuning uchun bu yerda pastki darajadagi
+ * CAPIWS.callFunction to'g'ridan chaqiriladi (xuddi shu WebSocket protokoli,
+ * lekin xom javob — signature_hex ham qaytadi).
+ */
+export async function signTinForDidox(tin: string): Promise<DidoxEimzoSignature> {
+  const loaded = await loadEimzoScripts();
+  const C = loaded ? (window as AnyWin).EIMZOClient : null;
+  const CW = loaded ? (window as AnyWin & { CAPIWS?: any }).CAPIWS : null;
+
+  let clientLive = false;
+  if (C) {
+    try {
+      await p((ok, fail) => C.checkVersion(() => ok(true), fail));
+      clientLive = true;
+    } catch {
+      clientLive = false;
+    }
+  }
+
+  if (clientLive && C && CW) {
+    await p((ok, fail) => C.installApiKeys(() => ok(true), fail));
+    const items = await p<any[]>((ok, fail) =>
+      C.listAllUserKeys(
+        (_vo: any, rec: number) => "k" + rec,
+        (id: string, vo: any) => ({ id, vo }),
+        (arr: any[]) => ok(arr),
+        fail,
+      ),
+    );
+    if (!items || items.length === 0) throw new Error("E-IMZO: kalit topilmadi");
+    const item = items[0]; // prototip: birinchi kalit (real appda tanlov oynasi)
+    const keyId = await p<string>((ok, fail) => C.loadKey(item, (id: string) => ok(id), fail));
+    const tinB64 = typeof btoa === "function" ? btoa(tin) : Buffer.from(tin).toString("base64");
+    const raw = await p<{ pkcs7_64: string; signature_hex: string }>((ok, fail) =>
+      CW.callFunction(
+        { plugin: "pkcs7", name: "create_pkcs7", arguments: [tinB64, keyId, "no"] },
+        (_event: unknown, data: any) => (data?.success ? ok(data) : fail(null, data?.reason)),
+        (e: unknown) => fail(e, undefined),
+      ),
+    );
+    return {
+      pkcs7: raw.pkcs7_64,
+      signatureHex: raw.signature_hex,
+      signerName: item.vo?.CN || item.vo?.O || "E-IMZO",
+      certSerial: item.vo?.serialNumber || item.vo?.TIN || "—",
+      provider: "eimzo",
+    };
+  }
+
+  // ── DEMO (mock) — E-IMZO Client yo'q bo'lsa ham oqim strukturasini sinash mumkin ──
+  await new Promise((r) => setTimeout(r, 900));
+  return {
+    pkcs7: "MOCK.PKCS7.DIDOX_DEMO",
+    signatureHex: "6d6f636b2d7369676e61747572652d6865782d64656d6f",
+    signerName: "DEMO imzo",
+    certSerial: "6F2A9C4E-DEMO-0001",
+    provider: "mock",
+  };
+}

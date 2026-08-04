@@ -166,7 +166,8 @@
       "penalty": "Penalty & interest",
       "channels": "Channels & templates",
       "integrations": "Integrations",
-      "team": "Team"
+      "team": "Team",
+      "templates": "Document templates"
     },
     "profile": {
       "heading": "Personal profile",
@@ -258,6 +259,11 @@
       "bankApiKey": "Bank API key",
       "configured": "Configured",
       "desc": "Keys for external services (Didox, bank, E-IMZO, SMS, Telegram)",
+      "didoxConnectButton": "Connect via E-IMZO",
+      "didoxConnectDesc": "Connect your Didox account with your E-IMZO key — no password, just one click",
+      "didoxConnectTitle": "Connect to Didox via E-IMZO",
+      "didoxConnecting": "Connecting...",
+      "didoxTinMissing": "Fill in the TIN in the Company section first",
       "didoxToken": "Didox partner token",
       "eimzoSiteId": "E-IMZO SiteID",
       "heading": "Integrations",

@@ -4,11 +4,13 @@ import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { hashPassword, verifyPassword } from "@lex/shared/auth";
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
+import { env } from "../lib/env";
 import { type Variables } from "../lib/context";
 import {
   collectionSchema,
   companySchema,
   createUserSchema,
+  didoxConnectSchema,
   docTemplatesSchema,
   integrationsSchema,
   passwordChangeSchema,
@@ -174,6 +176,64 @@ settingsRoutes.put("/integrations", async (c) => {
     await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.integrations_updated", entityType: "tenant", entityId: tenantId });
   });
   return c.json(ok({ saved: true }, "common.updated", locale));
+});
+
+/**
+ * Didox'ga E-IMZO orqali o'z-o'zini ulash (self-service). Brauzer E-IMZO orqali
+ * kompaniya STIR'ini imzolab pkcs7+signatureHex yuboradi; server Didox bilan
+ * gaplashadi (Partner-Authorization sirini serverdan chiqarmaslik uchun) va
+ * natijadagi shaxsiy User-Key'ni tenant sozlamalariga saqlaydi.
+ */
+settingsRoutes.post("/didox/connect", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, role, userId } = c.get("auth");
+  if (!CAN_EDIT_COMPANY.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+
+  const parsed = validate(didoxConnectSchema, await c.req.json().catch(() => null));
+  if (!parsed.ok) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: parsed.fields }), 422);
+
+  if (!env.didox.partnerToken) {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_not_configured", locale), 422);
+  }
+
+  const [tenant] = await withTenant(tenantId, (tx) => tx.select({ tin: tenants.tin }).from(tenants).where(eq(tenants.id, tenantId)));
+  if (!tenant?.tin) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_tin_missing", locale), 422);
+
+  const base = env.didox.apiUrl.replace(/\/+$/, "");
+  const headers = { "Content-Type": "application/json", "Partner-Authorization": env.didox.partnerToken };
+
+  const tsRes = await fetch(`${base}/v1/dsvs/timestamp`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ pkcs7: parsed.data.pkcs7, signatureHex: parsed.data.signatureHex }),
+  }).catch(() => null);
+  const tsData = tsRes && tsRes.ok ? ((await tsRes.json().catch(() => null)) as { timeStampTokenB64?: string } | null) : null;
+  if (!tsData?.timeStampTokenB64) {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
+  }
+
+  const authRes = await fetch(`${base}/v1/auth/${encodeURIComponent(tenant.tin)}/token/ru`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ signature: tsData.timeStampTokenB64 }),
+  }).catch(() => null);
+  const authData = authRes && authRes.ok ? ((await authRes.json().catch(() => null)) as { token?: string } | null) : null;
+  if (!authData?.token) {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
+  }
+
+  await withTenant(tenantId, async (tx) => {
+    const [existing] = await tx.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId));
+    const prev = existing?.settings ?? {};
+    const prevInt = (prev.integrations ?? {}) as Record<string, string>;
+    await tx
+      .update(tenants)
+      .set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: authData.token } } })
+      .where(eq(tenants.id, tenantId));
+    await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.didox_connected", entityType: "tenant", entityId: tenantId });
+  });
+
+  return c.json(ok({ connected: true }, "integrations.didox_connected", locale));
 });
 
 /** Hujjat shablonlari — tenant o'z talabnoma/da'vo/akt-sverka matnini sozlaydi. */

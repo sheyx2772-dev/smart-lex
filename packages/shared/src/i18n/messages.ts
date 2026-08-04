@@ -47,6 +47,26 @@ export const MESSAGES = {
     ru: "Сессия Didox истекла или ключ недействителен. Обновите ключ в Настройки → Подключить Didox.",
     en: "Didox session expired or key is invalid. Reconnect via Settings → Connect Didox.",
   },
+  "integrations.didox_connected": {
+    uz: "Didox'ga muvaffaqiyatli ulandi",
+    ru: "Успешно подключено к Didox",
+    en: "Connected to Didox successfully",
+  },
+  "integrations.didox_connect_failed": {
+    uz: "Didox'ga ulanib bo'lmadi. Birozdan so'ng qayta urinib ko'ring.",
+    ru: "Не удалось подключиться к Didox. Повторите попытку позже.",
+    en: "Could not connect to Didox. Please try again later.",
+  },
+  "integrations.didox_tin_missing": {
+    uz: "Kompaniya STIR raqami sozlanmagan — avval Kompaniya bo'limida to'ldiring.",
+    ru: "Не указан ИНН компании — сначала заполните раздел «Компания».",
+    en: "Company TIN is not set — fill it in the Company section first.",
+  },
+  "integrations.didox_not_configured": {
+    uz: "Didox partner integratsiyasi hali sozlanmagan",
+    ru: "Партнёрская интеграция Didox ещё не настроена",
+    en: "Didox partner integration is not configured yet",
+  },
   "common.validation_failed": {
     uz: "Ma'lumotlar noto'g'ri",
     ru: "Ошибка валидации данных",

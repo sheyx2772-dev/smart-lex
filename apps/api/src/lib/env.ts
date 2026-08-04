@@ -37,4 +37,9 @@ export const env = {
   platformTenantId: process.env.PLATFORM_TENANT_ID ?? "",
   // my.soliq.uz remote-access API — javobgar reyestr ma'lumoti (Sud integratsiyasi fallback).
   soliqApiKey: process.env.SOLIQ_API_KEY ?? "",
+  // Didox partner API — E-IMZO self-service ulanish uchun (settings.ts /didox/connect).
+  didox: {
+    apiUrl: process.env.DIDOX_API_URL ?? "https://stage.goodsign.biz",
+    partnerToken: process.env.DIDOX_PARTNER_TOKEN ?? "",
+  },
 };

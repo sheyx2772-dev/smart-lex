@@ -33,6 +33,12 @@ export async function saveIntegrations(input: Record<string, string>) {
   return res;
 }
 
+export async function connectDidox(input: { pkcs7: string; signatureHex: string }) {
+  const res = await apiServer("/api/settings/didox/connect", { method: "POST", body: JSON.stringify(input) });
+  revalidatePath("/settings");
+  return res;
+}
+
 export async function saveDocTemplates(input: Record<string, string>) {
   const res = await apiServer("/api/settings/doc-templates", { method: "PUT", body: JSON.stringify(input) });
   revalidatePath("/settings");

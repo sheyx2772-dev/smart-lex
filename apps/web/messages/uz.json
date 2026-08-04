@@ -166,6 +166,7 @@
       "penalty": "Penya va foiz",
       "channels": "Kanallar va shablonlar",
       "team": "Jamoa",
+      "templates": "Hujjat shablonlari",
       "integrations": "Integratsiyalar"
     },
     "profile": {
@@ -283,6 +284,11 @@
       "secretNote": "Maxfiy kalitlar xavfsiz saqlanadi va qayta ko'rsatilmaydi. Yangilash uchun qayta kiriting.",
       "replaceHint": "O'zgartirish uchun yangi qiymat kiriting",
       "didoxToken": "Didox partner token",
+      "didoxConnectTitle": "Didox'ga E-IMZO orqali ulanish",
+      "didoxConnectDesc": "O'zingizning E-IMZO kalitingiz bilan Didox hisobingizga ulaning — parolsiz, bir marta bosish yetarli",
+      "didoxConnectButton": "E-IMZO bilan ulanish",
+      "didoxConnecting": "Ulanmoqda...",
+      "didoxTinMissing": "Avval Kompaniya bo'limida STIR raqamini to'ldiring",
       "bankApiKey": "Bank API kaliti",
       "eimzoSiteId": "E-IMZO SiteID",
       "smsProvider": "SMS provayder",

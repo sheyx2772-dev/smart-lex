@@ -104,6 +104,11 @@ export const integrationsSchema = z.object({
   telegramTopicId: z.string().max(100).optional(),
 });
 
+export const didoxConnectSchema = z.object({
+  pkcs7: z.string().min(1),
+  signatureHex: z.string().min(1),
+});
+
 export const docTemplatesSchema = z.object({
   demand_letter: z.string().max(20000).optional(),
   court_claim: z.string().max(20000).optional(),
