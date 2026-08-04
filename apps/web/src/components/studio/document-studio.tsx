@@ -959,11 +959,25 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
     ask(instruction);
   }
 
+  // AI javobi to'liq hujjat ko'rinishida (# sarlavha bilan boshlangan, yetarli uzun) bo'lsa —
+  // bu YANGI hujjat deb hisoblanadi va eskisi ALMASHTIRILADI (append emas). Aks holda
+  // (tahlil, qisqa javob, band qo'shish) — kursor joyiga QO'SHILADI, avvalgidek.
+  function looksLikeFullDocument(aiText: string): boolean {
+    const firstLine = aiText.trim().split("\n").find((l) => l.trim());
+    return Boolean(firstLine && /^#\s+\S/.test(firstLine.trim())) && aiText.trim().length > 100;
+  }
+
   function insertToDoc(aiText: string) {
-    if (plainText(docHtml)) snapshot(locale === "ru" ? "до вставки AI" : "AI qo'shishdan oldin");
+    const hasExisting = Boolean(plainText(docHtml));
+    if (hasExisting) snapshot(locale === "ru" ? "до вставки AI" : "AI qo'shishdan oldin");
     const html = toHtml(aiText);
-    if (editorRef.current) editorRef.current.chain().focus().insertContent(html).run();
-    else setDocHtml((h) => h + html);
+    if (hasExisting && looksLikeFullDocument(aiText)) {
+      setDocHtml(html); // yangi to'liq hujjat — eskisi ustiga qo'shilmaydi, almashtiradi
+    } else if (editorRef.current) {
+      editorRef.current.chain().focus().insertContent(html).run();
+    } else {
+      setDocHtml((h) => h + html);
+    }
   }
 
   // ── Versiyalash: joriy holatni tarixga saqlaydi (oxirgi 20 ta). ──
