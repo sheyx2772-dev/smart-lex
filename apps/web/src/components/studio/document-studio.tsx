@@ -1181,6 +1181,13 @@ export function DocumentStudio({ debtors, creditor }: { debtors: StudioDebtor[];
         ru: "ПОМЕНЯЙ МЕСТАМИ роли двух сторон документа (например кредитор/должник, арендодатель/арендатор, продавец/покупатель) — права и обязанности перепиши соответственно, остальное не меняй. Выдай результат как ПОЛНЫЙ документ (с заголовком #).",
       },
     },
+    {
+      label: { uz: "Qarama-qarshi tomon nazari", ru: "Взгляд другой стороны" },
+      prompt: {
+        uz: "Ushbu hujjatni HUJJATDAGI IKKINCHI TOMON (masalan javobgar/qarzdor/ijarachi) manfaati nuqtai nazaridan tahlil qil: unga qaysi bandlar noqulay yoki xavfli, qaysi shartlarni u sudda bahslashi mumkin, qanday e'tiroz/qarshi da'vo asoslari bor. Ro'yxat shaklida, qisqa va aniq.",
+        ru: "Проанализируй документ с точки зрения ДРУГОЙ СТОРОНЫ (например ответчика/должника/арендатора): какие пункты для неё невыгодны или рискованны, что она может оспорить в суде, какие есть основания для возражений/встречного иска. Списком, кратко и по делу.",
+      },
+    },
   ];
 
   return (
