@@ -21,7 +21,9 @@ import {
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { generateLawsuit } from "@/app/(app)/companies/[id]/actions";
 import { fetchReceivables, getReceivableDetail, recordPayment, sendReminder, writeOffReceivable } from "@/app/(app)/receivables/actions";
 import { formatMoneyInput, unformatMoney } from "@/lib/format";
 import { Badge, STATUS_TONE, type BadgeProps } from "@/components/ui/badge";
@@ -324,12 +326,22 @@ function DetailPanel({
   const tChannel = useTranslations("channel");
   const tRemStatus = useTranslations("reminderStatus");
   const tPayStatus = useTranslations("paymentStatus");
+  const router = useRouter();
   const risk = riskInfo(row.riskScore);
   const [payOpen, setPayOpen] = useState(false);
   const [payAmount, setPayAmount] = useState("");
   const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10));
   const [paying, setPaying] = useState(false);
   const [writingOff, setWritingOff] = useState(false);
+  const [escalating, setEscalating] = useState(false);
+
+  async function doEscalateToCourt() {
+    if (escalating) return;
+    setEscalating(true);
+    const res = await generateLawsuit(row.contractorId);
+    setEscalating(false);
+    if (res.success) router.push("/approvals");
+  }
 
   const canPay = row.status !== "paid" && row.status !== "written_off";
 
@@ -462,6 +474,10 @@ function DetailPanel({
                 <Button variant="outline" onClick={doSendReminder} disabled={reminding} className="mt-2 w-full">
                   <PaperPlaneTilt weight="fill" className="size-4 text-primary" />
                   {reminding ? t("saving") : t("sendReminder")}
+                </Button>
+                <Button variant="outline" onClick={doEscalateToCourt} disabled={escalating} className="mt-2 w-full">
+                  <Gavel weight="fill" className="size-4 text-danger" />
+                  {escalating ? t("saving") : t("escalateToCourt")}
                 </Button>
                 <button
                   onClick={doWriteOff}

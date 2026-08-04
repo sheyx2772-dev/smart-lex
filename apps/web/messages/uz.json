@@ -674,7 +674,8 @@
     "writeOff": "Hisobdan chiqarish",
     "writeOffConfirm": "Bu qarzni undirib boʼlmaydigan deb belgilaysizmi? (hisobdan chiqariladi)",
     "sendReminder": "Eslatma yuborish",
-    "reminderSent": "Eslatma yuborildi"
+    "reminderSent": "Eslatma yuborildi",
+    "escalateToCourt": "Sudga oshirish"
   },
   "companies": {
     "title": "Kontragentlar",

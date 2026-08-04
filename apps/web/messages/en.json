@@ -637,7 +637,8 @@
     "writeOff": "Write off",
     "writeOffConfirm": "Mark this debt as uncollectible? (it will be written off)",
     "sendReminder": "Send reminder",
-    "reminderSent": "Reminder sent"
+    "reminderSent": "Reminder sent",
+    "escalateToCourt": "Escalate to court"
   },
   "companies": {
     "title": "Counterparties",

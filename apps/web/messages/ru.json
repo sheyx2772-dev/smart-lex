@@ -637,7 +637,8 @@
     "writeOff": "Списать",
     "writeOffConfirm": "Отметить этот долг как безнадёжный? (будет списан)",
     "sendReminder": "Отправить напоминание",
-    "reminderSent": "Напоминание отправлено"
+    "reminderSent": "Напоминание отправлено",
+    "escalateToCourt": "Передать в суд"
   },
   "companies": {
     "title": "Контрагенты",
