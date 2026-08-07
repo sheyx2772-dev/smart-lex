@@ -13,7 +13,6 @@ import {
   SealCheck,
   ShieldStar,
   SignOut,
-  Sparkle,
   SquaresFour,
   Truck,
   Wallet,
@@ -22,6 +21,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
+import { AiWaveLogo } from "@/components/ai-wave-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
@@ -95,17 +95,17 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, chil
         className="relative flex h-screen flex-col overflow-hidden text-white"
         style={{ background: "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
       >
-        {/* Ambient glow — yumshoq, neytral */}
+        {/* Ambient glow — brend rangida, sekin nafas oladi */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-70"
-          style={{ background: "radial-gradient(120% 80% at 25% 0%, rgba(255,255,255,0.06), transparent 72%)" }}
+          className="ai-breathe pointer-events-none absolute inset-x-0 top-0 h-72 opacity-80"
+          style={{ background: "radial-gradient(120% 80% at 15% 0%, rgba(139,92,246,0.16), rgba(236,72,153,0.08) 45%, transparent 72%)" }}
         />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/12 via-white/6 to-transparent" />
 
         {/* Logo */}
         <div className="relative flex items-center gap-2.5 px-5 pb-4 pt-5">
-          <div className="grid size-9 place-items-center rounded-xl bg-white text-zinc-900 shadow-lg ring-1 ring-white/20">
-            <Sparkle weight="fill" className="size-[18px]" />
+          <div className="grid size-9 place-items-center rounded-xl bg-white shadow-lg ring-1 ring-white/20">
+            <AiWaveLogo size={20} />
           </div>
           <div className="leading-tight">
             <span className="block font-display text-[15px] font-semibold tracking-tight">{tApp("name")}</span>
@@ -115,6 +115,10 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, chil
 
         {/* Agent status */}
         <div className="relative mx-3.5 mb-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">
+          <div
+            className="pointer-events-none absolute -left-8 -bottom-8 size-24 rounded-full opacity-50"
+            style={{ background: "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
+          />
           <div
             className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40"
             style={{ background: "radial-gradient(circle, rgba(34,197,94,0.35), transparent 70%)" }}
