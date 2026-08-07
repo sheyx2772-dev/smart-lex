@@ -9,8 +9,32 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type Case = CourtData["items"][number];
+interface CompanyInfo {
+  name: string;
+  tin: string;
+  bankAccount: string;
+  bankMfo: string;
+}
+interface SignerInfo {
+  fullName: string;
+  role: string;
+}
 
 const HYBRID_POST_URL = "https://hybrid.pochta.uz/#/main/mail/create/pdf-form";
+
+// mib.uz'dan tekshirilgan markaziy apparat manzili (2026-08-08). Qarzdor boshqa
+// hududda ro'yxatdan o'tgan bo'lsa, ariza tegishli HUDUDIY boshqarmaga yuborilishi
+// kerak — mib.uz saytida "Bog'lanish" bo'limidan hudud bo'yicha manzilni tekshirib,
+// pastdagi maydonda o'zgartirish lozim (biz aniq hudud-manzil xaritasini
+// tasdiqlamaganmiz, shuning uchun avtomatik almashtirmaymiz).
+const DEFAULT_BUREAU_ADDRESS = "Toshkent sh., Yunusobod tumani, Xalqobod 3-tor ko'chasi, 2A uy";
+
+const ROLE_UZ: Record<string, string> = {
+  owner: "asoschisi",
+  admin: "boshqaruvchisi",
+  legal: "yuridik bo'lim boshlig'i",
+  finance: "moliya bo'lim boshlig'i",
+};
 
 // Jonli o'rganilgan ijro oqimi (hybrid.pochta.uz + Majburiy ijro byurosi):
 // qaror kuchga kirdi → ijro xati (firma blankasida) → byuro aniqlandi
@@ -30,31 +54,42 @@ function fmtMinor(minor: string, currency = "UZS"): string {
   return `${major},${frac} ${currency}`;
 }
 
-// Firma blankasida "ijroni ta'minlash to'g'risida ariza" — case ma'lumotidan
-// to'ldiriladi (LLM shart emas). [...] joylarini foydalanuvchi to'ldiradi.
-function buildIjroLetter(item: Case): string {
+// Firma blankasida "ijroni ta'minlash to'g'risida ariza" — firma/hisob raqami
+// sozlamalardan, qaror sanasi/raqami esa foydalanuvchi kiritgan (bu ma'lumot
+// hech qayerda avtomatik saqlanmaydi — sud qarorining o'zi platformadan
+// tashqarida chiqadi) qiymatlardan to'ldiriladi.
+function buildIjroLetter(item: Case, company: CompanyInfo | null, signer: SignerInfo | null, decision: { date: string; number: string }): string {
   const name = item.contractorName ?? "[Qarzdor nomi]";
   const tin = item.contractorTin ?? "[STIR]";
   const amount = fmtMinor(item.total, item.currency);
+  const companyName = company?.name || "[Firma nomi]";
+  const companyTin = company?.tin || "[STIR]";
+  const bankLine = company?.bankAccount ? `${company.bankAccount}${company.bankMfo ? ` (MFO ${company.bankMfo})` : ""}` : "[Hisob raqami]";
+  const signerLine = signer?.fullName ? `${signer.fullName}${signer.role ? `, ${ROLE_UZ[signer.role] ?? signer.role}` : ""}` : "[Imzolovchi F.I.Sh, lavozim]";
+  const decisionDate = decision.date || "[sana]";
+  const decisionNumber = decision.number || "[ish raqami]";
+  const court = item.court || "[Sud nomi]";
   return [
     "MAJBURIY IJRO BYUROSIGA",
     "",
-    '"[Firma nomi]" (undiruvchi, STIR [STIR])',
+    `"${companyName}" (undiruvchi, STIR ${companyTin})`,
     "",
     "IJRONI TA'MINLASH TO'G'RISIDA ARIZA",
     "",
-    `[Sud nomi]ning [sana] dagi qarori (ish № [ish raqami]) bilan "${name}" (STIR ${tin}) dan bizning foydamizga ${amount} undirilishi belgilangan. Qaror qonuniy kuchga kirgan.`,
+    `${court}ning ${decisionDate} dagi qarori (ish № ${decisionNumber}) bilan "${name}" (STIR ${tin}) dan bizning foydamizga ${amount} undirilishi belgilangan. Qaror qonuniy kuchga kirgan.`,
     "",
     'Yuqoridagilarga asosan, O\'zbekiston Respublikasining "Sud hujjatlari va boshqa organlar hujjatlarini ijro etish to\'g\'risida"gi qonuniga muvofiq, ijro ish yurituvini qo\'zg\'atishingizni va qarzni majburiy undirishni ta\'minlashingizni SO\'RAYMAN.',
     "",
-    "Ilova: ijro varaqasi; sud qarori nusxasi.",
+    `Undirilgan mablag'ni quyidagi hisob raqamiga o'tkazishingizni so'rayman: ${bankLine}, "${companyName}", STIR ${companyTin}.`,
     "",
-    "[Firma nomi] nomidan: [Imzolovchi F.I.Sh, lavozim]",
+    "Ilova: ijro varaqasi (asl yoki tasdiqlangan nusxa); sud qarori nusxasi.",
+    "",
+    `${companyName} nomidan: ${signerLine}`,
     "_________________ (imzo, sana)",
   ].join("\n");
 }
 
-export function EnforcementClient({ cases }: { cases: Case[] }) {
+export function EnforcementClient({ cases, company, profile }: { cases: Case[]; company: CompanyInfo | null; profile: SignerInfo | null }) {
   const t = useTranslations("enforcement");
 
   return (
@@ -72,7 +107,7 @@ export function EnforcementClient({ cases }: { cases: Case[] }) {
       ) : (
         <div className="space-y-4">
           {cases.map((c) => (
-            <EnforcementCard key={c.id} item={c} t={t} />
+            <EnforcementCard key={c.id} item={c} t={t} company={company} profile={profile} />
           ))}
         </div>
       )}
@@ -80,20 +115,37 @@ export function EnforcementClient({ cases }: { cases: Case[] }) {
   );
 }
 
-function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTranslations> }) {
+function EnforcementCard({
+  item,
+  t,
+  company,
+  profile,
+}: {
+  item: Case;
+  t: ReturnType<typeof useTranslations>;
+  company: CompanyInfo | null;
+  profile: SignerInfo | null;
+}) {
   const [letter, setLetter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [decisionDate, setDecisionDate] = useState("");
+  const [decisionNumber, setDecisionNumber] = useState("");
+  const [bureauAddress, setBureauAddress] = useState(DEFAULT_BUREAU_ADDRESS);
   const ti = useTranslations("integration");
 
+  function currentLetter() {
+    return buildIjroLetter(item, company, profile, { date: decisionDate, number: decisionNumber });
+  }
+
   async function copyLetter() {
-    if (!letter) return;
-    await navigator.clipboard.writeText(letter);
+    const text = letter ?? currentLetter();
+    await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
   function downloadLetter() {
-    if (!letter) return;
-    const url = URL.createObjectURL(new Blob([letter], { type: "text/plain;charset=utf-8" }));
+    const text = letter ?? currentLetter();
+    const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
     a.download = `ijro-xati-${(item.contractorName ?? "hujjat").replace(/[^\p{L}\p{N}]+/gu, "_")}.txt`;
@@ -147,10 +199,41 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
         })}
       </div>
 
+      {/* Sud qarori ma'lumotlari — platformada avtomatik saqlanmaydi, qaror hujjatidan qo'lda kiritiladi */}
+      <div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-2">
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">Sud qarori sanasi</label>
+          <input
+            type="date"
+            value={decisionDate}
+            onChange={(e) => setDecisionDate(e.target.value)}
+            className="mt-1 h-9 w-full rounded-lg border border-border bg-card px-2.5 text-sm outline-none transition-shadow focus:ring-4 focus:ring-primary/10"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-muted-foreground">Ish raqami</label>
+          <input
+            value={decisionNumber}
+            onChange={(e) => setDecisionNumber(e.target.value)}
+            placeholder="masalan, 4-1234/2026"
+            className="mt-1 h-9 w-full rounded-lg border border-border bg-card px-2.5 text-sm outline-none transition-shadow focus:ring-4 focus:ring-primary/10"
+          />
+        </div>
+      </div>
+      {(!company?.bankAccount || !decisionDate || !decisionNumber) && (
+        <div className="mt-3 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-soft px-3 py-2 text-xs text-warning">
+          <Warning weight="fill" className="size-4 shrink-0" />
+          <span>
+            {!company?.bankAccount && "Hisob raqami sozlamalarda kiritilmagan (Sozlamalar → Kompaniya). "}
+            {(!decisionDate || !decisionNumber) && "Sud qarori sanasi va ish raqamini kiriting — bo'lmasa, arizada bo'sh joy qoladi."}
+          </span>
+        </div>
+      )}
+
       {/* Actions */}
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         <button
-          onClick={() => setLetter(buildIjroLetter(item))}
+          onClick={() => setLetter(currentLetter())}
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-medium transition-colors hover:border-primary/40 hover:text-primary"
         >
           <FileText weight="fill" className="size-4" />
@@ -158,12 +241,27 @@ function EnforcementCard({ item, t }: { item: Case; t: ReturnType<typeof useTran
         </button>
       </div>
 
+      {/* MIB manzili — DOM-to'ldirish shu manzilni "qabul qiluvchi" sifatida yuboradi */}
+      <div className="mt-3">
+        <label className="text-xs font-medium text-muted-foreground">MIB manzili (hudud bo'yicha tekshiring)</label>
+        <input
+          value={bureauAddress}
+          onChange={(e) => setBureauAddress(e.target.value)}
+          className="mt-1 h-9 w-full rounded-lg border border-border bg-card px-2.5 text-sm outline-none transition-shadow focus:ring-4 focus:ring-primary/10"
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Standart — MIB markaziy apparati manzili. Qarzdor boshqa hududda ro&apos;yxatdan o&apos;tgan bo&apos;lsa, mib.uz saytidan tegishli hududiy boshqarma manzilini tekshirib, shu yerga kiriting.
+        </p>
+      </div>
+
       <EimzoImportFlow
         url={HYBRID_POST_URL}
         siteName="pochta"
         extensionPayload={{
-          debtor: item.contractorName ?? "",
-          tin: item.contractorTin ?? "",
+          debtor: ti("bureauName"),
+          tin: "",
+          address: bureauAddress,
+          body: letter ?? currentLetter(),
           amount: fmtMinor(item.total, item.currency),
           amountNumber: (BigInt(item.total || "0") / 100n).toString(),
         }}
