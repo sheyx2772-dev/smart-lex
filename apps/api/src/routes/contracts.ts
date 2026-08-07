@@ -1,3 +1,4 @@
+import { extractContractFields, extractDocumentText } from "@lex/agents";
 import { calcPenalty, calcRisk, evaluateReceivable, money } from "@lex/core";
 import { auditLogs, contractors, contracts, invoices, receivables, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
@@ -9,6 +10,26 @@ import { contractCreateSchema, validate } from "../lib/validation";
 export const contractRoutes = new Hono<{ Variables: Variables }>();
 
 const CAN_CREATE = new Set(["owner", "admin", "finance", "legal"]);
+
+/**
+ * Shartnoma/hisob-faktura rasmi yoki PDF'idan maydonlarni AI bilan "taxmin qiladi" —
+ * forma to'ldirish o'rniga inson faqat tekshirib tasdiqlaydi. Hech narsa saqlanmaydi,
+ * faqat taklif qaytadi (yakuniy yaratish — pastdagi POST /contracts, alohida qadam).
+ */
+contractRoutes.post("/contracts/extract", async (c) => {
+  const locale = c.get("locale");
+  const { role } = c.get("auth");
+  if (!CAN_CREATE.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const data = String(body.data ?? "");
+  const mimeType = String(body.mimeType ?? "");
+  if (!data || !mimeType) return c.json(ok({ fields: null }, "common.ok", locale));
+
+  const text = await extractDocumentText({ dataBase64: data, mimeType }).catch(() => "");
+  const fields = text ? await extractContractFields(text).catch(() => null) : null;
+  return c.json(ok({ fields }, "common.ok", locale));
+});
 
 /**
  * Yangi shartnoma + invoice yaratish. AI-first: kontragent STIR bo'yicha mavjud bo'lsa

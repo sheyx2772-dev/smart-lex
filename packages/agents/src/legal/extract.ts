@@ -1,6 +1,7 @@
 import { inflateRawSync } from "node:zlib";
 import { google } from "@ai-sdk/google";
 import { generateText } from "ai";
+import { getModel } from "../llm";
 
 /** .docx (ZIP) ichidagi word/document.xml ni Node zlib bilan ochib, matn qaytaradi. */
 function docxToText(buf: Buffer): string {
@@ -83,4 +84,120 @@ export async function extractDocumentText(opts: { dataBase64: string; mimeType: 
     messages: [{ role: "user", content: [{ type: "text", text: instruction }, filePart] }],
   });
   return (text ?? "").trim();
+}
+
+export interface ContractFieldGuess {
+  contractorName: string | null;
+  contractorTin: string | null;
+  contractorPhone: string | null;
+  contractorAddress: string | null;
+  contractorEmail: string | null;
+  contractNumber: string | null;
+  contractSignedAt: string | null; // YYYY-MM-DD
+  penaltyDailyBps: number | null;
+  invoiceNumber: string | null;
+  invoiceAmountMinor: string | null; // tiyin (faqat raqamlar) — koddan ×100 hisoblanadi, LLM'dan emas
+  invoiceIssuedAt: string | null;
+  invoiceDueDate: string | null;
+}
+
+const EMPTY_GUESS: ContractFieldGuess = {
+  contractorName: null,
+  contractorTin: null,
+  contractorPhone: null,
+  contractorAddress: null,
+  contractorEmail: null,
+  contractNumber: null,
+  contractSignedAt: null,
+  penaltyDailyBps: null,
+  invoiceNumber: null,
+  invoiceAmountMinor: null,
+  invoiceIssuedAt: null,
+  invoiceDueDate: null,
+};
+
+function extractJson(text: string): Record<string, unknown> | null {
+  const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+const asStr = (v: unknown): string | null => (typeof v === "string" && v.trim() ? v.trim() : null);
+const asDigits = (v: unknown): string | null => {
+  const s = typeof v === "string" ? v : typeof v === "number" ? String(v) : "";
+  const d = s.replace(/\D/g, "");
+  return d || null;
+};
+const asIsoDate = (v: unknown): string | null => {
+  const s = asStr(v);
+  if (!s) return null;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+};
+const asNumber = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+/**
+ * OCR qilingan (extractDocumentText) matndan shartnoma/hisob-faktura maydonlarini
+ * AI orqali "taxmin qiladi" — forma to'ldirish o'rniga inson faqat TEKSHIRIB tasdiqlaydi.
+ * HECH QACHON topilmagan maydonni o'ylab topmaydi (noaniq bo'lsa null). Pul hisob-kitobi
+ * (so'm→tiyin, foiz→bps) LLM'ga ISHONILMAYDI — LLM faqat matndagi XOM sonlarni topadi,
+ * ko'paytirish/konvertatsiya shu yerda deterministik amalga oshadi.
+ */
+export async function extractContractFields(text: string): Promise<ContractFieldGuess> {
+  const model = getModel();
+  if (!model || !text.trim()) return EMPTY_GUESS;
+
+  const prompt = [
+    "Quyidagi shartnoma/hisob-faktura matnidan maydonlarni top va FAQAT JSON qaytar (izohsiz, kod bloksiz):",
+    "{",
+    '  "contractorName": string|null,        // qarzdor/kontragent tashkilot nomi',
+    '  "contractorTin": string|null,          // STIR (9 xonali raqam)',
+    '  "contractorPhone": string|null,',
+    '  "contractorAddress": string|null,',
+    '  "contractorEmail": string|null,',
+    '  "contractNumber": string|null,         // shartnoma raqami',
+    '  "contractSignedAt": string|null,       // shartnoma sanasi, YYYY-MM-DD',
+    '  "penaltyDailyPercent": number|null,    // kunlik penya, matnda YOZILGANIDEK foiz (masalan 0.1)',
+    '  "invoiceNumber": string|null,          // hisob-faktura raqami',
+    '  "invoiceAmountSom": number|null,       // summa, matnda YOZILGANIDEK SO\'MDA (tiyinga o\'girmang)',
+    '  "invoiceIssuedAt": string|null,        // hisob-faktura sanasi, YYYY-MM-DD',
+    '  "invoiceDueDate": string|null          // to\'lov muddati, YYYY-MM-DD',
+    "}",
+    "Aniq bo'lmagan yoki matnda umuman topilmagan maydonni HECH QACHON o'ylab topma — null qo'y. Hech qanday hisob-kitob qilma, faqat matnda yozilgan sonlarni ber.",
+    "",
+    "MATN:",
+    text.slice(0, 12000),
+  ].join("\n");
+
+  try {
+    const { text: raw } = await generateText({ model, temperature: 0, prompt });
+    const j = extractJson(raw);
+    if (!j) return EMPTY_GUESS;
+
+    const amountSom = asNumber(j.invoiceAmountSom);
+    const penaltyPercent = asNumber(j.penaltyDailyPercent);
+
+    return {
+      contractorName: asStr(j.contractorName),
+      contractorTin: asDigits(j.contractorTin),
+      contractorPhone: asStr(j.contractorPhone),
+      contractorAddress: asStr(j.contractorAddress),
+      contractorEmail: asStr(j.contractorEmail),
+      contractNumber: asStr(j.contractNumber),
+      contractSignedAt: asIsoDate(j.contractSignedAt),
+      penaltyDailyBps: penaltyPercent != null && penaltyPercent >= 0 ? Math.round(penaltyPercent * 100) : null,
+      invoiceNumber: asStr(j.invoiceNumber),
+      invoiceAmountMinor: amountSom != null && amountSom >= 0 ? String(Math.round(amountSom * 100)) : null,
+      invoiceIssuedAt: asIsoDate(j.invoiceIssuedAt),
+      invoiceDueDate: asIsoDate(j.invoiceDueDate),
+    };
+  } catch {
+    return EMPTY_GUESS;
+  }
 }

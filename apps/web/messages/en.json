@@ -748,6 +748,10 @@
   "newContract": {
     "title": "New debt case",
     "subtitle": "Enter the debtor, contract and debt details — the system puts the case under automatic monitoring (reminder → demand → court → enforcement).",
+    "uploadHint": "Upload a photo or PDF of the contract/invoice — AI fills the form for you",
+    "extracting": "AI is reading the document…",
+    "extractFailed": "Couldn't read the document — please fill the fields manually",
+    "aiFilledHint": "AI guessed these fields — please verify before saving",
     "secDebtor": "Debtor (counterparty)",
     "secContract": "Contract",
     "secDebt": "Debt (invoice)",

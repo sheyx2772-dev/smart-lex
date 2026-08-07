@@ -1,14 +1,30 @@
 "use client";
 
-import { ArrowLeft, Buildings, CircleNotch, CurrencyCircleDollar, FileText, FloppyDisk, Warning } from "@phosphor-icons/react";
+import { ArrowLeft, Buildings, CircleNotch, CurrencyCircleDollar, FileText, FloppyDisk, Sparkle, UploadSimple, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createContract } from "@/app/(app)/contracts/actions";
 import { Card } from "@/components/ui/card";
+import { fileToBase64 } from "@/lib/file-extract";
 import { formatPhoneInput } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+interface ExtractedFields {
+  contractorName: string | null;
+  contractorTin: string | null;
+  contractorPhone: string | null;
+  contractorAddress: string | null;
+  contractorEmail: string | null;
+  contractNumber: string | null;
+  contractSignedAt: string | null;
+  penaltyDailyBps: number | null;
+  invoiceNumber: string | null;
+  invoiceAmountMinor: string | null;
+  invoiceIssuedAt: string | null;
+  invoiceDueDate: string | null;
+}
 
 const today = () => new Date().toISOString().slice(0, 10);
 const plusDays = (n: number) => new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
@@ -33,9 +49,58 @@ export function NewContractForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [aiFilled, setAiFilled] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const amountSom = amount.replace(/\D/g, "");
   const valid = name.trim() && tin.trim() && cNumber.trim() && iNumber.trim() && amountSom && issuedAt && dueDate;
+
+  // Rasm/PDF yuklab AI'ga o'qitamiz — forma to'ldirish o'rniga inson faqat tekshirib
+  // tasdiqlaydi. Hech narsa avtomatik saqlanmaydi, faqat maydonlar oldindan to'ladi.
+  async function handleFile(file: File) {
+    setExtracting(true);
+    setError(null);
+    try {
+      const data = await fileToBase64(file);
+      const lower = file.name.toLowerCase();
+      const mimeType =
+        file.type ||
+        (lower.endsWith(".pdf") ? "application/pdf" : "application/octet-stream");
+      const res = await fetch("/api/contracts/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data, mimeType }),
+      });
+      const json = (await res.json()) as { success?: boolean; data?: { fields?: ExtractedFields | null } };
+      const f = json?.success ? json.data?.fields : null;
+      if (!f) {
+        setError(t("extractFailed"));
+        return;
+      }
+      if (f.contractorName) setName(f.contractorName);
+      if (f.contractorTin) setTin(f.contractorTin);
+      if (f.contractorPhone) setPhone(formatPhoneInput(f.contractorPhone));
+      if (f.contractorAddress) setAddress(f.contractorAddress);
+      if (f.contractorEmail) setEmail(f.contractorEmail);
+      if (f.contractNumber) setCNumber(f.contractNumber);
+      if (f.contractSignedAt) setSignedAt(f.contractSignedAt);
+      if (f.penaltyDailyBps != null) setPenaltyPct(String(f.penaltyDailyBps / 100));
+      if (f.invoiceNumber) setINumber(f.invoiceNumber);
+      if (f.invoiceAmountMinor) {
+        const som = (BigInt(f.invoiceAmountMinor) / 100n).toString();
+        setAmount(som.replace(/\B(?=(\d{3})+(?!\d))/g, " "));
+      }
+      if (f.invoiceIssuedAt) setIssuedAt(f.invoiceIssuedAt);
+      if (f.invoiceDueDate) setDueDate(f.invoiceDueDate);
+      setAiFilled(true);
+    } catch {
+      setError(t("extractFailed"));
+    } finally {
+      setExtracting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,6 +149,34 @@ export function NewContractForm() {
           </Link>
         </div>
       </div>
+
+      {/* AI bilan yuklash — shartnoma/hisob-faktura rasmi yoki PDF'ini yuklang, AI maydonlarni o'zi to'ldiradi */}
+      <Card className="p-5">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/pdf,image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={extracting}
+          className="flex w-full items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-primary/30 bg-primary-soft/30 px-4 py-5 text-sm font-medium text-primary transition-colors hover:border-primary/50 hover:bg-primary-soft/50 disabled:opacity-60"
+        >
+          {extracting ? <CircleNotch className="size-5 animate-spin" /> : <UploadSimple weight="bold" className="size-5" />}
+          {extracting ? t("extracting") : t("uploadHint")}
+        </button>
+        {aiFilled && !extracting && (
+          <p className="mt-2.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Sparkle weight="fill" className="size-3.5 text-primary" /> {t("aiFilledHint")}
+          </p>
+        )}
+      </Card>
 
       <form onSubmit={submit} className="space-y-4">
         {/* Qarzdor */}

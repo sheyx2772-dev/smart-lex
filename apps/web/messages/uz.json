@@ -785,6 +785,10 @@
   "newContract": {
     "title": "Yangi qarzdorlik ishi",
     "subtitle": "Qarzdor, shartnoma va qarz ma'lumotlarini kiriting — tizim ishni avtomatik kuzatuvga oladi (eslatma → talabnoma → sud → ijro).",
+    "uploadHint": "Shartnoma yoki hisob-faktura rasmini/PDF'ini yuklang — AI o'zi to'ldiradi",
+    "extracting": "AI hujjatni o'qimoqda…",
+    "extractFailed": "Hujjatni o'qib bo'lmadi — maydonlarni qo'lda to'ldiring",
+    "aiFilledHint": "AI maydonlarni taxmin qildi — saqlashdan oldin tekshirib chiqing",
     "secDebtor": "Qarzdor (kontragent)",
     "secContract": "Shartnoma",
     "secDebt": "Qarz (hisob-faktura)",
