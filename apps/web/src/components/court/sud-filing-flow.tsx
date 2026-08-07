@@ -68,6 +68,10 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
   const [entityId, setEntityId] = useState<string>("");
   const [summary, setSummary] = useState<{ defendantName: string; defendantTin: string } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
+  // Foydalanuvchi tugmani BOSSA (SURISH o'rniga) — brauzer javascript: havolaga
+  // navigatsiya qilishga urinadi (aslida hech narsa qilmaydi, faqat manzil satrini
+  // buzadi). Buni oldindan tutib, tushunarli tuzatish ko'rsatamiz.
+  const [clickedNotDragged, setClickedNotDragged] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
   const bookmarkletRef = useRef<HTMLAnchorElement>(null);
 
@@ -177,13 +181,27 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
             {/* 1-qadam */}
             <div className="rounded-lg border border-primary/25 bg-primary/[0.04] p-3">
               <p className="mb-2 text-xs font-medium text-foreground">{t("bookmarkletDrag")}</p>
-              <a
-                ref={bookmarkletRef}
-                draggable
-                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm"
-              >
-                <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
-              </a>
+              <div className="flex items-center gap-2">
+                <a
+                  ref={bookmarkletRef}
+                  draggable
+                  onDragStart={() => setClickedNotDragged(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setClickedNotDragged(true);
+                  }}
+                  className="ai-breathe inline-flex cursor-grab items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm active:cursor-grabbing"
+                >
+                  <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
+                </a>
+                <span className="text-xs text-muted-foreground">{t("dragHint")}</span>
+              </div>
+              {clickedNotDragged && (
+                <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-xs text-warning">
+                  <Warning weight="fill" className="mt-0.5 size-3.5 shrink-0" />
+                  {t("clickedNotDragged")}
+                </p>
+              )}
             </div>
 
             {/* 2-qadam */}

@@ -572,7 +572,9 @@
       "connectTitle": "Connect to the court system",
       "connectOnce": "You only need to do this ONCE. After connecting, every future filing reuses it automatically — no need to repeat.",
       "step2Title": "Step 2: sign in to cabinet.sud.uz via One ID",
-      "step3Title": "Step 3: click the button in your bookmarks bar"
+      "step3Title": "Step 3: click the button in your bookmarks bar",
+      "dragHint": "← press and drag (don't click)",
+      "clickedNotDragged": "You CLICKED the button — that won't work. Press and hold, then DRAG it onto your bookmarks bar above. If the bookmarks bar is hidden: Ctrl+Shift+B (Mac: Cmd+Shift+B)."
     },
     "stPending": "Awaiting approval",
     "stReady": "Approved · Ready to file",
