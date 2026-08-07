@@ -9,10 +9,19 @@ export interface NegotiationOffer {
   schedule?: { month: number; amount: number }[];
 }
 
-/** Karta orqali to'lash — firma checkout URL qaytaradi (qarzdor o'sha yerga o'tadi). */
-export async function payDebt(id: string, provider: "click" | "payme"): Promise<{ url: string | null }> {
+/**
+ * Karta orqali to'lash — firma checkout URL qaytaradi (qarzdor o'sha yerga o'tadi).
+ * mode="settlement" — kelishuvda taklif qilingan chegirmali summa (server AYNAN shu qoida
+ * bo'yicha qayta hisoblaydi, bu yerdan summa yuborilmaydi).
+ */
+export async function payDebt(id: string, provider: "click" | "payme", mode?: "settlement"): Promise<{ url: string | null }> {
   try {
-    const res = await fetch(`${API_URL}/pay/${id}/pay/${provider}`, { method: "POST", cache: "no-store" });
+    const res = await fetch(`${API_URL}/pay/${id}/pay/${provider}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode }),
+      cache: "no-store",
+    });
     const json = (await res.json()) as { success?: boolean; data?: { url?: string } };
     return { url: json?.success && json.data?.url ? json.data.url : null };
   } catch {

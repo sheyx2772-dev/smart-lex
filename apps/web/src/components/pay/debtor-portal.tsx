@@ -38,9 +38,9 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
     start(async () => setOffer(await negotiateDebt(id, type)));
   }
   const [paying, startPay] = useTransition();
-  function pay(provider: "click" | "payme") {
+  function pay(provider: "click" | "payme", mode?: "settlement") {
     startPay(async () => {
-      const { url } = await payDebt(id, provider);
+      const { url } = await payDebt(id, provider, mode);
       if (url) window.location.href = url;
     });
   }
@@ -161,7 +161,34 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
                 ))}
               </ul>
             )}
-            <p className="mt-2 text-[11px] text-muted-foreground">Bu taklif firmага yuborildi. Rasmiylashtirish uchun yuqoridagi rekvizitlar bo'yicha to'lang yoki firma bilan bog'laning.</p>
+            {offer.type === "settlement" && hasCards ? (
+              <div className="mt-3 space-y-2">
+                <p className="text-[11px] text-muted-foreground">Chegirmali summani hoziroq karta bilan to'lab, kelishuvni yakunlashingiz mumkin:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {data.cards?.click && (
+                    <button
+                      onClick={() => pay("click", "settlement")}
+                      disabled={paying}
+                      className="rounded-xl bg-[#0065FF] px-3 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                    >
+                      {paying ? "..." : "Click bilan to'lash"}
+                    </button>
+                  )}
+                  {data.cards?.payme && (
+                    <button
+                      onClick={() => pay("payme", "settlement")}
+                      disabled={paying}
+                      className="rounded-xl px-3 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                      style={{ background: "#00C0C9" }}
+                    >
+                      {paying ? "..." : "Payme bilan to'lash"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-2 text-[11px] text-muted-foreground">Bu taklif firmага yuborildi. Rasmiylashtirish uchun yuqoridagi rekvizitlar bo'yicha to'lang yoki firma bilan bog'laning.</p>
+            )}
           </div>
         )}
       </div>

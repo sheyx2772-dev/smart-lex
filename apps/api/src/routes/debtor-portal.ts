@@ -141,16 +141,32 @@ debtorPortalRoutes.post("/pay/:id/negotiate", async (c) => {
   return c.json({ success: true, data: { offer, creditor: f.tenant.name }, error: null, message: "ok" });
 });
 
-/** Karta orqali to'lash — firma merchanti bilan buyurtma yaratadi va checkout URL qaytaradi (public). */
+/**
+ * Karta orqali to'lash — firma merchanti bilan buyurtma yaratadi va checkout URL qaytaradi (public).
+ * mode="settlement" bo'lsa — /negotiate bilan AYNAN BIR XIL qoidadan (SETTLEMENT_MIN) chegirmali
+ * summa serverda QAYTA hisoblanadi (klientdan summa qabul qilinmaydi — soxta chegirma so'rab
+ * bo'lmasin). Shu orqali "kelishuv → hoziroq to'lash" bir bosishda yakunlanadi (avval faqat
+ * bank o'tkazmasi bilan qo'lda "rasmiylashtirish" kerak edi — bu real yo'qotish nuqtasi edi).
+ */
 debtorPortalRoutes.post("/pay/:id/pay/:provider", async (c) => {
   const id = c.req.param("id");
   const provider = c.req.param("provider");
+  const body = (await c.req.json().catch(() => ({}))) as { mode?: string };
   const f = await findReceivable(id);
   if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
   if (f.receivable.status === "paid") return c.json({ success: false, data: null, error: "already_paid", message: "to'langan" }, 400);
 
   const m = merchantOf(f.tenant.settings);
-  const totalMinor = Math.round(Number(f.receivable.outstandingMinor) + Number(f.receivable.penaltyMinor ?? 0n)); // tiyin
+  const fullTotalMinor = Math.round(Number(f.receivable.outstandingMinor) + Number(f.receivable.penaltyMinor ?? 0n)); // tiyin
+
+  let totalMinor = fullTotalMinor;
+  let kind = "debt";
+  if (body.mode === "settlement") {
+    const aggr = String((f.tenant.settings.agent as { aggressiveness?: string } | undefined)?.aggressiveness ?? "normal");
+    const pct = SETTLEMENT_MIN[aggr] ?? 72;
+    totalMinor = Math.round(((fullTotalMinor / 100) * pct) / 100) * 100;
+    kind = "debt_settlement";
+  }
   const amountSom = totalMinor / 100;
   const mid = `${f.tenant.id}~${Date.now().toString(36)}${Math.floor(Math.random() * 1e6).toString(36)}`;
   const returnUrl = `${process.env.WEB_URL ?? "https://lexai.com.uz"}/pay/${id}`;
@@ -167,7 +183,7 @@ debtorPortalRoutes.post("/pay/:id/pay/:provider", async (c) => {
   const [row] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, f.tenant.id)).limit(1);
   const s = { ...((row?.settings ?? {}) as Record<string, unknown>) };
   const orders = { ...((s.payOrders ?? {}) as Record<string, unknown>) };
-  orders[mid] = { plan: "", months: 0, amount: amountSom, provider, status: "pending", createdAt: new Date().toISOString(), kind: "debt", receivableId: id, invoiceId: f.invoiceId ?? undefined };
+  orders[mid] = { plan: "", months: 0, amount: amountSom, provider, status: "pending", createdAt: new Date().toISOString(), kind, receivableId: id, invoiceId: f.invoiceId ?? undefined };
   s.payOrders = orders;
   await getDb().update(tenants).set({ settings: s }).where(eq(tenants.id, f.tenant.id));
 
