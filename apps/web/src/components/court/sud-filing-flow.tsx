@@ -74,7 +74,35 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
   const [clickedNotDragged, setClickedNotDragged] = useState(false);
   const [showBookmarkHelp, setShowBookmarkHelp] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
+  // Brauzer kengaytmasi (SmartLex.AI) o'rnatilgan bo'lsa, bookmarklet umuman
+  // shart emas — kengaytma cabinet.sud.uz'dagi tokenni o'zi kuzatib topadi.
+  // null = hali tekshirilmoqda, true/false = aniqlandi.
+  const [extensionDetected, setExtensionDetected] = useState<boolean | null>(null);
   const bookmarkletRef = useRef<HTMLAnchorElement>(null);
+
+  // Kengaytma bor-yo'qligini so'raymiz (ping/pong) — javob kelmasa, qisqa
+  // muddatdan so'ng "yo'q" deb hisoblab, bookmarklet zaxira usulini ko'rsatamiz.
+  // Kengaytma cabinet.sud.uz'da tokenni topgach, uni shu yerga (postMessage
+  // orqali) o'zi yuboradi — foydalanuvchi hech narsa surmasa ham bo'ladi.
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.source !== window || !e.data) return;
+      if (e.data.__smartlex_ext === true) setExtensionDetected(true);
+      if (e.data.__smartlex_sud_token === true && typeof e.data.token === "string") {
+        connectCourtToken(e.data.token).then((res) => {
+          if (res.success) void loadEntities();
+        });
+      }
+    }
+    window.addEventListener("message", onMessage);
+    window.postMessage({ __smartlex_ping: true }, "*");
+    const timeout = setTimeout(() => setExtensionDetected((v) => (v === null ? false : v)), 900);
+    return () => {
+      window.removeEventListener("message", onMessage);
+      clearTimeout(timeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // React JSX `href` React'ning javascript: URL xavfsizlik filtridan o'tolmaydi
   // ("React has blocked a javascript: URL as a security precaution") — shuning
@@ -178,71 +206,99 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
             </p>
           </div>
 
-          <div className="space-y-2">
-            {/* 1-qadam */}
-            <div className="rounded-lg border border-primary/25 bg-primary/[0.04] p-3">
-              <p className="mb-2 text-xs font-medium text-foreground">{t("bookmarkletDrag")}</p>
-              <div className="flex items-center gap-2">
-                <a
-                  ref={bookmarkletRef}
-                  draggable
-                  onDragStart={() => setClickedNotDragged(false)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setClickedNotDragged(true);
-                  }}
-                  className="ai-breathe inline-flex cursor-grab items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm active:cursor-grabbing"
-                >
-                  <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
-                </a>
-                <span className="text-xs text-muted-foreground">{t("dragHint")}</span>
-              </div>
-              {clickedNotDragged && (
-                <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-xs text-warning">
-                  <Warning weight="fill" className="mt-0.5 size-3.5 shrink-0" />
-                  {t("clickedNotDragged")}
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowBookmarkHelp((v) => !v)}
-                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          {extensionDetected === null && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CircleNotch className="size-3.5 animate-spin" /> {t("detectingExtension")}
+            </p>
+          )}
+
+          {extensionDetected === true && (
+            <div className="rounded-lg border border-success/30 bg-success-soft p-3">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-success">
+                <CheckCircle weight="fill" className="size-4" /> {t("extensionFound")}
+              </p>
+              <a
+                href="https://cabinet.sud.uz/sign-in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-sm"
               >
-                <Question weight="fill" className="size-3.5" /> {t("bookmarkHelpToggle")}
-              </button>
-              {showBookmarkHelp && (
-                <p className="mt-2 rounded-lg border border-border bg-background px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
-                  {t("bookmarkHelpText")}
-                </p>
-              )}
+                {t("openSudSite")} <ArrowSquareOut className="size-3.5" />
+              </a>
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <CircleNotch className="size-3.5 animate-spin" /> {t("extensionWaitHint")}
+              </p>
             </div>
+          )}
 
-            {/* 2-qadam */}
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                <SignIn weight="fill" className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1 text-xs">
-                <p className="font-medium text-foreground">{t("step2Title")}</p>
-                <a
-                  href="https://cabinet.sud.uz/sign-in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-0.5 inline-flex items-center gap-1 text-primary underline underline-offset-2"
+          {extensionDetected === false && (
+            <div className="space-y-2">
+              {/* 1-qadam */}
+              <div className="rounded-lg border border-primary/25 bg-primary/[0.04] p-3">
+                <p className="mb-2 text-xs font-medium text-foreground">{t("bookmarkletDrag")}</p>
+                <div className="flex items-center gap-2">
+                  <a
+                    ref={bookmarkletRef}
+                    draggable
+                    onDragStart={() => setClickedNotDragged(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setClickedNotDragged(true);
+                    }}
+                    className="ai-breathe inline-flex cursor-grab items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm active:cursor-grabbing"
+                  >
+                    <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
+                  </a>
+                  <span className="text-xs text-muted-foreground">{t("dragHint")}</span>
+                </div>
+                {clickedNotDragged && (
+                  <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-xs text-warning">
+                    <Warning weight="fill" className="mt-0.5 size-3.5 shrink-0" />
+                    {t("clickedNotDragged")}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowBookmarkHelp((v) => !v)}
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
                 >
-                  {t("openSudSite")} <ArrowSquareOut className="size-3" />
-                </a>
+                  <Question weight="fill" className="size-3.5" /> {t("bookmarkHelpToggle")}
+                </button>
+                {showBookmarkHelp && (
+                  <p className="mt-2 rounded-lg border border-border bg-background px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
+                    {t("bookmarkHelpText")}
+                  </p>
+                )}
+                <p className="mt-2 text-xs text-muted-foreground">{t("extensionHint")}</p>
+              </div>
+
+              {/* 2-qadam */}
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                  <SignIn weight="fill" className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1 text-xs">
+                  <p className="font-medium text-foreground">{t("step2Title")}</p>
+                  <a
+                    href="https://cabinet.sud.uz/sign-in"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-0.5 inline-flex items-center gap-1 text-primary underline underline-offset-2"
+                  >
+                    {t("openSudSite")} <ArrowSquareOut className="size-3" />
+                  </a>
+                </div>
+              </div>
+
+              {/* 3-qadam */}
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                  <PlugsConnected weight="fill" className="size-4" />
+                </span>
+                <p className="text-xs font-medium text-foreground">{t("step3Title")}</p>
               </div>
             </div>
-
-            {/* 3-qadam */}
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                <PlugsConnected weight="fill" className="size-4" />
-              </span>
-              <p className="text-xs font-medium text-foreground">{t("step3Title")}</p>
-            </div>
-          </div>
+          )}
         </div>
       )}
 

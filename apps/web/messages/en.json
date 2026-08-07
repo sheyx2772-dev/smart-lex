@@ -576,7 +576,11 @@
       "dragHint": "← press and drag (don't click)",
       "clickedNotDragged": "You CLICKED the button — that won't work. Press and hold, then DRAG it onto your bookmarks bar above. If the bookmarks bar is hidden: Ctrl+Shift+B (Mac: Cmd+Shift+B).",
       "bookmarkHelpToggle": "What is a bookmark?",
-      "bookmarkHelpText": "A bookmark is a button in your browser for saving sites you visit often. It usually sits at the TOP of the browser, just below the address bar, as a row with site names. It's often hidden — press Ctrl+Shift+B (Mac: Cmd+Shift+B) to show it."
+      "bookmarkHelpText": "A bookmark is a button in your browser for saving sites you visit often. It usually sits at the TOP of the browser, just below the address bar, as a row with site names. It's often hidden — press Ctrl+Shift+B (Mac: Cmd+Shift+B) to show it.",
+      "detectingExtension": "Checking for browser extension...",
+      "extensionFound": "Extension found — nothing manual needed",
+      "extensionWaitHint": "Sign in to cabinet.sud.uz via One ID — the connection will happen automatically.",
+      "extensionHint": "Tip: install the SmartLex.AI browser extension and these steps become unnecessary — connecting happens automatically."
     },
     "stPending": "Awaiting approval",
     "stReady": "Approved · Ready to file",

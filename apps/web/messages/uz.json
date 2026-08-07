@@ -613,7 +613,11 @@
       "dragHint": "← ushlab, torting (SURING, bosmang)",
       "clickedNotDragged": "Siz tugmani BOSDINGIZ — bu ishlamaydi. Tugmani sichqoncha bilan ushlab, YUQORIDAGI xatcho'qlar paneliga SURING (drag-and-drop). Agar xatcho'qlar paneli ko'rinmasa: Ctrl+Shift+B (Mac: Cmd+Shift+B).",
       "bookmarkHelpToggle": "Xatcho'q (bookmark) nima?",
-      "bookmarkHelpText": "Xatcho'q — brauzeringizda tez-tez kiradigan saytlarni saqlab qo'yish uchun tugma. U odatda brauzerning YUQORI qismida, manzil satridan pastda, sayt nomlari yozilgan qatorda joylashadi. Ko'p hollarda u yashirin turadi — ko'rsatish uchun klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) tugmalarini bosing."
+      "bookmarkHelpText": "Xatcho'q — brauzeringizda tez-tez kiradigan saytlarni saqlab qo'yish uchun tugma. U odatda brauzerning YUQORI qismida, manzil satridan pastda, sayt nomlari yozilgan qatorda joylashadi. Ko'p hollarda u yashirin turadi — ko'rsatish uchun klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) tugmalarini bosing.",
+      "detectingExtension": "Brauzer kengaytmasi tekshirilmoqda...",
+      "extensionFound": "Kengaytma topildi — qo'lda hech narsa qilish shart emas",
+      "extensionWaitHint": "cabinet.sud.uz saytida One ID orqali kiring — ulanish avtomatik amalga oshadi.",
+      "extensionHint": "Maslahat: SmartLex.AI brauzer kengaytmasini o'rnatsangiz, bu qadamlar shart emas — ulanish avtomatik bo'ladi."
     },
     "stPending": "Tasdiq kutmoqda",
     "stReady": "Tasdiqlandi · Topshirishga tayyor",
