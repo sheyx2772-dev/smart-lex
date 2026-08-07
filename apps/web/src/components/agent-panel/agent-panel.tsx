@@ -77,6 +77,38 @@ function isToday(iso: string): boolean {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
+// ── AI agent logotipi — aylanuvchi halqa (torus), rangi ham harakatda ─
+function AiOrbLogo({ size = 32 }: { size?: number }) {
+  const ring = Math.max(2.5, size * 0.11);
+  return (
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }} aria-hidden>
+      {/* Orqa — xiralashgan, sekin teskari aylanuvchi porlash (chuqurlik) */}
+      <span
+        className="ai-orb-ring-slow ai-orb-glow pointer-events-none absolute -inset-[35%] rounded-full blur-md"
+        style={{ background: "conic-gradient(from 90deg, #e879f9, #818cf8, #38bdf8, #e879f9)" }}
+      />
+      {/* Asosiy halqa — tez aylanadi, rang butun aylana bo'ylab siljiydi */}
+      <span
+        className="ai-orb-ring absolute inset-0 rounded-full"
+        style={{
+          background: "conic-gradient(from 0deg, #d946ef, #a855f7, #6366f1, #0ea5e9, #22d3ee, #a855f7, #d946ef)",
+          WebkitMask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
+          mask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
+        }}
+      />
+      {/* Halqa uchidagi nozik uchqun — aylanish yo'nalishini ko'zga tashlaydi */}
+      <span
+        className="ai-orb-ring absolute inset-0 rounded-full opacity-90"
+        style={{
+          background: "conic-gradient(from 0deg, #fff 0deg, rgba(255,255,255,0) 26deg)",
+          WebkitMask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
+          mask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
+        }}
+      />
+    </span>
+  );
+}
+
 export function AgentPanel({ initialFeed, initialApprovals }: Props) {
   const t = useTranslations("agentPanel");
   const tAudit = useTranslations("audit");
@@ -177,27 +209,31 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
 
   return (
     <>
-      {/* ── LAUNCHER — premium AI presence ───────────────────────── */}
+      {/* ── LAUNCHER — kuchli, aylanuvchi AI mavjudligi ────────────── */}
       {!open && (
         <div className="ai-breathe fixed bottom-6 right-6 z-[55]">
-          {/* Aylanuvchi aura (premium AI energiyasi) */}
+          {/* Tashqi energiya maydoni — keng, xira, tez aylanuvchi */}
           <div
-            className="ai-aura pointer-events-none absolute -inset-[6px] rounded-[26px] opacity-70 blur-[10px]"
-            style={{ background: "conic-gradient(from 0deg, #4f46e5, #7c3aed, #06b6d4, #4f46e5)" }}
+            className="ai-orb-ring pointer-events-none absolute -inset-3 rounded-full opacity-60 blur-[14px]"
+            style={{ background: "conic-gradient(from 0deg, #d946ef, #6366f1, #0ea5e9, #d946ef)" }}
+          />
+          <div
+            className="ai-orb-ring-slow pointer-events-none absolute -inset-1.5 rounded-full opacity-80 blur-[3px]"
+            style={{ background: "conic-gradient(from 180deg, #f0abfc, #a5b4fc, #7dd3fc, #f0abfc)" }}
           />
           <button
             onClick={() => openPanel("activity")}
             aria-label={t("open")}
-            className="group relative grid size-16 place-items-center overflow-hidden rounded-[22px] text-white shadow-2xl ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.06] active:scale-95"
-            style={{ background: "linear-gradient(140deg, #23252e 0%, #191b23 100%)" }}
+            className="group relative grid size-16 place-items-center overflow-hidden rounded-full text-white shadow-2xl ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.08] active:scale-95"
+            style={{ background: "radial-gradient(120% 120% at 30% 20%, #23252e 0%, #14151a 100%)" }}
           >
             {/* Ichki yorug'lik / shisha effekti */}
-            <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.14] to-transparent" />
+            <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/[0.14] to-transparent" />
             <span
-              className="pointer-events-none absolute -inset-6 opacity-40 blur-lg"
-              style={{ background: "radial-gradient(60% 60% at 50% 25%, rgba(124,58,237,0.55), transparent 70%)" }}
+              className="pointer-events-none absolute -inset-6 opacity-50 blur-lg"
+              style={{ background: "radial-gradient(60% 60% at 50% 25%, rgba(217,70,239,0.45), transparent 70%)" }}
             />
-            <Robot weight="fill" className="relative size-8 drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]" />
+            <AiOrbLogo size={38} />
             {/* Jonli status nuqtasi */}
             <span className="absolute right-2 top-2 flex size-2.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-300 opacity-70" />
@@ -245,11 +281,11 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
         />
       )}
 
-      {/* ── Slide-over panel ─────────────────────────────────────── */}
+      {/* ── Slide-over panel — AI tugmasi bilan bir tomonda (o'ngda) ── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-[60] flex w-[400px] max-w-[94vw] flex-col overflow-hidden text-white shadow-2xl transition-transform duration-300 ease-out",
-          open ? "translate-x-0" : "-translate-x-full",
+          "fixed inset-y-0 right-0 z-[60] flex w-[400px] max-w-[94vw] flex-col overflow-hidden text-white shadow-2xl transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "translate-x-full",
         )}
         style={{ background: "linear-gradient(180deg, #23252e 0%, #1c1e26 55%, #161820 100%)" }}
         aria-hidden={!open}
@@ -257,17 +293,13 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
         {/* Ambient glow */}
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-72 opacity-80"
-          style={{ background: "radial-gradient(130% 80% at 25% 0%, rgba(124,58,237,0.16), transparent 70%)" }}
+          style={{ background: "radial-gradient(130% 80% at 75% 0%, rgba(217,70,239,0.16), transparent 70%)" }}
         />
 
         {/* Header */}
         <div className="relative flex items-center gap-3 px-5 pb-3 pt-4">
-          <span className="relative grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-violet-600/30 ring-1 ring-white/15">
-            <span
-              className="ai-aura pointer-events-none absolute -inset-1 rounded-2xl opacity-50 blur-md"
-              style={{ background: "conic-gradient(from 0deg, #6366f1, #a855f7, #06b6d4, #6366f1)" }}
-            />
-            <Robot weight="fill" className="relative size-6" />
+          <span className="relative grid size-11 place-items-center rounded-full bg-gradient-to-br from-fuchsia-500/20 to-indigo-600/20 ring-1 ring-white/15">
+            <AiOrbLogo size={28} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-display text-[15px] font-semibold">{t("title")}</p>
@@ -408,8 +440,8 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
             <div ref={chatRef} className="scroll-clean relative flex-1 space-y-3 overflow-y-auto px-4 py-3">
               {chat.length === 0 && (
                 <div className="ai-panel-in pt-6 text-center">
-                  <span className="mx-auto mb-3 grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500/25 to-violet-600/25 ring-1 ring-white/10">
-                    <Sparkle weight="fill" className="size-6 text-violet-300" />
+                  <span className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-gradient-to-br from-fuchsia-500/15 to-indigo-600/15 ring-1 ring-white/10">
+                    <AiOrbLogo size={30} />
                   </span>
                   <p className="text-[13px] font-medium text-white/80">{t("chatHi")}</p>
                   <p className="mx-auto mt-1 max-w-[260px] text-[11.5px] leading-relaxed text-white/45">{t("chatHint")}</p>
