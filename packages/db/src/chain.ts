@@ -80,12 +80,16 @@ export function chainStatements(): string[] {
 
     // ── Zanjirni SERVERDA tekshirish (SECURITY DEFINER — ilova rlsdan mustaqil
     //    ravishda BUTUN tarixni qayta hisoblab, saqlangan hash bilan solishtiradi).
-    //    MUHIM: created_at/id bo'yicha SARALASH ISHONCH BERMAYDI — bir tranzaksiya
+    //    MUHIM #1: created_at/id bo'yicha SARALASH ISHONCH BERMAYDI — bir tranzaksiya
     //    ichidagi qatorlar bir xil created_at'ga ega bo'lishi mumkin (now() bitta
     //    tranzaksiya ichida muzlatilgan), id esa tasodifiy UUID. Shuning uchun
     //    haqiqiy tartib faqat prev_hash -> record_hash BOG'LANGAN ZANJIR (linked
     //    list) bo'yicha tiklanadi: genesis'dan (prev_hash IS NULL) boshlab, har
     //    safar "keyingi" qatorni prev_hash = joriy record_hash orqali topamiz.
+    //    MUHIM #2: faqat `record_hash IS NOT NULL` yozuvlar tekshiriladi — trigger
+    //    o'rnatilgunga QADAR yaratilgan eski yozuvlar hech qachon hash olmagan
+    //    (retroaktiv hisoblab bo'lmaydi), shuning uchun ular "buzilgan" deb SANALMAYDI:
+    //    zanjir shunchaki trigger o'rnatilgan kundan boshlab kuchda.
     `CREATE OR REPLACE FUNCTION verify_audit_chain(p_tenant uuid)
      RETURNS TABLE(total_records bigint, broken_at_id uuid, broken_at_created timestamptz, is_valid boolean)
      LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -99,13 +103,13 @@ export function chainStatements(): string[] {
        bad_id uuid := NULL;
        bad_created timestamptz := NULL;
      BEGIN
-       SELECT count(*) INTO total FROM audit_logs WHERE tenant_id = p_tenant;
-       SELECT count(*) INTO genesis_count FROM audit_logs WHERE tenant_id = p_tenant AND prev_hash IS NULL;
+       SELECT count(*) INTO total FROM audit_logs WHERE tenant_id = p_tenant AND record_hash IS NOT NULL;
+       SELECT count(*) INTO genesis_count FROM audit_logs WHERE tenant_id = p_tenant AND record_hash IS NOT NULL AND prev_hash IS NULL;
 
        IF total > 0 AND genesis_count <> 1 THEN
          -- Noto'g'ri son boshlang'ich (genesis) yozuv — zanjir buzilgan yoki shoxlangan.
          SELECT id, created_at INTO bad_id, bad_created FROM audit_logs
-           WHERE tenant_id = p_tenant AND prev_hash IS NULL ORDER BY created_at ASC LIMIT 1;
+           WHERE tenant_id = p_tenant AND record_hash IS NOT NULL AND prev_hash IS NULL ORDER BY created_at ASC LIMIT 1;
          RETURN QUERY SELECT total, bad_id, bad_created, false;
          RETURN;
        END IF;
@@ -114,7 +118,7 @@ export function chainStatements(): string[] {
          SELECT id, tenant_id, actor_type, actor_id, action, entity_type, entity_id, detail, created_at, record_hash, prev_hash
            INTO r
            FROM audit_logs
-           WHERE tenant_id = p_tenant AND prev_hash IS NOT DISTINCT FROM cur_hash
+           WHERE tenant_id = p_tenant AND record_hash IS NOT NULL AND prev_hash IS NOT DISTINCT FROM cur_hash
            LIMIT 1;
 
          EXIT WHEN NOT FOUND;
