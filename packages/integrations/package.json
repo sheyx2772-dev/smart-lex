@@ -14,7 +14,9 @@
     "lint": "echo 'lint: integrations ok'"
   },
   "dependencies": {
-    "@lex/shared": "workspace:*"
+    "@lex/db": "workspace:*",
+    "@lex/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
