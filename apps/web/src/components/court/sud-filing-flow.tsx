@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, PlugsConnected, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, Info, PlugsConnected, SignIn, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { connectCourtToken, getCourtEntities, getCourtTokenStatus, prepareCourtFiling, submitCourtFiling, type SudEntity } from "@/app/(app)/court/actions";
@@ -165,30 +165,53 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
 
       {stage === "connect" && (
         <div className="space-y-3">
-          <ol className="list-inside list-decimal space-y-2 text-sm">
-            <li>
-              {t("bookmarkletDrag")}{" "}
+          <div>
+            <p className="text-sm font-semibold">{t("connectTitle")}</p>
+            <p className="mt-1 flex items-start gap-1.5 text-xs text-muted-foreground">
+              <Info weight="fill" className="mt-0.5 size-3.5 shrink-0 text-primary" />
+              {t("connectOnce")}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {/* 1-qadam */}
+            <div className="rounded-lg border border-primary/25 bg-primary/[0.04] p-3">
+              <p className="mb-2 text-xs font-medium text-foreground">{t("bookmarkletDrag")}</p>
               <a
                 ref={bookmarkletRef}
                 draggable
-                className="inline-flex items-center gap-1 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 font-medium text-primary"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm"
               >
-                <PlugsConnected weight="fill" className="size-3.5" /> {t("bookmarkletName")}
+                <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
               </a>
-            </li>
-            <li>
-              <a
-                href="https://cabinet.sud.uz/sign-in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-primary underline underline-offset-2"
-              >
-                {t("openSudSite")} <ArrowSquareOut className="size-3.5" />
-              </a>{" "}
-              {t("bookmarkletLoginHint")}
-            </li>
-            <li>{t("bookmarkletClickHint")}</li>
-          </ol>
+            </div>
+
+            {/* 2-qadam */}
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                <SignIn weight="fill" className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1 text-xs">
+                <p className="font-medium text-foreground">{t("step2Title")}</p>
+                <a
+                  href="https://cabinet.sud.uz/sign-in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-0.5 inline-flex items-center gap-1 text-primary underline underline-offset-2"
+                >
+                  {t("openSudSite")} <ArrowSquareOut className="size-3" />
+                </a>
+              </div>
+            </div>
+
+            {/* 3-qadam */}
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+              <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
+                <PlugsConnected weight="fill" className="size-4" />
+              </span>
+              <p className="text-xs font-medium text-foreground">{t("step3Title")}</p>
+            </div>
+          </div>
         </div>
       )}
 
