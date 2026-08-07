@@ -32,6 +32,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import { PortfolioSummary, type PortfolioSummaryData } from "./portfolio-summary";
 import type { ReceivableDetail, ReceivableRow } from "./types";
 
 export interface ReceivablesData {
@@ -66,7 +67,7 @@ const CHANNEL_ICON: Record<string, typeof Bell> = {
   hybrid_post: FileText,
 };
 
-export function ReceivablesClient({ initial }: { initial: ReceivablesData }) {
+export function ReceivablesClient({ initial, portfolio }: { initial: ReceivablesData; portfolio: PortfolioSummaryData | null }) {
   const t = useTranslations("receivables");
   const tStatus = useTranslations("status");
   const tAging = useTranslations("aging");
@@ -150,6 +151,8 @@ export function ReceivablesClient({ initial }: { initial: ReceivablesData }) {
           <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
         </div>
       </div>
+
+      {portfolio && <PortfolioSummary data={portfolio} />}
 
       {/* Filter bar */}
       <div className="mb-4 flex flex-wrap items-center gap-3">

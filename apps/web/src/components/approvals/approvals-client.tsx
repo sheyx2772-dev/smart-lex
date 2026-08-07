@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
 import { RichEditor } from "@/components/ui/rich-editor";
 import { cn } from "@/lib/utils";
+import { type OverrideItem, PendingOverrides } from "./pending-overrides";
 
 export interface Approval {
   id: string;
@@ -50,10 +51,12 @@ export function ApprovalsClient({
   pending,
   approved,
   rejected,
+  overrides,
 }: {
   pending: Approval[];
   approved: Approval[];
   rejected: Approval[];
+  overrides: OverrideItem[];
 }) {
   const t = useTranslations("approvals");
   const lists: Record<StatusKey, Approval[]> = { pending, approved, rejected };
@@ -149,6 +152,8 @@ export function ApprovalsClient({
         <h1 className="font-display text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
       </div>
+
+      <PendingOverrides initial={overrides} />
 
       {/* Status tabs */}
       <div className="mb-4 inline-flex gap-1 self-start rounded-lg border border-border bg-card p-1">

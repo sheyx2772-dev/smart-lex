@@ -13,7 +13,6 @@ import {
   SealCheck,
   ShieldStar,
   SignOut,
-  SquaresFour,
   Truck,
   Wallet,
 } from "@phosphor-icons/react";
@@ -25,14 +24,14 @@ import { AiWaveLogo } from "@/components/ai-wave-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
-// AI-birinchi, sodda tartib (7 menyu). Agent — markaziy sirt (chat + tasks + undiruv
-// mantig'i shu yerda). CRM/analitika ekranlari navigatsiyadan olib tashlandi (route'lar
-// saqlanadi — kerak bo'lsa qaytariladi). Undiruvning huquqiy bosqichlari (Sud/Ijro) ko'rinadi.
+// AI-birinchi, sodda tartib. Agent — markaziy sirt (chat + tasks + undiruv
+// mantig'i shu yerda). CRM/analitika ekranlari va Boshqaruv markazi navigatsiyadan olib
+// tashlandi (route'lar saqlanadi — kerak bo'lsa qaytariladi): Boshqaruv markazining
+// portfel/prioritet bo'limi Debitorlikka, AI tasdiq so'rovlari esa Tasdiqlarga ko'chirildi.
 const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
   {
     label: "groupMain",
     items: [
-      { href: "/command-center", key: "commandCenter", icon: SquaresFour },
       { href: "/agent", key: "agent", icon: Robot },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/documents", key: "documents", icon: Files },
