@@ -237,25 +237,22 @@
     transform: translateX(0);
   }
 }
-@keyframes ai-orb-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-@keyframes ai-orb-spin-reverse {
-  to {
-    transform: rotate(-360deg);
-  }
-}
-@keyframes ai-orb-pulse {
+@keyframes ai-wave-bounce {
   0%,
   100% {
-    opacity: 0.55;
-    transform: scale(1);
+    transform: scaleY(0.5);
   }
   50% {
-    opacity: 0.9;
-    transform: scale(1.08);
+    transform: scaleY(1);
+  }
+}
+@keyframes ai-wave-shimmer {
+  0%,
+  100% {
+    filter: hue-rotate(0deg) saturate(1.05);
+  }
+  50% {
+    filter: hue-rotate(22deg) saturate(1.25);
   }
 }
 @keyframes ai-toast-in {
@@ -281,14 +278,13 @@
 .ai-breathe {
   animation: ai-breathe 4.5s ease-in-out infinite;
 }
-.ai-orb-ring {
-  animation: ai-orb-spin 2.6s linear infinite;
+.ai-wave-bar {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ai-wave-bounce 1.15s ease-in-out infinite;
 }
-.ai-orb-ring-slow {
-  animation: ai-orb-spin-reverse 5.2s linear infinite;
-}
-.ai-orb-glow {
-  animation: ai-orb-pulse 2.4s ease-in-out infinite;
+.ai-wave-shimmer {
+  animation: ai-wave-shimmer 3.2s ease-in-out infinite;
 }
 .animate-toast-in {
   animation: ai-toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;

@@ -77,35 +77,38 @@ function isToday(iso: string): boolean {
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
 }
 
-// ── AI agent logotipi — aylanuvchi halqa (torus), rangi ham harakatda ─
-function AiOrbLogo({ size = 32 }: { size?: number }) {
-  const ring = Math.max(2.5, size * 0.11);
+// ── AI agent logotipi — chastota (audio-wave) ustunlari, rangi tovlanib turadi ─
+const WAVE_BARS = [
+  { x: 8, y: 38, h: 24, delay: 0 },
+  { x: 26, y: 22, h: 56, delay: 120 },
+  { x: 44, y: 8, h: 84, delay: 240 },
+  { x: 62, y: 22, h: 56, delay: 360 },
+  { x: 80, y: 38, h: 24, delay: 480 },
+];
+function AiWaveLogo({ size = 32 }: { size?: number }) {
   return (
-    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }} aria-hidden>
-      {/* Orqa — xiralashgan, sekin teskari aylanuvchi porlash (chuqurlik) */}
-      <span
-        className="ai-orb-ring-slow ai-orb-glow pointer-events-none absolute -inset-[35%] rounded-full blur-md"
-        style={{ background: "conic-gradient(from 90deg, #e879f9, #818cf8, #38bdf8, #e879f9)" }}
-      />
-      {/* Asosiy halqa — tez aylanadi, rang butun aylana bo'ylab siljiydi */}
-      <span
-        className="ai-orb-ring absolute inset-0 rounded-full"
-        style={{
-          background: "conic-gradient(from 0deg, #d946ef, #a855f7, #6366f1, #0ea5e9, #22d3ee, #a855f7, #d946ef)",
-          WebkitMask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
-          mask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
-        }}
-      />
-      {/* Halqa uchidagi nozik uchqun — aylanish yo'nalishini ko'zga tashlaydi */}
-      <span
-        className="ai-orb-ring absolute inset-0 rounded-full opacity-90"
-        style={{
-          background: "conic-gradient(from 0deg, #fff 0deg, rgba(255,255,255,0) 26deg)",
-          WebkitMask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
-          mask: `radial-gradient(closest-side, transparent calc(50% - ${ring}px), #000 calc(50% - ${ring - 1}px))`,
-        }}
-      />
-    </span>
+    <svg width={size} height={size} viewBox="0 0 100 100" className="ai-wave-shimmer shrink-0" aria-hidden>
+      <defs>
+        <linearGradient id="aiWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="45%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#ec4899" />
+        </linearGradient>
+      </defs>
+      {WAVE_BARS.map((b) => (
+        <rect
+          key={b.x}
+          className="ai-wave-bar"
+          x={b.x}
+          y={50 - b.h / 2}
+          width={10}
+          height={b.h}
+          rx={5}
+          fill="url(#aiWaveGrad)"
+          style={{ animationDelay: `${b.delay}ms` }}
+        />
+      ))}
+    </svg>
   );
 }
 
@@ -209,35 +212,19 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
 
   return (
     <>
-      {/* ── LAUNCHER — kuchli, aylanuvchi AI mavjudligi ────────────── */}
+      {/* ── LAUNCHER — toza oq tugma, chastota logotipi tovlanib turadi ── */}
       {!open && (
         <div className="ai-breathe fixed bottom-6 right-6 z-[55]">
-          {/* Tashqi energiya maydoni — keng, xira, tez aylanuvchi */}
-          <div
-            className="ai-orb-ring pointer-events-none absolute -inset-3 rounded-full opacity-60 blur-[14px]"
-            style={{ background: "conic-gradient(from 0deg, #d946ef, #6366f1, #0ea5e9, #d946ef)" }}
-          />
-          <div
-            className="ai-orb-ring-slow pointer-events-none absolute -inset-1.5 rounded-full opacity-80 blur-[3px]"
-            style={{ background: "conic-gradient(from 180deg, #f0abfc, #a5b4fc, #7dd3fc, #f0abfc)" }}
-          />
           <button
             onClick={() => openPanel("activity")}
             aria-label={t("open")}
-            className="group relative grid size-16 place-items-center overflow-hidden rounded-full text-white shadow-2xl ring-1 ring-white/20 transition-transform duration-200 hover:scale-[1.08] active:scale-95"
-            style={{ background: "radial-gradient(120% 120% at 30% 20%, #23252e 0%, #14151a 100%)" }}
+            className="group relative grid size-16 place-items-center rounded-2xl bg-white shadow-xl shadow-black/10 ring-1 ring-black/[0.06] transition-transform duration-200 hover:scale-[1.06] active:scale-95"
           >
-            {/* Ichki yorug'lik / shisha effekti */}
-            <span className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/[0.14] to-transparent" />
-            <span
-              className="pointer-events-none absolute -inset-6 opacity-50 blur-lg"
-              style={{ background: "radial-gradient(60% 60% at 50% 25%, rgba(217,70,239,0.45), transparent 70%)" }}
-            />
-            <AiOrbLogo size={38} />
+            <AiWaveLogo size={34} />
             {/* Jonli status nuqtasi */}
-            <span className="absolute right-2 top-2 flex size-2.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-300 opacity-70" />
-              <span className="relative inline-flex size-2.5 rounded-full bg-emerald-400 ring-2 ring-[#191b23]" />
+            <span className="absolute right-1.5 top-1.5 flex size-2.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+              <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
             </span>
           </button>
           {/* Badge */}
@@ -298,8 +285,8 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
 
         {/* Header */}
         <div className="relative flex items-center gap-3 px-5 pb-3 pt-4">
-          <span className="relative grid size-11 place-items-center rounded-full bg-gradient-to-br from-fuchsia-500/20 to-indigo-600/20 ring-1 ring-white/15">
-            <AiOrbLogo size={28} />
+          <span className="relative grid size-11 place-items-center rounded-xl bg-white ring-1 ring-white/15">
+            <AiWaveLogo size={24} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="font-display text-[15px] font-semibold">{t("title")}</p>
@@ -440,8 +427,8 @@ export function AgentPanel({ initialFeed, initialApprovals }: Props) {
             <div ref={chatRef} className="scroll-clean relative flex-1 space-y-3 overflow-y-auto px-4 py-3">
               {chat.length === 0 && (
                 <div className="ai-panel-in pt-6 text-center">
-                  <span className="mx-auto mb-3 grid size-12 place-items-center rounded-full bg-gradient-to-br from-fuchsia-500/15 to-indigo-600/15 ring-1 ring-white/10">
-                    <AiOrbLogo size={30} />
+                  <span className="mx-auto mb-3 grid size-12 place-items-center rounded-xl bg-white ring-1 ring-white/10">
+                    <AiWaveLogo size={26} />
                   </span>
                   <p className="text-[13px] font-medium text-white/80">{t("chatHi")}</p>
                   <p className="mx-auto mt-1 max-w-[260px] text-[11.5px] leading-relaxed text-white/45">{t("chatHint")}</p>
