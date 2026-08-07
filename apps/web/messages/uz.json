@@ -611,7 +611,9 @@
       "step2Title": "2-qadam: cabinet.sud.uz saytida One ID orqali kiring",
       "step3Title": "3-qadam: xatchoʻqlar panelidagi tugmani bosing",
       "dragHint": "← ushlab, torting (SURING, bosmang)",
-      "clickedNotDragged": "Siz tugmani BOSDINGIZ — bu ishlamaydi. Tugmani sichqoncha bilan ushlab, YUQORIDAGI xatcho'qlar paneliga SURING (drag-and-drop). Agar xatcho'qlar paneli ko'rinmasa: Ctrl+Shift+B (Mac: Cmd+Shift+B)."
+      "clickedNotDragged": "Siz tugmani BOSDINGIZ — bu ishlamaydi. Tugmani sichqoncha bilan ushlab, YUQORIDAGI xatcho'qlar paneliga SURING (drag-and-drop). Agar xatcho'qlar paneli ko'rinmasa: Ctrl+Shift+B (Mac: Cmd+Shift+B).",
+      "bookmarkHelpToggle": "Xatcho'q (bookmark) nima?",
+      "bookmarkHelpText": "Xatcho'q — brauzeringizda tez-tez kiradigan saytlarni saqlab qo'yish uchun tugma. U odatda brauzerning YUQORI qismida, manzil satridan pastda, sayt nomlari yozilgan qatorda joylashadi. Ko'p hollarda u yashirin turadi — ko'rsatish uchun klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) tugmalarini bosing."
     },
     "stPending": "Tasdiq kutmoqda",
     "stReady": "Tasdiqlandi · Topshirishga tayyor",

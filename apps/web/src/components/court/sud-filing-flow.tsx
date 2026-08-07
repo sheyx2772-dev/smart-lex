@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, Info, PlugsConnected, SignIn, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, Info, PlugsConnected, Question, SignIn, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { connectCourtToken, getCourtEntities, getCourtTokenStatus, prepareCourtFiling, submitCourtFiling, type SudEntity } from "@/app/(app)/court/actions";
@@ -23,8 +23,8 @@ const TOKEN_HASH_KEY = "sudtoken=";
  */
 function bookmarkletHref(origin: string): string {
   const notBookmarked =
-    "Avval markur tugmani «Закладки» paneliga qo'shing, so'ng One ID bilan Cabinet.sud.uz ga kiring va ochilgan oynada qaytadan shu tugmani bosing";
-  const notLoggedIn = "Avval One ID bilan Cabinet.sud.uz ga kiring va ochilgan oynada qaytadan shu tugmani bosing";
+    "Bu tugmani hozir emas, cabinet.sud.uz sahifasida (2-qadamdan keyin) bosing. Hozir siz hali cabinet.sud.uz'ga o'tmagansiz.";
+  const notLoggedIn = "cabinet.sud.uz'da hali One ID orqali kirmagansiz. Avval kiring, so'ng shu tugmani qaytadan bosing.";
   const js =
     `(function(){` +
     `if(location.origin===${JSON.stringify(origin)}){alert(${JSON.stringify(notBookmarked)});return;}` +
@@ -72,6 +72,7 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
   // navigatsiya qilishga urinadi (aslida hech narsa qilmaydi, faqat manzil satrini
   // buzadi). Buni oldindan tutib, tushunarli tuzatish ko'rsatamiz.
   const [clickedNotDragged, setClickedNotDragged] = useState(false);
+  const [showBookmarkHelp, setShowBookmarkHelp] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
   const bookmarkletRef = useRef<HTMLAnchorElement>(null);
 
@@ -200,6 +201,18 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
                 <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-xs text-warning">
                   <Warning weight="fill" className="mt-0.5 size-3.5 shrink-0" />
                   {t("clickedNotDragged")}
+                </p>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowBookmarkHelp((v) => !v)}
+                className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              >
+                <Question weight="fill" className="size-3.5" /> {t("bookmarkHelpToggle")}
+              </button>
+              {showBookmarkHelp && (
+                <p className="mt-2 rounded-lg border border-border bg-background px-2.5 py-2 text-xs leading-relaxed text-muted-foreground">
+                  {t("bookmarkHelpText")}
                 </p>
               )}
             </div>
