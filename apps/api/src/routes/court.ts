@@ -6,17 +6,29 @@ import {
   DEFAULT_COURT_ID,
   defendantDetailsFromSoliq,
   lookupSoliqCompany,
+  OTHER_DOCUMENTS_TYPE_ID,
+  TALABNOMA_DOCUMENT_TYPE_ID,
 } from "@lex/integrations";
 import { approvalRequests, auditLogs, contractors, documents, users, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 import { env } from "../lib/env";
 import { saveCourtToken } from "../lib/court-token";
 import { renderTextPdf } from "../lib/pdf";
+import { courtFilePrepareSchema, validate } from "../lib/validation";
 
 export const courtRoutes = new Hono<{ Variables: Variables }>();
+
+/**
+ * Hozircha AVTOMATIK biriktirilMAYDIGAN dalolat hujjatlari — asl fayllar bizning
+ * tizimda saqlanmaydi (faqat Didox havolasi bor, haqiqiy kontent yo'q). Bular
+ * cabinet.sud.uz'da QO'LDA biriktirilishi kerak (checklist orqali ogohlantiriladi).
+ * Alohida vazifa: Didox'dan asl faylni yuklab olish integratsiyasi qurilgach,
+ * bu ro'yxat avtomatik biriktirishga o'tkaziladi.
+ */
+const MANUAL_EVIDENCE_TYPES = ["contract", "invoice", "ttn", "reconciliation_act", "advocate_order"] as const;
 
 const CAN_MANAGE = new Set(["owner", "admin", "legal"]);
 /** cabinet.sud.uz'ga topshirishni ishga tushirish — yuqori mas'uliyat, tor rol. */
@@ -78,9 +90,9 @@ courtRoutes.post("/court/:id/file/prepare", async (c) => {
   const { tenantId, userId, role } = c.get("auth");
   if (!CAN_FILE.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
   const id = c.req.param("id");
-  const body = (await c.req.json().catch(() => ({}))) as { entityId?: string };
-  const entityId = String(body.entityId ?? "").trim();
-  if (!entityId) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  const parsed = validate(courtFilePrepareSchema, await c.req.json().catch(() => null));
+  if (!parsed.ok) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: parsed.fields }), 422);
+  const { entityId, signature } = parsed.data;
   if (!env.soliqApiKey) return c.json(ok({ available: false, reason: "soliq_not_configured" }, "common.ok", locale));
 
   const loaded = await withTenant(tenantId, async (tx) => {
@@ -92,26 +104,91 @@ courtRoutes.post("/court/:id/file/prepare", async (c) => {
     if (!contractor) return null;
     const [user] = await tx.select({ token: users.courtAuthToken }).from(users).where(eq(users.id, userId)).limit(1);
     if (!user?.token) return "not_connected" as const;
-    return { doc, appr, contractor, token: user.token };
+    // Talabnoma — shu qarzdor uchun eng so'nggi yaratilgan demand_letter (bo'lsa).
+    const [demandLetter] = await tx
+      .select({ id: documents.id, title: documents.title, extracted: documents.extracted })
+      .from(documents)
+      .where(and(eq(documents.contractorId, doc.contractorId), eq(documents.type, "demand_letter")))
+      .orderBy(desc(documents.createdAt))
+      .limit(1);
+    // Shu qarzdor uchun QAYSI dalolat hujjatlari umuman MAVJUD (kontent bormi yo'qmi
+    // qat'i nazar) — checklist faqat HAQIQATAN mavjud, lekin avtomatik biriktirilmagan
+    // turlarni ko'rsatsin, bo'sh ro'yxatni "yetishmayapti" deb ko'rsatmasin.
+    const evidenceDocs = await tx
+      .select({ type: documents.type })
+      .from(documents)
+      .where(
+        and(
+          eq(documents.contractorId, doc.contractorId),
+          inArray(documents.type, ["contract", "invoice", "ttn", "reconciliation_act"]),
+        ),
+      );
+    const existingEvidenceTypes = [...new Set(evidenceDocs.map((d) => d.type))];
+    return { doc, appr, contractor, token: user.token, demandLetter, existingEvidenceTypes };
   });
 
   if (loaded === null) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
   if (loaded === "not_approved") return c.json(ok({ available: false, reason: "not_approved" }, "common.ok", locale));
   if (loaded === "not_connected") return c.json(ok({ available: false, reason: "not_connected" }, "common.ok", locale));
-  const { doc, contractor, token } = loaded;
+  const { doc, contractor, token, demandLetter, existingEvidenceTypes } = loaded;
 
   try {
     const soliq = await lookupSoliqCompany(contractor.tin, env.soliqApiKey);
     const client = new CourtClient(token);
     const extracted = (doc.extracted ?? {}) as Record<string, unknown>;
-    const pdf = await renderTextPdf(typeof extracted.body === "string" ? extracted.body : "", { title: doc.title });
-    const upload = await client.uploadFile(pdf, `${doc.title.replace(/[^\w\-]+/g, "_").slice(0, 60)}.pdf`);
+    const claimBody = typeof extracted.body === "string" ? extracted.body : "";
+
+    // 1) Da'vo arizasi — E-IMZO tasdig'i matn sifatida qo'shilib, PDF qilinib yuklanadi.
+    //    (IPK 149/155-modda: imzosiz ariza qaytariladi — shuning uchun imzo MAJBURIY.)
+    const signedNote =
+      `\n\n— — —\nUshbu hujjat elektron raqamli imzo (E-IMZO) bilan tasdiqlangan.\n` +
+      `Imzolovchi: ${signature.signerName}\nSertifikat: ${signature.certSerial}\nSana: ${signature.signedAt}`;
+    const claimPdf = await renderTextPdf(claimBody + signedNote, { title: doc.title });
+    const claimUpload = await client.uploadFile(claimPdf, `${doc.title.replace(/[^\w\-]+/g, "_").slice(0, 60)}.pdf`);
+
+    // 2) Imzo tasdiqnomasi — pkcs7 bloki alohida hujjat sifatida (mustaqil tekshirish uchun).
+    const sigCertText =
+      `E-IMZO TASDIQNOMASI\n\nHujjat: ${doc.title}\nImzolovchi: ${signature.signerName}\n` +
+      `Sertifikat raqami: ${signature.certSerial}\nImzolangan vaqt: ${signature.signedAt}\n` +
+      `Provayder: ${signature.provider}\n\nPKCS7 (base64):\n${signature.pkcs7}`;
+    const sigPdf = await renderTextPdf(sigCertText, { title: "E-IMZO tasdiqnomasi" });
+    const sigUpload = await client.uploadFile(sigPdf, `eimzo_tasdiqnoma_${doc.id.slice(0, 8)}.pdf`);
+
+    // 3) Talabnoma — mavjud va matni bo'lsa.
+    let demandUpload: { id: string } | null = null;
+    if (demandLetter) {
+      const dExtracted = (demandLetter.extracted ?? {}) as Record<string, unknown>;
+      const demandBody = typeof dExtracted.body === "string" ? dExtracted.body : "";
+      if (demandBody) {
+        const demandPdf = await renderTextPdf(demandBody, { title: demandLetter.title });
+        demandUpload = await client.uploadFile(demandPdf, `talabnoma_${demandLetter.id.slice(0, 8)}.pdf`);
+      }
+    }
+
+    const attachedDocuments: { fileId: string; typeId: string }[] = [
+      { fileId: claimUpload.id, typeId: CLAIM_STATEMENT_DOCUMENT_TYPE_ID },
+      { fileId: sigUpload.id, typeId: OTHER_DOCUMENTS_TYPE_ID },
+    ];
+    if (demandUpload) attachedDocuments.push({ fileId: demandUpload.id, typeId: TALABNOMA_DOCUMENT_TYPE_ID });
+
+    // Faqat HAQIQATAN mavjud (lekin avtomatik biriktirilmagan) turlarni ko'rsatamiz —
+    // bo'lmagan hujjat uchun "yetishmayapti" deb yolg'on ogohlantirish bermaslik uchun.
+    const manualEvidenceNeeded = MANUAL_EVIDENCE_TYPES.filter(
+      (t) => t === "advocate_order" || existingEvidenceTypes.includes(t),
+    );
+    const checklist = {
+      claimSigned: true,
+      signatureCertAttached: true,
+      talabnomaAttached: Boolean(demandUpload),
+      manualEvidenceNeeded,
+    };
 
     const prepare = {
       entityId,
-      uploadId: upload.id,
+      documents: attachedDocuments,
       defendant: { tin: contractor.tin, details: defendantDetailsFromSoliq(soliq) },
       preparedAt: new Date().toISOString(),
+      checklist,
     };
     await withTenant(tenantId, (tx) =>
       tx.update(documents).set({ extracted: { ...extracted, courtFilingPrepare: prepare } }).where(eq(documents.id, id)),
@@ -127,6 +204,7 @@ courtRoutes.post("/court/:id/file/prepare", async (c) => {
             defendantTin: contractor.tin,
             documentUploaded: true,
           },
+          checklist,
         },
         "common.ok",
         locale,
@@ -158,9 +236,13 @@ courtRoutes.post("/court/:id/file/submit", async (c) => {
     if (!user?.token) return "not_connected" as const;
     const extracted = (doc.extracted ?? {}) as Record<string, unknown>;
     const prepare = extracted.courtFilingPrepare as
-      | { entityId: string; uploadId: string; defendant: { tin: string; details: Record<string, unknown> } }
+      | {
+          entityId: string;
+          documents: { fileId: string; typeId: string }[];
+          defendant: { tin: string; details: Record<string, unknown> };
+        }
       | undefined;
-    if (!prepare) return "not_prepared" as const;
+    if (!prepare || !Array.isArray(prepare.documents) || prepare.documents.length === 0) return "not_prepared" as const;
     return { doc, appr, token: user.token, prepare, extracted };
   });
 
@@ -185,7 +267,7 @@ courtRoutes.post("/court/:id/file/submit", async (c) => {
       subCategoryId: DEBT_RECOVERY_CLAIM_CATEGORY.subCategoryId,
       claimantEntityId: prepare.entityId,
       defendant: { tin: prepare.defendant.tin, entity_details: prepare.defendant.details },
-      documents: [{ fileId: prepare.uploadId, typeId: CLAIM_STATEMENT_DOCUMENT_TYPE_ID }],
+      documents: prepare.documents,
       invoices: invoiceResponses.map((response) => ({ type: "STATE" as const, response })),
       claimAmount: { amount: (Number(principalMinor) / 100).toFixed(2), forfeit: (Number(penaltyMinor) / 100).toFixed(2), currency_id: "UZS" },
       claimAmountParts: [

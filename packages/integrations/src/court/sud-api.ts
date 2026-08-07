@@ -29,6 +29,18 @@ export const DEBT_RECOVERY_CLAIM_CATEGORY = {
 export const CLAIM_STATEMENT_DOCUMENT_TYPE_ID = "1c4b3a7e-3634-4972-8d32-9acc5e782766";
 
 /**
+ * ECONOMIC (iqtisodiy) da'volar uchun tasdiqlangan qo'shimcha hujjat turlari — jonli
+ * getDocumentTypes() javobidan olingan (2026-08-08, haqiqiy tenant sessiyasi orqali,
+ * hech qanday sud amali bajarilmasdan — faqat guide o'qildi). claim_types massivida
+ * "ECONOMIC" bor deb tasdiqlangan.
+ */
+export const TALABNOMA_DOCUMENT_TYPE_ID = "eb37ed47-d973-40bd-a9cd-a481add9c1ce";
+/** Shartnoma/hisob-faktura/TTN/akt-sverka va boshqa dalolat hujjatlari shu turga yuklanadi. */
+export const OTHER_DOCUMENTS_TYPE_ID = "616ccb56-4b2f-42ed-8522-7b351d2edb5f";
+/** Advokatlik byurosi nomidan topshirilganda — advokatlik orderi. */
+export const ADVOCATE_ORDER_DOCUMENT_TYPE_ID = "27c13648-ad08-4d0f-97f7-8049f4969bd0";
+
+/**
  * Hozircha faqat BITTA sud UUID'i qo'lda kiritilgan (foydalanuvchi tomonidan berilgan,
  * 2026-08-03). cabinet.sud.uz'da sudlar ro'yxati/qidiruv endpointi hali tasdiqlanmagan
  * (SKILL.md court-list guide'i yo'q) — determineCourt() faqat hudud NOMINI aniqlaydi,

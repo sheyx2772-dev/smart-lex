@@ -39,6 +39,12 @@ export const decisionSchema = z.object({
 
 export const documentSignSchema = z.object({ signature: signatureSchema });
 
+/** Sudga topshirish uchun tayyorlash — hujjat E-IMZO bilan mijoz tomonida imzolangan bo'lishi SHART. */
+export const courtFilePrepareSchema = z.object({
+  entityId: z.string().min(1),
+  signature: signatureSchema,
+});
+
 /** Yangi shartnoma + invoice yaratish. Kontragent id yoki STIR bo'yicha berilishi mumkin. */
 export const contractCreateSchema = z.object({
   contractorId: z.string().uuid().optional(),

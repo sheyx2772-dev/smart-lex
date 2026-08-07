@@ -255,7 +255,7 @@ function CourtCard({ item, t }: { item: CourtItem; t: ReturnType<typeof useTrans
       </div>
 
       {approved && status !== "submitted" && status !== "accepted" && status !== "completed" && (
-        <SudFilingFlow id={item.id} defendantTin={item.contractorTin} />
+        <SudFilingFlow id={item.id} defendantTin={item.contractorTin} claimBody={item.body} />
       )}
 
       {open && (

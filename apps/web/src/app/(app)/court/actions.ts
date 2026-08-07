@@ -37,11 +37,28 @@ export async function getCourtEntities(id: string) {
   return res.data ?? { available: false, reason: "error" };
 }
 
-export async function prepareCourtFiling(id: string, entityId: string) {
-  const res = await apiServer<{ available: boolean; reason?: string; detail?: string; summary?: { defendantName: string; defendantTin: string } }>(
-    `/api/court/${id}/file/prepare`,
-    { method: "POST", body: JSON.stringify({ entityId }) },
-  );
+export interface CourtFilingChecklist {
+  claimSigned: boolean;
+  signatureCertAttached: boolean;
+  talabnomaAttached: boolean;
+  manualEvidenceNeeded: string[];
+}
+export interface CourtSignature {
+  pkcs7: string;
+  signerName: string;
+  certSerial: string;
+  signedAt: string;
+  provider: "eimzo" | "mock";
+}
+
+export async function prepareCourtFiling(id: string, entityId: string, signature: CourtSignature) {
+  const res = await apiServer<{
+    available: boolean;
+    reason?: string;
+    detail?: string;
+    summary?: { defendantName: string; defendantTin: string };
+    checklist?: CourtFilingChecklist;
+  }>(`/api/court/${id}/file/prepare`, { method: "POST", body: JSON.stringify({ entityId, signature }) });
   return res.data ?? { available: false, reason: "error" };
 }
 

@@ -582,7 +582,14 @@
       "extensionWaitHint": "Войдите на cabinet.sud.uz через One ID — подключение произойдёт автоматически.",
       "extensionHint": "Совет: если установить расширение SmartLex.AI, эти шаги не понадобятся — подключение будет автоматическим.",
       "bookmarksBarLabel": "↑ Панель закладок — перетащите кнопку СЮДА",
-      "bookmarksBarHiddenHint": "Не видите эту полосу? Нажмите Ctrl+Shift+B (Mac: Cmd+Shift+B) — она откроется."
+      "bookmarksBarHiddenHint": "Не видите эту полосу? Нажмите Ctrl+Shift+B (Mac: Cmd+Shift+B) — она откроется.",
+      "signing": "Документ подписывается через E-IMZO... (подтвердите в окне E-IMZO)",
+      "checklistTitle": "Что прикреплено",
+      "checklistSigned": "Исковое заявление подписано через E-IMZO",
+      "checklistSigCert": "Сертификат подписи прикреплён",
+      "checklistTalabnoma": "Претензия (talabnoma) прикреплена",
+      "checklistManualTitle": "Прикрепите это на cabinet.sud.uz ВРУЧНУЮ:",
+      "checklistManualHint": "Оригиналы этих документов пока не хранятся в нашей системе (только ссылка на Didox) — поэтому автоматически прикрепить не удалось."
     },
     "stPending": "Ожидает подтверждения",
     "stReady": "Подтверждено · Готово к подаче",

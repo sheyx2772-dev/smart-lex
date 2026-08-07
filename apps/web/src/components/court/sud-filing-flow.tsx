@@ -1,11 +1,42 @@
 "use client";
 
-import { ArrowSquareOut, CaretUp, CheckCircle, CircleNotch, Gavel, Info, Keyboard, PlugsConnected, Question, SignIn, Warning } from "@phosphor-icons/react";
+import {
+  ArrowSquareOut,
+  CaretUp,
+  CheckCircle,
+  CircleNotch,
+  Gavel,
+  Info,
+  Keyboard,
+  PlugsConnected,
+  Question,
+  SealCheck,
+  SignIn,
+  Warning,
+  XCircle,
+} from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { connectCourtToken, getCourtEntities, getCourtTokenStatus, prepareCourtFiling, submitCourtFiling, type SudEntity } from "@/app/(app)/court/actions";
+import {
+  connectCourtToken,
+  getCourtEntities,
+  getCourtTokenStatus,
+  prepareCourtFiling,
+  submitCourtFiling,
+  type CourtFilingChecklist,
+  type SudEntity,
+} from "@/app/(app)/court/actions";
+import { signWithEimzo } from "@/lib/eimzo";
 
-type Stage = "checking" | "connect" | "entities" | "prepare" | "ready" | "confirm" | "filing" | "done";
+type Stage = "checking" | "connect" | "entities" | "signing" | "prepare" | "ready" | "confirm" | "filing" | "done";
+
+const MANUAL_EVIDENCE_LABEL: Record<string, string> = {
+  contract: "Shartnoma",
+  invoice: "Hisob-faktura",
+  ttn: "Yuk xati (TTN)",
+  reconciliation_act: "Solishtirma dalolatnoma (akt-sverka)",
+  advocate_order: "Advokatlik orderi",
+};
 
 const TOKEN_HASH_KEY = "sudtoken=";
 
@@ -60,13 +91,14 @@ function friendlyCourtError(t: ReturnType<typeof useTranslations>, detail?: stri
  * bizning saytimizga qaytaradi. Undan keyingi hamma narsa (entity, javobgar,
  * PDF, hisob-faktura, save-suit) serverda bajariladi.
  */
-export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: string | null }) {
+export function SudFilingFlow({ id, defendantTin, claimBody }: { id: string; defendantTin: string | null; claimBody: string }) {
   const t = useTranslations("court.sudFiling");
   const [stage, setStage] = useState<Stage>("checking");
   const [error, setError] = useState<string | null>(null);
   const [entities, setEntities] = useState<SudEntity[]>([]);
   const [entityId, setEntityId] = useState<string>("");
   const [summary, setSummary] = useState<{ defendantName: string; defendantTin: string } | null>(null);
+  const [checklist, setChecklist] = useState<CourtFilingChecklist | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   // Foydalanuvchi tugmani BOSSA (SURISH o'rniga) — brauzer javascript: havolaga
   // navigatsiya qilishga urinadi (aslida hech narsa qilmaydi, faqat manzil satrini
@@ -153,8 +185,22 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
   async function prepare() {
     if (!entityId) return;
     setError(null);
+
+    // IPK 149/155-modda: imzosiz da'vo arizasi sud tomonidan QAYTARILADI — shuning
+    // uchun cabinet.sud.uz'ga yuklashdan OLDIN, mijoz brauzerida (E-IMZO mahalliy
+    // demoni orqali) haqiqiy imzo olinadi. Server hech qachon imzolamaydi.
+    setStage("signing");
+    let signature;
+    try {
+      signature = await signWithEimzo(claimBody, defendantTin ?? undefined);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("sudErrorRetry"));
+      setStage("entities");
+      return;
+    }
+
     setStage("prepare");
-    const res = await prepareCourtFiling(id, entityId);
+    const res = await prepareCourtFiling(id, entityId, signature);
     if (!res.available || !res.summary) {
       setError(
         res.reason === "not_approved"
@@ -167,6 +213,7 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
       return;
     }
     setSummary(res.summary);
+    setChecklist(res.checklist ?? null);
     setStage("ready");
   }
 
@@ -360,6 +407,12 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
         </div>
       )}
 
+      {stage === "signing" && (
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <CircleNotch className="size-4 animate-spin" /> {t("signing")}
+        </p>
+      )}
+
       {stage === "prepare" && (
         <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <CircleNotch className="size-4 animate-spin" /> {t("preparing")}
@@ -374,6 +427,40 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
               {t("summaryDefendant")}: {summary.defendantName} ({summary.defendantTin || defendantTin})
             </p>
           </div>
+
+          {checklist && (
+            <div className="rounded-lg border border-border bg-background p-3 text-xs">
+              <p className="mb-2 font-semibold text-foreground">{t("checklistTitle")}</p>
+              <ul className="space-y-1.5">
+                <li className="flex items-center gap-1.5">
+                  <SealCheck weight="fill" className="size-3.5 text-success" /> {t("checklistSigned")}
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <SealCheck weight="fill" className="size-3.5 text-success" /> {t("checklistSigCert")}
+                </li>
+                <li className="flex items-center gap-1.5">
+                  {checklist.talabnomaAttached ? (
+                    <SealCheck weight="fill" className="size-3.5 text-success" />
+                  ) : (
+                    <XCircle weight="fill" className="size-3.5 text-muted-foreground" />
+                  )}
+                  {t("checklistTalabnoma")}
+                </li>
+              </ul>
+              {checklist.manualEvidenceNeeded.length > 0 && (
+                <div className="mt-2.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-warning">
+                  <p className="mb-1 flex items-center gap-1.5 font-medium">
+                    <Warning weight="fill" className="size-3.5 shrink-0" /> {t("checklistManualTitle")}
+                  </p>
+                  <p className="text-[11px] leading-relaxed">
+                    {checklist.manualEvidenceNeeded.map((k) => MANUAL_EVIDENCE_LABEL[k] ?? k).join(", ")}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed">{t("checklistManualHint")}</p>
+                </div>
+              )}
+            </div>
+          )}
+
           <label className="flex items-start gap-2 text-xs text-muted-foreground">
             <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-0.5" />
             {t("fileConfirm")}

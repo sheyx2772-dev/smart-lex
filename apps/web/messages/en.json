@@ -582,7 +582,14 @@
       "extensionWaitHint": "Sign in to cabinet.sud.uz via One ID — the connection will happen automatically.",
       "extensionHint": "Tip: install the SmartLex.AI browser extension and these steps become unnecessary — connecting happens automatically.",
       "bookmarksBarLabel": "↑ Bookmarks bar — drag the button HERE",
-      "bookmarksBarHiddenHint": "Don't see this row? Press Ctrl+Shift+B (Mac: Cmd+Shift+B) to show it."
+      "bookmarksBarHiddenHint": "Don't see this row? Press Ctrl+Shift+B (Mac: Cmd+Shift+B) to show it.",
+      "signing": "Signing the document via E-IMZO... (confirm in the E-IMZO window)",
+      "checklistTitle": "What was attached",
+      "checklistSigned": "Claim statement signed via E-IMZO",
+      "checklistSigCert": "Signature certificate attached",
+      "checklistTalabnoma": "Demand letter attached",
+      "checklistManualTitle": "Attach these manually on cabinet.sud.uz:",
+      "checklistManualHint": "The original files for these documents aren't stored in our system yet (only a Didox reference) — so they couldn't be attached automatically."
     },
     "stPending": "Awaiting approval",
     "stReady": "Approved · Ready to file",

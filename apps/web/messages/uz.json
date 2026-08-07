@@ -619,7 +619,14 @@
       "extensionWaitHint": "cabinet.sud.uz saytida One ID orqali kiring — ulanish avtomatik amalga oshadi.",
       "extensionHint": "Maslahat: SmartLex.AI brauzer kengaytmasini o'rnatsangiz, bu qadamlar shart emas — ulanish avtomatik bo'ladi.",
       "bookmarksBarLabel": "↑ Xatcho'qlar paneli — tugmani SHU YERGA suring",
-      "bookmarksBarHiddenHint": "Bu qator ko'rinmayaptimi? Klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) bosing — u ochiladi."
+      "bookmarksBarHiddenHint": "Bu qator ko'rinmayaptimi? Klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) bosing — u ochiladi.",
+      "signing": "Hujjat E-IMZO bilan imzolanmoqda... (E-IMZO oynasida tasdiqlang)",
+      "checklistTitle": "Nima biriktirildi",
+      "checklistSigned": "Da'vo arizasi E-IMZO bilan imzolandi",
+      "checklistSigCert": "Imzo tasdiqnomasi biriktirildi",
+      "checklistTalabnoma": "Talabnoma biriktirildi",
+      "checklistManualTitle": "Bularni cabinet.sud.uz'da QO'LDA biriktiring:",
+      "checklistManualHint": "Bu hujjatlarning asl fayli hozircha bizning tizimda saqlanmaydi (faqat Didox havolasi bor) — shuning uchun avtomatik biriktirib bo'lmadi."
     },
     "stPending": "Tasdiq kutmoqda",
     "stReady": "Tasdiqlandi · Topshirishga tayyor",
