@@ -18,6 +18,7 @@ import {
   documents,
   getDb,
   invoices as invoicesTable,
+  paymentPromises,
   payments as paymentsTable,
   receivables,
   reminders,
@@ -27,7 +28,7 @@ import {
 } from "@lex/db";
 import { createNotifier } from "@lex/integrations";
 import { type Locale, type ReminderChannel, type TenantType } from "@lex/shared";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { syncDebtCasesForTenant } from "./debt-case-sync.js";
 
 export interface MonitorSummary {
@@ -57,6 +58,28 @@ async function audit(
     entityId,
     detail,
   });
+}
+
+/**
+ * Muddati o'tgan-u to'lanmagan "va'da qilingan to'lov"larni "broken" belgilaydi va
+ * audit yozadi (explainability) — inson Debitorlik sahifasida ko'rib, sudga oshirish
+ * kabi qadamni o'zi qaror qiladi (avtomatik strategiya kuchaytirish HALI qilinmaydi —
+ * bu ham huquqiy ahamiyatli qadam, inson tasdig'i talab qiladi, xuddi demand_letter/court kabi).
+ */
+async function checkBrokenPromises(tx: TenantTx, tenantId: string, now: Date): Promise<number> {
+  const overdue = await tx
+    .select({ id: paymentPromises.id, receivableId: paymentPromises.receivableId, amountMinor: paymentPromises.amountMinor, dueDate: paymentPromises.dueDate })
+    .from(paymentPromises)
+    .where(and(eq(paymentPromises.tenantId, tenantId), eq(paymentPromises.status, "pending"), lt(paymentPromises.dueDate, now)));
+
+  for (const p of overdue) {
+    await tx.update(paymentPromises).set({ status: "broken", resolvedAt: now }).where(eq(paymentPromises.id, p.id));
+    await audit(tx, tenantId, "promise.broken", "receivable", p.receivableId, {
+      amountMinor: p.amountMinor.toString(),
+      dueDate: p.dueDate.toISOString(),
+    });
+  }
+  return overdue.length;
 }
 
 interface ChannelConfig {
@@ -141,6 +164,8 @@ async function runForTenant(
     executedStages: string[];
   }[] = [];
   await withTenant(tenant.id, async (tx) => {
+    await checkBrokenPromises(tx, tenant.id, now);
+
     const [contractorRows, contractRows, invoiceRows, paymentRows, ruleRows, receivableRows] =
       await Promise.all([
         tx.select().from(contractorsTable),

@@ -24,6 +24,7 @@ export const TENANT_SCOPED_TABLES = [
   "case_events",
   "pending_overrides",
   "chain_anchors",
+  "payment_promises",
 ] as const;
 
 /**

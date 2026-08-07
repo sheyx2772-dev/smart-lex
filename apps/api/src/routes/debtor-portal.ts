@@ -1,5 +1,5 @@
-import { auditLogs, contractors, getDb, invoices, receivables, tenants, withTenant } from "@lex/db";
-import { eq } from "drizzle-orm";
+import { auditLogs, contractors, getDb, invoices, paymentPromises, receivables, tenants, withTenant } from "@lex/db";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { clickPaymentUrlWith } from "../lib/click";
 import { type Variables } from "../lib/context";
@@ -91,41 +91,54 @@ function cardFlags(settings: Record<string, unknown>): { click: boolean; payme: 
 // Qattiqlikка qarab minimal kelishuv foizi (money mantiqi deterministik — LLM'da emas).
 const SETTLEMENT_MIN: Record<string, number> = { soft: 60, normal: 72, aggressive: 85 };
 const MAX_MONTHS: Record<string, number> = { soft: 6, normal: 4, aggressive: 3 };
+// Va'da muddati: kelishuv summasi shu kun ichida kutiladi (birinchi to'lov — bo'lib to'lashda ham).
+const SETTLEMENT_DAYS = 7;
+const INSTALLMENT_FIRST_DAYS = 14;
 
-/** AI bo'lib-to'lash / kelishuv taklifi (public). Qoidalarга asoslangan, firmaга xabar. */
+interface Offer {
+  type: string;
+  text: string;
+  acceptMinor: number;
+  schedule?: { month: number; amount: number }[];
+}
+
+/** /negotiate va /promise AYNAN BIR XIL qoidadan foydalanadi — hisob-kitob bir joyda. */
+function computeOffer(f: Found, type: string | undefined, months: number | undefined): Offer {
+  const principal = Number(f.receivable.outstandingMinor) / 100;
+  const penalty = Number(f.receivable.penaltyMinor ?? 0n) / 100;
+  const total = principal + penalty;
+  const aggr = String((f.tenant.settings.agent as { aggressiveness?: string } | undefined)?.aggressiveness ?? "normal");
+
+  if (type === "settlement") {
+    const pct = SETTLEMENT_MIN[aggr] ?? 72;
+    const accept = Math.round((total * pct) / 100);
+    return {
+      type: "settlement",
+      acceptMinor: accept * 100,
+      text: `Bir martalik to'lov kelishuvi: agar ${accept.toLocaleString("uz-UZ")} so'm (jami qarzning ${pct}%) darhol to'lansa, qolgan qismi kechiriladi. Penya to'xtatiladi.`,
+    };
+  }
+  const maxM = MAX_MONTHS[aggr] ?? 4;
+  const monthsResolved = Math.max(2, Math.min(maxM, Math.round(months ?? maxM)));
+  const per = Math.ceil(total / monthsResolved);
+  return {
+    type: "installment",
+    acceptMinor: Math.round(total) * 100,
+    schedule: Array.from({ length: monthsResolved }, (_, i) => ({ month: i + 1, amount: per })),
+    text: `Bo'lib to'lash rejasi: ${monthsResolved} oy davomida oyiga ~${per.toLocaleString("uz-UZ")} so'm. Reja bajarilishi sud jarayoni to'xtatiladi.`,
+  };
+}
+
+/** AI bo'lib-to'lash / kelishuv taklifi (public). Qoidalarga asoslangan, firmaga xabar. */
 debtorPortalRoutes.post("/pay/:id/negotiate", async (c) => {
   const id = c.req.param("id");
   const body = (await c.req.json().catch(() => ({}))) as { type?: string; months?: number };
   const f = await findReceivable(id);
   if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
 
-  const principal = Number(f.receivable.outstandingMinor) / 100;
-  const penalty = Number(f.receivable.penaltyMinor ?? 0n) / 100;
-  const total = principal + penalty;
-  const aggr = String((f.tenant.settings.agent as { aggressiveness?: string } | undefined)?.aggressiveness ?? "normal");
+  const offer = computeOffer(f, body.type, body.months);
 
-  let offer: { type: string; text: string; acceptMinor: number; schedule?: { month: number; amount: number }[] };
-  if (body.type === "settlement") {
-    const pct = SETTLEMENT_MIN[aggr] ?? 72;
-    const accept = Math.round((total * pct) / 100);
-    offer = {
-      type: "settlement",
-      acceptMinor: accept * 100,
-      text: `Bir martalik to'lov kelishuvi: agar ${accept.toLocaleString("uz-UZ")} so'm (jami qarzning ${pct}%) darhol to'lansa, qolgan qismi kechiriladi. Penya to'xtatiladi.`,
-    };
-  } else {
-    const maxM = MAX_MONTHS[aggr] ?? 4;
-    const months = Math.max(2, Math.min(maxM, Math.round(body.months ?? maxM)));
-    const per = Math.ceil(total / months);
-    offer = {
-      type: "installment",
-      acceptMinor: Math.round(total) * 100,
-      schedule: Array.from({ length: months }, (_, i) => ({ month: i + 1, amount: per })),
-      text: `Bo'lib to'lash rejasi: ${months} oy davomida oyiga ~${per.toLocaleString("uz-UZ")} so'm. Reja bajarilса sud jarayoni to'xtatiladi.`,
-    };
-  }
-
-  // Firmaga xabar — audit logga (yangi jadval yo'q).
+  // Firmaga xabar — audit logga.
   await withTenant(f.tenant.id, async (tx) => {
     await tx.insert(auditLogs).values({
       tenantId: f.tenant.id,
@@ -139,6 +152,51 @@ debtorPortalRoutes.post("/pay/:id/negotiate", async (c) => {
   });
 
   return c.json({ success: true, data: { offer, creditor: f.tenant.name }, error: null, message: "ok" });
+});
+
+/**
+ * Qarzdor taklifni QABUL qiladi — "va'da qilingan to'lov" (Promise-to-Pay) sifatida
+ * yoziladi va muddat bilan kuzatiladi. Kunlik worker muddati o'tgan-u to'lanmagan
+ * va'dalarni "broken" belgilaydi; to'lov qayd etilsa "kept" bo'ladi (resolvePromiseOnPayment).
+ */
+debtorPortalRoutes.post("/pay/:id/promise", async (c) => {
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { type?: string; months?: number };
+  const f = await findReceivable(id);
+  if (!f) return c.json({ success: false, data: null, error: "not_found", message: "topilmadi" }, 404);
+
+  const offer = computeOffer(f, body.type, body.months);
+  const days = offer.type === "settlement" ? SETTLEMENT_DAYS : INSTALLMENT_FIRST_DAYS;
+  const dueDate = new Date(Date.now() + days * 86_400_000);
+
+  await withTenant(f.tenant.id, async (tx) => {
+    // Bitta receivable'da bir vaqtda faqat bitta faol (pending) va'da bo'lsin.
+    await tx
+      .update(paymentPromises)
+      .set({ status: "broken", resolvedAt: new Date() })
+      .where(and(eq(paymentPromises.receivableId, f.receivable.id), eq(paymentPromises.status, "pending")));
+
+    await tx.insert(paymentPromises).values({
+      tenantId: f.tenant.id,
+      receivableId: f.receivable.id,
+      type: offer.type as "settlement" | "installment",
+      amountMinor: BigInt(offer.acceptMinor),
+      dueDate,
+      offerText: offer.text,
+    });
+
+    await tx.insert(auditLogs).values({
+      tenantId: f.tenant.id,
+      actorType: "system",
+      actorId: "debtor-portal",
+      action: "promise.accepted",
+      entityType: "receivable",
+      entityId: f.receivable.id,
+      detail: { offerType: offer.type, acceptMinor: offer.acceptMinor, dueDate: dueDate.toISOString() },
+    });
+  });
+
+  return c.json({ success: true, data: { offer, dueDate: dueDate.toISOString() }, error: null, message: "ok" });
 });
 
 /**

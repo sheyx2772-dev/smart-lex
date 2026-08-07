@@ -4,6 +4,7 @@ import {
   contractors,
   contracts,
   invoices,
+  paymentPromises,
   payments,
   receivables,
   reminders,
@@ -13,6 +14,7 @@ import { ERROR_CODE, fail, ok, type ReceivableStatus } from "@lex/shared";
 import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
+import { resolvePromiseOnPayment } from "../lib/promises";
 import { pageMeta, pageParams } from "../lib/pagination";
 import { paymentSchema, validate } from "../lib/validation";
 
@@ -270,16 +272,33 @@ receivableRoutes.get("/receivables/:id", async (c) => {
       .where(eq(reminders.receivableId, id))
       .orderBy(desc(reminders.createdAt));
 
-    return { row, paymentRows, reminderRows };
+    // AI'ning "NEGA shu tavsiya" izohi — worker har kuni agent.decision audit yozadi (explainability).
+    const [decisionRow] = await tx
+      .select({ detail: auditLogs.detail, createdAt: auditLogs.createdAt })
+      .from(auditLogs)
+      .where(and(eq(auditLogs.entityType, "receivable"), eq(auditLogs.entityId, id), eq(auditLogs.action, "agent.decision")))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(1);
+
+    // Eng so'nggi "va'da qilingan to'lov" (Promise-to-Pay) holati.
+    const [promiseRow] = await tx
+      .select({ type: paymentPromises.type, amountMinor: paymentPromises.amountMinor, dueDate: paymentPromises.dueDate, status: paymentPromises.status, offerText: paymentPromises.offerText })
+      .from(paymentPromises)
+      .where(eq(paymentPromises.receivableId, id))
+      .orderBy(desc(paymentPromises.createdAt))
+      .limit(1);
+
+    return { row, paymentRows, reminderRows, decisionRow, promiseRow };
   });
 
   if (!result) {
     return c.json(ok(null, "common.ok", c.get("locale")));
   }
 
-  const { row, paymentRows, reminderRows } = result;
+  const { row, paymentRows, reminderRows, decisionRow, promiseRow } = result;
   const cur = row.currency;
   const paidMinor = paymentRows.reduce((s, p) => s + p.amountMinor, 0n);
+  const decisionDetail = decisionRow?.detail as { reason?: string; factors?: unknown[]; action?: string; recoveryScore?: number } | undefined;
 
   const data = {
     id: row.id,
@@ -339,6 +358,25 @@ receivableRoutes.get("/receivables/:id", async (c) => {
       sentAt: rm.sentAt,
       createdAt: rm.createdAt,
     })),
+    latestDecision:
+      decisionRow && decisionDetail?.reason
+        ? {
+            reason: decisionDetail.reason,
+            factors: decisionDetail.factors ?? [],
+            action: decisionDetail.action ?? "",
+            recoveryScore: decisionDetail.recoveryScore ?? 0,
+            createdAt: decisionRow.createdAt,
+          }
+        : null,
+    promise: promiseRow
+      ? {
+          type: promiseRow.type,
+          amount: amount(promiseRow.amountMinor, cur),
+          dueDate: promiseRow.dueDate,
+          status: promiseRow.status,
+          offerText: promiseRow.offerText,
+        }
+      : null,
   };
 
   return c.json(ok(data, "common.ok", c.get("locale")));
@@ -390,6 +428,7 @@ receivableRoutes.post("/receivables/:id/payment", async (c) => {
       status: "received",
       paidAt,
     });
+    await resolvePromiseOnPayment(tx, id);
 
     const paidRows = await tx
       .select({ amountMinor: payments.amountMinor })

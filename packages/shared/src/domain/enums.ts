@@ -33,6 +33,14 @@ export type ReceivableStatus = (typeof RECEIVABLE_STATUSES)[number];
 export const PAYMENT_STATUSES = ["expected", "received", "reversed"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+/** Qarzdorning "va'da qilingan to'lov" turi (AI kelishuv orqali qabul qilingan). */
+export const PROMISE_TYPES = ["settlement", "installment"] as const;
+export type PromiseType = (typeof PROMISE_TYPES)[number];
+
+/** Va'da holati — muddat kelmaguncha "pending", to'lov qilinsa "kept", muddat o'tsa "broken". */
+export const PROMISE_STATUSES = ["pending", "kept", "broken"] as const;
+export type PromiseStatus = (typeof PROMISE_STATUSES)[number];
+
 /** Eslatma kanallari. */
 export const REMINDER_CHANNELS = ["sms", "email", "telegram", "hybrid_post"] as const;
 export type ReminderChannel = (typeof REMINDER_CHANNELS)[number];

@@ -394,7 +394,8 @@
       "confirmed": "Confirmed",
       "blockHeight": "Block #{height}",
       "hint": "Each entry is a snapshot of the audit chain at that moment, recorded on the Bitcoin blockchain (an independent source no one can alter)."
-    }
+    },
+    "downloadReport": "Download report"
   },
   "stage": {
     "soft_reminder": "Soft reminder",
@@ -669,7 +670,13 @@
     "writeOffConfirm": "Mark this debt as uncollectible? (it will be written off)",
     "sendReminder": "Send reminder",
     "reminderSent": "Reminder sent",
-    "escalateToCourt": "Escalate to court"
+    "escalateToCourt": "Escalate to court",
+    "aiWhyHeading": "Why did the AI recommend this?",
+    "promisePending": "Payment promise pending",
+    "promiseKept": "Promise kept",
+    "promiseBroken": "Promise broken — deadline passed",
+    "promiseAmount": "Amount",
+    "promiseDueDate": "Deadline"
   },
   "companies": {
     "title": "Counterparties",

@@ -23,6 +23,8 @@ import {
   overrideStatusEnum,
   overrideTypeEnum,
   paymentStatusEnum,
+  promiseStatusEnum,
+  promiseTypeEnum,
   receivableStatusEnum,
   reminderChannelEnum,
   reminderStatusEnum,
@@ -287,6 +289,37 @@ export const reminders = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index("reminders_tenant_receivable_idx").on(t.tenantId, t.receivableId)],
+);
+
+/**
+ * "Va'da qilingan to'lov" (Promise-to-Pay) — qarzdor AI kelishuv (/pay/:id/negotiate)
+ * orqali taklifni QABUL qilganda yoziladi. Kunlik worker muddati o'tgan-u to'lanmagan
+ * va'dalarni "broken" deb belgilaydi va inson tasdig'i uchun override yaratadi
+ * (strategiyani kuchaytirish tavsiyasi) — undiruv sikli shu orqali yopiladi.
+ */
+export const paymentPromises = pgTable(
+  "payment_promises",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    receivableId: uuid("receivable_id")
+      .notNull()
+      .references(() => receivables.id, { onDelete: "cascade" }),
+    type: promiseTypeEnum("type").notNull(),
+    amountMinor: bigint("amount_minor", { mode: "bigint" }).notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+    status: promiseStatusEnum("status").notNull().default("pending"),
+    offerText: text("offer_text").notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("promises_tenant_receivable_idx").on(t.tenantId, t.receivableId),
+    index("promises_tenant_status_due_idx").on(t.tenantId, t.status, t.dueDate),
+  ],
 );
 
 /** Rahbar tasdig'ini talab qiladigan huquqiy ahamiyatli qadamlar. */

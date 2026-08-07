@@ -73,4 +73,18 @@ export interface ReceivableDetail {
     sentAt: string | null;
     createdAt: string;
   }[];
+  latestDecision: {
+    reason: string;
+    factors: { label: string; impact: number }[];
+    action: string;
+    recoveryScore: number;
+    createdAt: string;
+  } | null;
+  promise: {
+    type: string;
+    amount: Amount;
+    dueDate: string;
+    status: string;
+    offerText: string;
+  } | null;
 }

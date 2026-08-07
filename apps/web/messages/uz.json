@@ -431,7 +431,8 @@
       "confirmed": "Tasdiqlangan",
       "blockHeight": "Blok #{height}",
       "hint": "Har bir yozuv — audit zanjirining o'sha paytdagi holati Bitcoin blokcheyniga (mustaqil, hech kim o'zgartira olmaydigan tashqi manba) yozib qo'yilgani."
-    }
+    },
+    "downloadReport": "Hisobotni yuklab olish"
   },
   "stage": {
     "soft_reminder": "Yumshoq eslatma",
@@ -706,7 +707,13 @@
     "writeOffConfirm": "Bu qarzni undirib boʼlmaydigan deb belgilaysizmi? (hisobdan chiqariladi)",
     "sendReminder": "Eslatma yuborish",
     "reminderSent": "Eslatma yuborildi",
-    "escalateToCourt": "Sudga oshirish"
+    "escalateToCourt": "Sudga oshirish",
+    "aiWhyHeading": "AI nega shunday tavsiya berdi?",
+    "promisePending": "Va'da qilingan to'lov kutilmoqda",
+    "promiseKept": "Va'da bajarildi",
+    "promiseBroken": "Va'da buzildi — muddat o'tdi",
+    "promiseAmount": "Summa",
+    "promiseDueDate": "Muddat"
   },
   "companies": {
     "title": "Kontragentlar",

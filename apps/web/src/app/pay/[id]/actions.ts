@@ -44,3 +44,19 @@ export async function negotiateDebt(id: string, type: "installment" | "settlemen
     return null;
   }
 }
+
+/** Qarzdor taklifni QABUL qiladi — "va'da qilingan to'lov" sifatida muddat bilan yoziladi (public). */
+export async function acceptPromise(id: string, type: "installment" | "settlement", months?: number): Promise<{ dueDate: string } | null> {
+  try {
+    const res = await fetch(`${API_URL}/pay/${id}/promise`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, months }),
+      cache: "no-store",
+    });
+    const json = (await res.json()) as { success?: boolean; data?: { dueDate?: string } };
+    return json?.success && json.data?.dueDate ? { dueDate: json.data.dueDate } : null;
+  } catch {
+    return null;
+  }
+}

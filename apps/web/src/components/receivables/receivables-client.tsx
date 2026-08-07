@@ -16,6 +16,7 @@ import {
   Phone,
   Receipt,
   ShieldWarning,
+  Sparkle,
   TelegramLogo,
   Warning,
 } from "@phosphor-icons/react";
@@ -424,6 +425,60 @@ function DetailPanel({
           </span>
         </div>
       </Card>
+
+      {/* AI izohi — nega bu tavsiya (explainability) */}
+      {detail?.latestDecision && (
+        <Card className="border-primary/20 bg-primary-soft/20 p-5">
+          <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+            <Sparkle weight="fill" className="size-3.5" /> {t("aiWhyHeading")}
+          </h3>
+          <p className="text-sm">{detail.latestDecision.reason}</p>
+          {detail.latestDecision.factors.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {detail.latestDecision.factors.map((f) => (
+                <span
+                  key={f.label}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    f.impact > 0 ? "bg-success-soft text-success" : f.impact < 0 ? "bg-danger-soft text-danger" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {f.label} {f.impact > 0 ? `+${f.impact}` : f.impact}
+                </span>
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-[11px] text-muted-foreground">{fmtDate(detail.latestDecision.createdAt)}</p>
+        </Card>
+      )}
+
+      {/* Va'da qilingan to'lov (Promise-to-Pay) */}
+      {detail?.promise && (
+        <Card
+          className={cn(
+            "p-5",
+            detail.promise.status === "pending" && "border-primary/25 bg-primary-soft/15",
+            detail.promise.status === "kept" && "border-success/25 bg-success-soft/40",
+            detail.promise.status === "broken" && "border-danger/25 bg-danger-soft/40",
+          )}
+        >
+          <h3
+            className={cn(
+              "mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide",
+              detail.promise.status === "pending" && "text-primary",
+              detail.promise.status === "kept" && "text-success",
+              detail.promise.status === "broken" && "text-danger",
+            )}
+          >
+            <Clock weight="fill" className="size-3.5" />
+            {detail.promise.status === "pending" ? t("promisePending") : detail.promise.status === "kept" ? t("promiseKept") : t("promiseBroken")}
+          </h3>
+          <p className="text-sm">{detail.promise.offerText}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t("promiseAmount")}: <span className="font-medium text-foreground">{detail.promise.amount.formatted}</span> · {t("promiseDueDate")}: {fmtDate(detail.promise.dueDate)}
+          </p>
+        </Card>
+      )}
 
       {/* Amounts */}
       <Card className="p-5">

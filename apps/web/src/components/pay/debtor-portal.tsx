@@ -2,7 +2,7 @@
 
 import { Bank, CalendarBlank, CaretRight, CheckCircle, CircleNotch, Handshake, ShieldCheck, Warning } from "@phosphor-icons/react";
 import { useState, useTransition } from "react";
-import { negotiateDebt, type NegotiationOffer, payDebt } from "@/app/pay/[id]/actions";
+import { acceptPromise, negotiateDebt, type NegotiationOffer, payDebt } from "@/app/pay/[id]/actions";
 import { ClickLogo, PaymeLogo } from "@/components/billing/logos";
 
 export interface DebtData {
@@ -22,6 +22,8 @@ const fmt = (minor: string, cur: string) => new Intl.NumberFormat("uz-UZ").forma
 export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }) {
   const [offer, setOffer] = useState<NegotiationOffer | null>(null);
   const [busy, start] = useTransition();
+  const [promiseDueDate, setPromiseDueDate] = useState<string | null>(null);
+  const [accepting, startAccept] = useTransition();
 
   if (!data) {
     return (
@@ -35,8 +37,18 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
 
   const total = (Number(data.principalMinor) + Number(data.penaltyMinor)).toString();
   function negotiate(type: "installment" | "settlement") {
+    setPromiseDueDate(null);
     start(async () => setOffer(await negotiateDebt(id, type)));
   }
+  function accept() {
+    if (!offer) return;
+    const type = offer.type as "installment" | "settlement";
+    startAccept(async () => {
+      const res = await acceptPromise(id, type);
+      if (res) setPromiseDueDate(res.dueDate);
+    });
+  }
+  const fmtDate = (d: string) => new Intl.DateTimeFormat("uz-UZ", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(d));
   const [paying, startPay] = useTransition();
   function pay(provider: "click" | "payme", mode?: "settlement") {
     startPay(async () => {
@@ -161,7 +173,14 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
                 ))}
               </ul>
             )}
-            {offer.type === "settlement" && hasCards ? (
+            {promiseDueDate ? (
+              <div className="mt-3 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5">
+                <ShieldCheck weight="fill" className="size-4 shrink-0 text-emerald-600" />
+                <p className="text-xs text-emerald-700">
+                  Va&apos;dangiz qabul qilindi — <strong>{fmtDate(promiseDueDate)}</strong>gacha kutamiz.
+                </p>
+              </div>
+            ) : offer.type === "settlement" && hasCards ? (
               <div className="mt-3 space-y-2">
                 <p className="text-[11px] text-muted-foreground">Chegirmali summani hoziroq karta bilan to'lab, kelishuvni yakunlashingiz mumkin:</p>
                 <div className="grid grid-cols-2 gap-2">
@@ -185,9 +204,25 @@ export function DebtorPortal({ id, data }: { id: string; data: DebtData | null }
                     </button>
                   )}
                 </div>
+                <button
+                  onClick={accept}
+                  disabled={accepting}
+                  className="w-full text-center text-xs font-medium text-muted-foreground underline decoration-dotted transition-colors hover:text-foreground disabled:opacity-60"
+                >
+                  {accepting ? "..." : "Yo'q, bank o'tkazmasi bilan keyinroq to'layman"}
+                </button>
               </div>
             ) : (
-              <p className="mt-2 text-[11px] text-muted-foreground">Bu taklif firmага yuborildi. Rasmiylashtirish uchun yuqoridagi rekvizitlar bo'yicha to'lang yoki firma bilan bog'laning.</p>
+              <div className="mt-3 space-y-2">
+                <button
+                  onClick={accept}
+                  disabled={accepting}
+                  className="w-full rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+                >
+                  {accepting ? "..." : "Ushbu shartni qabul qilaman"}
+                </button>
+                <p className="text-[11px] text-muted-foreground">Qabul qilsangiz, taklif firmaga yuboriladi va rekvizitlar bo&apos;yicha to&apos;lashingiz kutiladi.</p>
+              </div>
             )}
           </div>
         )}

@@ -50,6 +50,13 @@
       "when": 1786032937006,
       "tag": "0006_previous_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786140014179,
+      "tag": "0007_jittery_kang",
+      "breakpoints": true
     }
   ]
 }

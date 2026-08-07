@@ -1,6 +1,6 @@
 "use client";
 
-import { CurrencyBtc, GearSix, MagnifyingGlass, Robot, ShieldCheck, ShieldWarning, User, type Icon } from "@phosphor-icons/react";
+import { CurrencyBtc, DownloadSimple, GearSix, MagnifyingGlass, Robot, ShieldCheck, ShieldWarning, User, type Icon } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { fetchAudit } from "@/app/(app)/audit/actions";
@@ -137,6 +137,13 @@ export function AuditClient({
               </span>
             </div>
           )}
+          <a
+            href="/api/audit/report"
+            className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <DownloadSimple weight="fill" className="size-4 text-primary" />
+            {t("downloadReport")}
+          </a>
           <div className="relative">
             <button
               onClick={() => setAnchorsOpen((v) => !v)}

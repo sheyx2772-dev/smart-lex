@@ -10,6 +10,8 @@ import {
   OVERRIDE_STATUSES,
   OVERRIDE_TYPES,
   PAYMENT_STATUSES,
+  PROMISE_STATUSES,
+  PROMISE_TYPES,
   RECEIVABLE_STATUSES,
   REMINDER_CHANNELS,
   REMINDER_STATUSES,
@@ -43,3 +45,5 @@ export const caseStateEnum = pgEnum("case_state", tuple(CASE_STATES));
 export const strategyTypeEnum = pgEnum("strategy_type", tuple(STRATEGY_TYPES));
 export const overrideTypeEnum = pgEnum("override_type", tuple(OVERRIDE_TYPES));
 export const overrideStatusEnum = pgEnum("override_status", tuple(OVERRIDE_STATUSES));
+export const promiseTypeEnum = pgEnum("promise_type", tuple(PROMISE_TYPES));
+export const promiseStatusEnum = pgEnum("promise_status", tuple(PROMISE_STATUSES));

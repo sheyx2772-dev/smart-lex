@@ -6,6 +6,7 @@ import { type Variables } from "../lib/context";
 import { clickConfigured, clickPaymentUrl, planPrice, verifyCompleteSign, verifyCompleteSignKey, verifyPrepareSign, verifyPrepareSignKey } from "../lib/click";
 import { env } from "../lib/env";
 import { PAYME_ERR, PAYME_STATE, paymeAuthOk, paymeAuthOkWith, paymeCheckoutUrl, paymeConfigured, somToTiyin } from "../lib/payme";
+import { resolvePromiseOnPayment } from "../lib/promises";
 
 interface PayOrder {
   plan: string;
@@ -89,6 +90,7 @@ async function recordDebtPayment(tenantId: string, order: PayOrder): Promise<voi
         entityId: order.receivableId,
         detail: { amount: order.amount, provider: order.provider },
       });
+      await resolvePromiseOnPayment(tx, order.receivableId);
     }
   });
 }
