@@ -8,14 +8,16 @@ import {
   Gavel,
   MagnifyingGlass,
   PaperPlaneTilt,
+  Phone,
   TelegramLogo,
   Warning,
+  WarningCircle,
   XCircle,
   type Icon,
 } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
-import { fetchReminders, sendReminder, type SendReminderResult } from "@/app/(app)/reminders/actions";
+import { fetchReminders, sendReminder, type ChannelStatus, type SendReminderResult } from "@/app/(app)/reminders/actions";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { DocumentView } from "@/components/ui/document-view";
@@ -51,6 +53,8 @@ export interface ReminderDebtor {
   name: string;
   invoice: string;
   overdueDays: number;
+  phone: string | null;
+  email: string | null;
 }
 
 const CHANNEL_ICON: Record<string, Icon> = {
@@ -67,6 +71,8 @@ const STAGE_ICON: Record<string, Icon> = {
 };
 const CHANNEL_ORDER = ["sms", "email", "telegram", "hybrid_post"];
 const STATUS_ORDER = ["sent", "delivered", "queued", "failed"];
+const CHANNEL_LABEL_UZ: Record<string, string> = { sms: "SMS", email: "Email", telegram: "Telegram", hybrid_post: "Hybrid pochta" };
+const CHANNEL_LABEL_RU: Record<string, string> = { sms: "SMS", email: "Email", telegram: "Telegram", hybrid_post: "Гибрид почта" };
 
 function statusTone(s: string): BadgeProps["tone"] {
   if (s === "delivered") return "success";
@@ -75,7 +81,15 @@ function statusTone(s: string): BadgeProps["tone"] {
   return "neutral";
 }
 
-export function RemindersClient({ initial, debtors = [] }: { initial: RemindersData; debtors?: ReminderDebtor[] }) {
+export function RemindersClient({
+  initial,
+  debtors = [],
+  channelStatus,
+}: {
+  initial: RemindersData;
+  debtors?: ReminderDebtor[];
+  channelStatus?: ChannelStatus;
+}) {
   const t = useTranslations("reminders");
   const tChannel = useTranslations("channel");
   const tStage = useTranslations("stage");
@@ -132,6 +146,7 @@ export function RemindersClient({ initial, debtors = [] }: { initial: RemindersD
   }, [q]);
 
   const selected = selectedId ? data.items.find((r) => r.id === selectedId) ?? null : null;
+  const selectedDebtor = sendRecId ? debtors.find((d) => d.id === sendRecId) ?? null : null;
   const channels = ["all", ...CHANNEL_ORDER.filter((ch) => data.byChannel[ch])];
   const statuses = STATUS_ORDER.filter((s) => data.byStatus[s]);
 
@@ -160,6 +175,30 @@ export function RemindersClient({ initial, debtors = [] }: { initial: RemindersD
           </div>
         </div>
       </div>
+
+      {/* Kanal holati — qaysi kanal HAQIQATAN ulangan, qaysisi hali simulyatsiya */}
+      {channelStatus && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2.5">
+          <span className="text-xs font-medium text-muted-foreground">{ru ? "Каналы:" : "Kanallar:"}</span>
+          {CHANNEL_ORDER.map((ch) => {
+            const live = channelStatus[ch as keyof ChannelStatus];
+            const label = (ru ? CHANNEL_LABEL_RU : CHANNEL_LABEL_UZ)[ch];
+            return (
+              <span
+                key={ch}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                  live ? "bg-success-soft text-success" : "bg-warning-soft text-warning",
+                )}
+                title={live ? (ru ? "Реально отправляется" : "Haqiqatan yuboriladi") : (ru ? "Симуляция — провайдер не подключён" : "Simulyatsiya — provayder ulanmagan")}
+              >
+                <span className={cn("size-1.5 rounded-full", live ? "bg-success" : "bg-warning")} />
+                {label} · {live ? (ru ? "реально" : "haqiqiy") : (ru ? "симуляция" : "simulyatsiya")}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -322,11 +361,19 @@ export function RemindersClient({ initial, debtors = [] }: { initial: RemindersD
                   >
                     {debtors.map((d) => (
                       <option key={d.id} value={d.id}>
-                        {d.name} · {d.invoice}
+                        {d.name} · {d.phone || d.email || (ru ? "нет контакта" : "aloqa yo'q")} · {d.invoice}
                         {d.overdueDays > 0 ? ` · ${d.overdueDays} ${ru ? "дн" : "kun"}` : ""}
                       </option>
                     ))}
                   </select>
+                  {selectedDebtor && !selectedDebtor.phone && !selectedDebtor.email && (
+                    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-danger">
+                      <WarningCircle weight="fill" className="size-3.5" />
+                      {ru
+                        ? "У этого должника нет телефона/email — отправка не дойдёт."
+                        : "Bu qarzdorda telefon/email yo'q — yuborish yetib bormaydi."}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-medium text-muted-foreground">{ru ? "Тип" : "Turi"}</label>

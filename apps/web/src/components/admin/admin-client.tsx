@@ -1,6 +1,25 @@
 "use client";
 
-import { Buildings, CheckCircle, CircleNotch, DownloadSimple, FileText, PaperPlaneTilt, SealCheck, ShieldCheck, UsersThree, Wallet, X, XCircle } from "@phosphor-icons/react";
+import {
+  Buildings,
+  CheckCircle,
+  CircleNotch,
+  Clock,
+  DownloadSimple,
+  FileText,
+  Gavel,
+  PaperPlaneTilt,
+  Robot,
+  SealCheck,
+  ShieldCheck,
+  Truck,
+  User,
+  UsersThree,
+  Wallet,
+  X,
+  XCircle,
+  type Icon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { fetchTenantDetail, setSubscription, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
 
@@ -11,6 +30,27 @@ const SUB_CLASS: Record<string, string> = {
   active: "bg-emerald-500/15 text-emerald-600",
   expired: "bg-red-500/15 text-red-500",
 };
+
+const STAGE_META: Record<string, { label: string; icon: Icon; tone: string }> = {
+  pre_legal: { label: "Pre-sud (eslatma/kelishuv)", icon: Clock, tone: "text-primary" },
+  legal: { label: "Sudda", icon: Gavel, tone: "text-amber-600" },
+  enforcement: { label: "Ijroda", icon: Truck, tone: "text-danger" },
+  closed: { label: "Yakunlangan", icon: CheckCircle, tone: "text-success" },
+};
+const STAGE_ORDER = ["pre_legal", "legal", "enforcement", "closed"];
+
+const ACTOR_ICON: Record<string, Icon> = { ai_agent: Robot, user: User, system: SealCheck };
+
+function authMethodLabel(m?: string): string {
+  const map: Record<string, string> = {
+    PKCSMETHOD: "E-IMZO (PKCS7)",
+    LEPKCSMETHOD: "E-IMZO (yuridik shaxs)",
+    MOBILEIDMETHOD: "Mobile-ID",
+    LOGINPASSMETHOD: "Login/parol",
+    QR: "QR",
+  };
+  return (m && map[m]) || m || "—";
+}
 
 function downloadWord(title: string, body: string) {
   const name = (title || "hujjat").replace(/[^\p{L}\p{N} _-]/gu, "");
@@ -59,6 +99,7 @@ export function AdminClient({ data }: { data: AdminData }) {
   const [detail, setDetail] = useState<TenantDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [viewDoc, setViewDoc] = useState<TenantDoc | null>(null);
+  const [proofOpen, setProofOpen] = useState(false);
 
   const [subBusy, setSubBusy] = useState<string | null>(null);
 
@@ -66,6 +107,7 @@ export function AdminClient({ data }: { data: AdminData }) {
     setLoadingDetail(true);
     setDetail(null);
     setViewDoc(null);
+    setProofOpen(false);
     const d = await fetchTenantDetail(id);
     setDetail(d);
     setLoadingDetail(false);
@@ -157,7 +199,12 @@ export function AdminClient({ data }: { data: AdminData }) {
             </thead>
             <tbody>
               {data.tenants.map((tn) => (
-                <tr key={tn.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
+                <tr
+                  key={tn.id}
+                  onClick={() => openDetail(tn.id)}
+                  className="cursor-pointer border-b border-border/60 transition-colors last:border-0 hover:bg-primary-soft/40"
+                  title="Batafsil ko'rish"
+                >
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-1.5 font-medium">
                       {tn.name}
@@ -165,7 +212,7 @@ export function AdminClient({ data }: { data: AdminData }) {
                     </div>
                     <p className="text-xs text-muted-foreground">STIR: {tn.tin} · {tn.type} · {fmt(tn.createdAt)}</p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     {editId === tn.id ? (
                       <div className="flex items-center gap-1.5">
                         <select value={plan} onChange={(e) => setPlan(e.target.value)} className="rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none">
@@ -186,11 +233,7 @@ export function AdminClient({ data }: { data: AdminData }) {
                   <td className="tabular px-4 py-3 text-center">{tn.users}</td>
                   <td className="tabular px-4 py-3 text-center">{tn.receivables}</td>
                   <td className="tabular px-4 py-3 text-right font-medium">{tn.outstanding}</td>
-                  <td className="tabular px-4 py-3 text-center">
-                    <button onClick={() => openDetail(tn.id)} className="rounded px-2 py-0.5 font-medium text-primary underline-offset-2 hover:underline" title="Hujjatlarni ko'rish">
-                      {tn.documents}
-                    </button>
-                  </td>
+                  <td className="tabular px-4 py-3 text-center font-medium text-primary">{tn.documents}</td>
                   <td className="tabular px-4 py-3 text-center">{tn.reminders}</td>
                   <td className="tabular px-4 py-3 text-center">{tn.pendingApprovals > 0 ? <span className="text-danger">{tn.pendingApprovals}</span> : "0"}</td>
                   <td className="px-4 py-3">
@@ -200,7 +243,7 @@ export function AdminClient({ data }: { data: AdminData }) {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex flex-col gap-1">
                       <span className={`inline-flex w-fit items-center rounded px-1.5 py-0.5 text-[11px] font-medium ${SUB_CLASS[tn.subscription.status]}`}>
                         {SUB_LABEL[tn.subscription.status]}
@@ -223,31 +266,105 @@ export function AdminClient({ data }: { data: AdminData }) {
         </div>
       </div>
 
-      {/* Drill-down: mijoz hujjatlari + oferta */}
+      {/* Drill-down: mijoz to'liq kesimi — oferta isboti, sud bosqichlari, AI faoliyati, hujjatlar */}
       {(loadingDetail || detail) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setDetail(null); setLoadingDetail(false); }}>
-          <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-border px-5 py-3">
-              <h3 className="font-display text-base font-semibold">{detail ? detail.tenant.name : "Yuklanmoqda…"}</h3>
+              <div>
+                <h3 className="font-display text-base font-semibold">{detail ? detail.tenant.name : "Yuklanmoqda…"}</h3>
+                {detail && (
+                  <p className="text-xs text-muted-foreground">
+                    {detail.plan ?? "tarif yo'q"} · {detail.limit != null ? `${detail.limit} limit` : "∞"} ·{" "}
+                    <span className={`rounded px-1 py-0.5 font-medium ${SUB_CLASS[detail.subscription.status]}`}>{SUB_LABEL[detail.subscription.status]}</span>
+                  </p>
+                )}
+              </div>
               <button onClick={() => setDetail(null)} className="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-muted"><X className="size-4" /></button>
             </div>
             {loadingDetail ? (
               <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground"><CircleNotch className="size-5 animate-spin" /> Yuklanmoqda…</div>
             ) : detail ? (
               <div className="scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-                {/* Oferta */}
+                {/* Undiruv/sud bosqichlari */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Undiruv bosqichlari ({detail.cases.total} ta ish)</p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {STAGE_ORDER.map((k) => {
+                      const meta = STAGE_META[k]!;
+                      const Ic = meta.icon;
+                      return (
+                        <div key={k} className="rounded-lg border border-border bg-background p-2.5">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Ic weight="fill" className={`size-3.5 ${meta.tone}`} />
+                            <span className="truncate text-[10px] uppercase tracking-wide">{meta.label}</span>
+                          </div>
+                          <p className="tabular mt-1 font-display text-lg font-semibold">{detail.cases.byStage[k] ?? 0}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Oferta + ISBOT */}
                 <div className="rounded-xl border border-border bg-muted/20 p-4">
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ommaviy oferta</p>
                   {detail.oferta.accepted ? (
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm text-success">
-                        <ShieldCheck weight="fill" className="size-4" /> Imzolangan
-                        <span className="text-muted-foreground">· {detail.oferta.signer} · {fmt(detail.oferta.acceptedAt)} · {detail.oferta.method ?? "One-ID"}</span>
+                    <>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-sm text-success">
+                          <ShieldCheck weight="fill" className="size-4" /> Imzolangan
+                          <span className="text-muted-foreground">· {detail.oferta.signer} · {fmt(detail.oferta.acceptedAt)} · {authMethodLabel(detail.oferta.method ?? undefined)}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => setProofOpen((v) => !v)} disabled={!detail.oferta.proof} className="text-xs font-medium text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline">
+                            {proofOpen ? "isbotni yopish" : "isbotni ko'rish"} →
+                          </button>
+                          <a href="/oferta" target="_blank" rel="noreferrer" className="text-xs font-medium text-muted-foreground hover:underline">shartlar matni →</a>
+                        </div>
                       </div>
-                      <a href="/oferta" target="_blank" rel="noreferrer" className="text-xs font-medium text-primary hover:underline">ofertani ochish →</a>
-                    </div>
+                      {proofOpen && (
+                        <div className="mt-3 space-y-1.5 rounded-lg border border-border bg-background p-3 font-mono text-[11px] leading-relaxed">
+                          {detail.oferta.proof ? (
+                            <>
+                              <p><span className="text-muted-foreground">kirish usuli:</span> {detail.oferta.proof.authMethod ?? "—"}</p>
+                              <p><span className="text-muted-foreground">E-IMZO (ERI) bilan:</span> {detail.oferta.proof.eri ? "ha" : "yo'q"}</p>
+                              <p><span className="text-muted-foreground">yuridik shaxs ERIsi:</span> {detail.oferta.proof.legalEri ? "ha" : "yo'q"}</p>
+                              <p><span className="text-muted-foreground">One-ID tasdiqlagan:</span> {detail.oferta.proof.verified ? "ha" : "yo'q"}</p>
+                              <p><span className="text-muted-foreground">STIR:</span> {detail.oferta.proof.legalTin ?? "—"}</p>
+                              <p><span className="text-muted-foreground">sessiya ID:</span> {detail.oferta.proof.sessId ?? "—"}</p>
+                              <p><span className="text-muted-foreground">audit yozuv vaqti:</span> {fmt(detail.oferta.proof.at)}</p>
+                              <p className="pt-1 text-muted-foreground">Manba: o'zgartirib bo'lmaydigan audit zanjiri (auth.oneid_login) — /audit bo'limida tekshiriladi.</p>
+                            </>
+                          ) : (
+                            <p className="text-muted-foreground">Bu tenant uchun audit yozuvi topilmadi (eski/qo'lda yaratilgan hisob bo'lishi mumkin).</p>
+                          )}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p className="text-sm text-muted-foreground">Hali imzolanmagan</p>
+                  )}
+                </div>
+
+                {/* AI faoliyati */}
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">So&apos;nggi AI faoliyati</p>
+                  {detail.activity.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">Hali faoliyat yo&apos;q</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {detail.activity.map((a) => {
+                        const Ic = ACTOR_ICON[a.actorType] ?? SealCheck;
+                        return (
+                          <div key={a.id} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-xs hover:bg-muted/40">
+                            <Ic weight="fill" className="size-3.5 shrink-0 text-muted-foreground" />
+                            <span className="min-w-0 flex-1 truncate">{a.action}</span>
+                            <span className="shrink-0 text-muted-foreground">{fmt(a.createdAt)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 

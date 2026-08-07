@@ -19,6 +19,8 @@ export interface ReceivableRow {
   contractorId: string;
   contractorName: string;
   contractorTin: string;
+  contractorPhone: string | null;
+  contractorEmail: string | null;
   contractNumber: string | null;
   penaltyDailyBps: number;
   reminderCount: number;

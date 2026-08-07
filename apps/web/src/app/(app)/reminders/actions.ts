@@ -34,3 +34,16 @@ export async function sendReminder(receivableId: string, stage: "soft_reminder" 
   });
   return res.data ?? { status: "failed", error: "network" };
 }
+
+export interface ChannelStatus {
+  sms: boolean;
+  email: boolean;
+  telegram: boolean;
+  hybrid_post: boolean;
+}
+
+/** Har bir kanal HAQIQATAN ulanganmi (real) yoki simulyatsiya rejimida. */
+export async function fetchChannelStatus(): Promise<ChannelStatus> {
+  const res = await apiServer<ChannelStatus>("/api/reminders/channel-status");
+  return res.data ?? { sms: false, email: false, telegram: false, hybrid_post: false };
+}

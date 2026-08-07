@@ -125,6 +125,8 @@ receivableRoutes.get("/receivables", async (c) => {
         contractorId: contractors.id,
         contractorName: contractors.name,
         contractorTin: contractors.tin,
+        contractorPhone: contractors.phone,
+        contractorEmail: contractors.email,
         contractNumber: contracts.number,
         penaltyDailyBps: contracts.penaltyDailyBps,
       })
@@ -177,6 +179,8 @@ receivableRoutes.get("/receivables", async (c) => {
       contractorId: r.contractorId,
       contractorName: r.contractorName,
       contractorTin: r.contractorTin,
+      contractorPhone: r.contractorPhone,
+      contractorEmail: r.contractorEmail,
       contractNumber: r.contractNumber,
       penaltyDailyBps: r.penaltyDailyBps ?? 0,
       reminderCount: countMap.get(r.id) ?? 0,

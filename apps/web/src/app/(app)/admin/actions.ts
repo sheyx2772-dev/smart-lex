@@ -11,10 +11,33 @@ export interface TenantDoc {
   signed: boolean;
   body: string;
 }
+export interface OfertaProof {
+  at: string;
+  authMethod?: string;
+  eri?: boolean;
+  legalEri?: boolean;
+  verified?: boolean;
+  legalTin?: string;
+  sessId?: string | null;
+}
+export interface TenantActivity {
+  id: string;
+  actorType: string;
+  actorId: string | null;
+  action: string;
+  entityType: string | null;
+  detail: Record<string, unknown> | null;
+  createdAt: string;
+}
 export interface TenantDetail {
   tenant: { name: string; tin: string };
-  oferta: { accepted: boolean; acceptedAt: string | null; signer: string | null; method: string | null };
+  plan: string | null;
+  limit: number | null;
+  subscription: { plan: string | null; status: "none" | "trial" | "active" | "expired"; until: string | null; trialUntil: string | null };
+  oferta: { accepted: boolean; acceptedAt: string | null; signer: string | null; method: string | null; proof: OfertaProof | null };
   documents: TenantDoc[];
+  cases: { total: number; byStage: Record<string, number> };
+  activity: TenantActivity[];
 }
 
 /** Bitta mijozning hujjatlari + oferta holati. */

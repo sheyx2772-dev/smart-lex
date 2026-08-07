@@ -10,6 +10,22 @@ import { pageMeta, pageParams } from "../lib/pagination";
 
 export const reminderRoutes = new Hono<{ Variables: Variables }>();
 
+/**
+ * Har bir kanal HAQIQATAN ulanganmi (real yetkazib beruvchi) yoki hozircha
+ * simulyatsiya rejimida (jurnalga yoziladi, lekin qarzdorga yetib bormaydi) —
+ * bu holat ilgari hech qayerda ko'rsatilmagan edi.
+ */
+reminderRoutes.get("/reminders/channel-status", async (c) => {
+  const smsReal = Boolean(process.env.ESKIZ_TOKEN || (process.env.ESKIZ_EMAIL && process.env.ESKIZ_PASSWORD));
+  return c.json(
+    ok(
+      { sms: smsReal, email: false, telegram: false, hybrid_post: false },
+      "common.ok",
+      c.get("locale"),
+    ),
+  );
+});
+
 /** Yuborilgan eslatmalar jurnali — server-side sahifalash + kanal/holat filtri + qidiruv. */
 reminderRoutes.get("/reminders", async (c) => {
   const { tenantId } = c.get("auth");
