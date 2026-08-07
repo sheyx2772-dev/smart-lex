@@ -15,14 +15,18 @@ import {
   actorTypeEnum,
   approvalStatusEnum,
   approvalTypeEnum,
+  caseStateEnum,
   collectionStageEnum,
   currencyEnum,
   documentTypeEnum,
   localeEnum,
+  overrideStatusEnum,
+  overrideTypeEnum,
   paymentStatusEnum,
   receivableStatusEnum,
   reminderChannelEnum,
   reminderStatusEnum,
+  strategyTypeEnum,
   tenantTypeEnum,
   userRoleEnum,
 } from "./enums";
@@ -154,6 +158,9 @@ export const documents = pgTable(
     didoxId: text("didox_id"),
     /** OCR/tahlildan olingan strukturaviy ma'lumot. */
     extracted: jsonb("extracted").$type<Record<string, unknown>>(),
+    /** Hujjat tarkibining SHA-256 barmoq izi (yaratilganda DB trigger to'ldiradi) —
+     * keyinchalik hujjat o'zgarmaganini tasdiqlash uchun. */
+    contentHash: text("content_hash"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -304,7 +311,13 @@ export const approvalRequests = pgTable(
   (t) => [index("approvals_tenant_status_idx").on(t.tenantId, t.status)],
 );
 
-/** Audit log — har bir AI/foydalanuvchi/tizim harakati (majburiy, xavfsizlik). */
+/**
+ * Audit log — har bir AI/foydalanuvchi/tizim harakati (majburiy, xavfsizlik).
+ * O'ZGARTIRIB BO'LMAYDIGAN ZANJIR (immutable chain): recordHash/prevHash DB
+ * trigger orqali avtomatik hisoblanadi (qarang rls.ts — compute_audit_hash).
+ * Har yozuv o'zidan oldingi yozuv hash'iga bog'langan — birortasi orqadan
+ * o'zgartirilsa, undan keyingi butun zanjir buziladi va tekshiruvda ko'rinadi.
+ */
 export const auditLogs = pgTable(
   "audit_logs",
   {
@@ -318,9 +331,42 @@ export const auditLogs = pgTable(
     entityType: text("entity_type"),
     entityId: uuid("entity_id"),
     detail: jsonb("detail").$type<Record<string, unknown>>(),
+    /** Ushbu yozuvning SHA-256 hash'i (prevHash + tarkib) — DB trigger to'ldiradi. */
+    recordHash: text("record_hash"),
+    /** Tenant bo'yicha zanjirdagi oldingi yozuvning hash'i (birinchi yozuvda null). */
+    prevHash: text("prev_hash"),
     createdAt: createdAt(),
   },
   (t) => [index("audit_tenant_created_idx").on(t.tenantId, t.createdAt)],
+);
+
+/**
+ * Zanjir "tashqi tasdig'i" (external anchoring) — davriy ravishda audit
+ * zanjirining oxirgi (eng so'nggi) hash'i mustaqil, biz nazorat qilmaydigan
+ * manbaga (Bitcoin blokcheyni, OpenTimestamps protokoli orqali, bepul)
+ * yuboriladi. Shu bilan hatto bazamizga kirish huquqi bo'lgan odam ham
+ * butun zanjirni qayta hisoblab, eski sanani "orqaga qaytarib" o'zgartira
+ * olmaydi — chunki tashqi tasdiq mustaqil ravishda mavjud.
+ */
+export const chainAnchors = pgTable(
+  "chain_anchors",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    /** Anchorlangan paytdagi zanjir uchi (auditLogs.recordHash, eng so'nggisi). */
+    chainTipHash: text("chain_tip_hash").notNull(),
+    /** OpenTimestamps .ots isboti (base64) — Bitcoin blokka tasdiqlanguncha vaqtinchalik. */
+    otsProofBase64: text("ots_proof_base64"),
+    /** pending — yuborilgan, hali Bitcoin blokida tasdiqlanmagan; confirmed — blokda tasdiqlangan; failed — yuborib bo'lmadi. */
+    status: text("status").notNull().default("pending"),
+    /** Tasdiqlangan Bitcoin blok balandligi (confirmed bo'lgach). */
+    bitcoinBlockHeight: integer("bitcoin_block_height"),
+    confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("chain_anchors_tenant_created_idx").on(t.tenantId, t.createdAt)],
 );
 
 /**
@@ -347,4 +393,130 @@ export const agentTasks = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [index("agent_tasks_tenant_status_idx").on(t.tenantId, t.status)],
+);
+
+/** Playbook bosqichi — Strategy Agent tomonidan yaratiladi. */
+export interface PlaybookPhase {
+  phase: number;
+  name: string;
+  durationDays: number;
+  actions: { type: string; template?: string; channel?: string; eImzo?: boolean; aiCopilot?: boolean }[];
+  conditions?: { proceedIf?: string; escalateIf?: string };
+}
+
+/** Playbook chiqish shartlari. */
+export interface PlaybookExitCondition {
+  if: string;
+  action: string;
+  generateReceipt?: boolean;
+  after?: string;
+}
+
+/**
+ * Qarz ishi (Debt Case Object) — avtonom undiruv OS ning markaziy obyekti.
+ * Har receivable uchun bitta case (muddati o'tgan qarzlar avtomatik yaratiladi).
+ */
+export const debtCases = pgTable(
+  "debt_cases",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    receivableId: uuid("receivable_id")
+      .notNull()
+      .references(() => receivables.id, { onDelete: "cascade" }),
+    /** Masalan: 2026-0892 */
+    caseNumber: text("case_number").notNull(),
+    state: caseStateEnum("state").notNull().default("created"),
+    /** DS-Score™ (0-100) — undirish ehtimoli va prioritet. */
+    dsScore: integer("ds_score").notNull().default(0),
+    /** 0..1 recovery probability */
+    recoveryProbability: integer("recovery_probability").notNull().default(0),
+    recommendedStrategy: strategyTypeEnum("recommended_strategy").notNull().default("standard"),
+    recommendedChannels: jsonb("recommended_channels").$type<string[]>().notNull().default([]),
+    optimalSettlementPct: integer("optimal_settlement_pct").notNull().default(85),
+    estimatedRecoveryDays: integer("estimated_recovery_days").notNull().default(30),
+    priorityRank: integer("priority_rank").notNull().default(999),
+    currentPhase: integer("current_phase").notNull().default(1),
+    /** DS-Score omillari (explainability). */
+    scoreFactors: jsonb("score_factors").$type<{ label: string; impact: number }[]>().notNull().default([]),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("debt_cases_receivable_uq").on(t.receivableId),
+    uniqueIndex("debt_cases_tenant_number_uq").on(t.tenantId, t.caseNumber),
+    index("debt_cases_tenant_state_idx").on(t.tenantId, t.state),
+    index("debt_cases_tenant_priority_idx").on(t.tenantId, t.priorityRank),
+  ],
+);
+
+/** Recovery Playbook — Strategy Agent har case uchun yaratadi. */
+export const recoveryPlaybooks = pgTable(
+  "recovery_playbooks",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    debtCaseId: uuid("debt_case_id")
+      .notNull()
+      .references(() => debtCases.id, { onDelete: "cascade" }),
+    strategyType: strategyTypeEnum("strategy_type").notNull(),
+    phases: jsonb("phases").$type<PlaybookPhase[]>().notNull(),
+    exitConditions: jsonb("exit_conditions").$type<PlaybookExitCondition[]>().notNull().default([]),
+    currentPhase: integer("current_phase").notNull().default(1),
+    version: integer("version").notNull().default(1),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("recovery_playbooks_case_uq").on(t.debtCaseId)],
+);
+
+/** Case voqealar jurnali — playbook progress va AI harakatlari. */
+export const caseEvents = pgTable(
+  "case_events",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    debtCaseId: uuid("debt_case_id")
+      .notNull()
+      .references(() => debtCases.id, { onDelete: "cascade" }),
+    eventType: text("event_type").notNull(),
+    actorType: actorTypeEnum("actor_type").notNull().default("ai_agent"),
+    actorId: text("actor_id"),
+    detail: jsonb("detail").$type<Record<string, unknown>>(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("case_events_case_created_idx").on(t.debtCaseId, t.createdAt)],
+);
+
+/** AI tasdiq so'rovi — inson override interfeysi (settlement, sud, write-off). */
+export const pendingOverrides = pgTable(
+  "pending_overrides",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    debtCaseId: uuid("debt_case_id")
+      .notNull()
+      .references(() => debtCases.id, { onDelete: "cascade" }),
+    type: overrideTypeEnum("type").notNull(),
+    status: overrideStatusEnum("status").notNull().default("pending"),
+    aiRecommendation: jsonb("ai_recommendation").$type<Record<string, unknown>>().notNull(),
+    debtorMessage: text("debtor_message"),
+    /** Auto-execute vaqti — null bo'lsa darhol tasdiq talab qilinadi. */
+    autoExecuteAt: timestamp("auto_execute_at", { withTimezone: true }),
+    decidedByUserId: uuid("decided_by_user_id").references(() => users.id, { onDelete: "set null" }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("pending_overrides_tenant_status_idx").on(t.tenantId, t.status)],
 );

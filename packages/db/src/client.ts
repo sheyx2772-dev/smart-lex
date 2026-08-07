@@ -179,6 +179,34 @@ export async function createTenantWithOwner(input: {
   };
 }
 
+export interface AuditChainStatus {
+  totalRecords: number;
+  isValid: boolean;
+  brokenAtId: string | null;
+  brokenAtCreated: string | null;
+}
+
+/**
+ * `audit_logs` zanjirining butunligini serverda (SECURITY DEFINER) tekshiradi —
+ * har bir yozuvning hash'ini qayta hisoblab, saqlangan qiymat bilan solishtiradi.
+ */
+export async function verifyAuditChain(tenantId: string): Promise<AuditChainStatus> {
+  const db = getDb();
+  const rows = await db.execute<{
+    total_records: string;
+    broken_at_id: string | null;
+    broken_at_created: string | null;
+    is_valid: boolean;
+  }>(sql`select * from verify_audit_chain(${tenantId})`);
+  const row = rows[0];
+  return {
+    totalRecords: row ? Number(row.total_records) : 0,
+    isValid: row?.is_valid ?? true,
+    brokenAtId: row?.broken_at_id ?? null,
+    brokenAtCreated: row?.broken_at_created ?? null,
+  };
+}
+
 export async function closeDb(): Promise<void> {
   await _client?.end({ timeout: 5 });
   _client = null;

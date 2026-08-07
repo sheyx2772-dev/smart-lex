@@ -28,6 +28,7 @@ import {
 import { createNotifier } from "@lex/integrations";
 import { type Locale, type ReminderChannel, type TenantType } from "@lex/shared";
 import { and, eq } from "drizzle-orm";
+import { syncDebtCasesForTenant } from "./debt-case-sync.js";
 
 export interface MonitorSummary {
   tenants: number;
@@ -91,6 +92,11 @@ function agentMode(settings: Record<string, unknown> | undefined): AgentMode {
   return m === "off" || m === "auto" ? m : "suggest";
 }
 
+function aggressiveness(settings: Record<string, unknown> | undefined): "soft" | "normal" | "aggressive" {
+  const a = (settings?.agent as { aggressiveness?: string } | undefined)?.aggressiveness;
+  return a === "soft" || a === "aggressive" ? a : "normal";
+}
+
 /** Qarzdor uchun mavjud (yoqilgan + manzili bor) aloqa kanallari. */
 function availableChannels(
   contractor: { phone: string | null; email: string | null; telegramId: string | null },
@@ -120,7 +126,20 @@ async function runForTenant(
   const templates = tenant.settings?.templates as
     | { soft?: Record<string, string>; firm?: Record<string, string> }
     | undefined;
-  const mode = agentMode(tenant.settings); // off | suggest | auto
+  const mode = agentMode(tenant.settings);
+  const aggr = aggressiveness(tenant.settings);
+  const syncedReceivables: {
+    id: string;
+    contractorId: string;
+    status: string;
+    outstandingMinor: bigint;
+    penaltyMinor: bigint;
+    currency: string;
+    overdueDays: number;
+    agingBucket: string;
+    riskScore: number;
+    executedStages: string[];
+  }[] = [];
   await withTenant(tenant.id, async (tx) => {
     const [contractorRows, contractRows, invoiceRows, paymentRows, ruleRows, receivableRows] =
       await Promise.all([
@@ -208,13 +227,26 @@ async function runForTenant(
         .returning();
       if (!receivable) continue;
 
+      syncedReceivables.push({
+        id: receivable.id,
+        contractorId: receivable.contractorId,
+        status: receivable.status,
+        outstandingMinor: receivable.outstandingMinor,
+        penaltyMinor: receivable.penaltyMinor,
+        currency: receivable.currency,
+        overdueDays: receivable.overdueDays,
+        agingBucket: receivable.agingBucket,
+        riskScore: receivable.riskScore,
+        executedStages: [...executedStages],
+      });
+
       // To'langan bo'lsa collection harakatlari yo'q.
       if (state.status === "paid") continue;
 
       // ── AI-miya: keyingi eng yaxshi harakatni AI hal qiladi + NEGA'sini yozadi (explainability).
-      // Hozircha maslahat/tushuntirish sifatida audit logga tushadi; ijro esa quyidagi zinada.
+      let aiDecision: Awaited<ReturnType<typeof decideCollectionAction>> | null = null;
       try {
-        const decision = await decideCollectionAction({
+        aiDecision = await decideCollectionAction({
           locale: tenant.defaultLocale,
           creditorName: tenant.name,
           debtorName: contractor.name,
@@ -229,18 +261,67 @@ async function runForTenant(
           partialPaid: paid.minor > 0n,
         });
         await audit(tx, tenant.id, "agent.decision", "receivable", receivable.id, {
-          action: decision.action,
-          channel: decision.channel,
-          tone: decision.tone,
-          recoveryScore: decision.recoveryScore,
-          priority: decision.priority,
-          reason: decision.reason,
-          settlementPercent: decision.settlementPercent,
-          source: decision.source,
+          action: aiDecision.action,
+          channel: aiDecision.channel,
+          tone: aiDecision.tone,
+          recoveryScore: aiDecision.recoveryScore,
+          priority: aiDecision.priority,
+          reason: aiDecision.reason,
+          factors: aiDecision.factors,
+          settlementPercent: aiDecision.settlementPercent,
+          source: aiDecision.source,
         });
         sum.aiDecisions++;
       } catch (e) {
         console.error("[monitor:ai-decision]", e);
+      }
+
+      // AVTONOM rejimda AI qaroriga asoslanib ijro (schedule o'rniga strategik qaror).
+      const aiStage =
+        aiDecision?.action === "soft_reminder" || aiDecision?.action === "firm_reminder"
+          ? aiDecision.action
+          : null;
+      if (mode === "auto" && aiStage && !executedStages.has(aiStage)) {
+        const contact = pickContact(tenant.type, contractor, channelCfg);
+        if (contact) {
+          const paymentLink = `${process.env.WEB_URL ?? "https://lexai.com.uz"}/pay/${receivable.id}`;
+          const kind = aiStage === "soft_reminder" ? "soft" : "firm";
+          const template = templates?.[kind]?.[tenant.defaultLocale];
+          const body =
+            aiDecision?.draftMessage ??
+            generateReminderText({
+              stage: aiStage,
+              locale: tenant.defaultLocale,
+              debtorName: contractor.name,
+              amount: state.outstanding,
+              invoiceNumbers: [invoice.number],
+              overdueDays: state.overdueDays,
+              paymentLink,
+              template,
+            });
+          const pochtaToken = (tenant.settings?.integrations as Record<string, unknown> | undefined)?.pochtaToken;
+          const result = await createNotifier(contact.channel, {
+            pochtaToken: typeof pochtaToken === "string" ? pochtaToken : null,
+          }).send({ channel: contact.channel, address: contact.address, body, paymentLink });
+          await tx.insert(reminders).values({
+            tenantId: tenant.id,
+            receivableId: receivable.id,
+            stage: aiStage,
+            channel: contact.channel,
+            status: result.status === "sent" ? "sent" : "failed",
+            address: contact.address,
+            body,
+            paymentLink,
+            sentAt: result.status === "sent" ? now : null,
+          });
+          await audit(tx, tenant.id, "reminder.sent", "receivable", receivable.id, {
+            stage: aiStage,
+            channel: contact.channel,
+            source: "ai_autonomous",
+          });
+          if (result.status === "sent") sum.remindersSent++;
+          executedStages.add(aiStage);
+        }
       }
 
       const due = dueCollectionSteps({
@@ -378,6 +459,16 @@ async function runForTenant(
         .set({ executedStages: [...executedStages] })
         .where(and(eq(receivables.id, receivable.id), eq(receivables.tenantId, tenant.id)));
     }
+
+    // Debt Case Object sync — DS-Score + Playbook (Autonomous OS).
+    await syncDebtCasesForTenant(
+      tx,
+      tenant,
+      syncedReceivables,
+      contractorById as Map<string, { name: string; phone: string | null; email: string | null; telegramId: string | null }>,
+      channelCfg,
+      aggr,
+    );
   });
 }
 

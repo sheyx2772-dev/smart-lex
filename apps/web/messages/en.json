@@ -19,6 +19,7 @@
     "court": "Court",
     "reports": "Reports",
     "agent": "AI Agent",
+    "commandCenter": "Command Center",
     "groupWork": "Work",
     "chat": "Chat",
     "contracts": "Contracts",
@@ -379,6 +380,20 @@
         "approved": "Document approved",
         "rejected": "Document rejected"
       }
+    },
+    "chain": {
+      "verified": "Chain verified — {count} records, unmodified",
+      "broken": "WARNING: audit chain broken — records may have been altered",
+      "checking": "Verifying chain…"
+    },
+    "anchors": {
+      "toggle": "Bitcoin proof",
+      "title": "States anchored to the Bitcoin blockchain",
+      "empty": "Nothing anchored yet",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "blockHeight": "Block #{height}",
+      "hint": "Each entry is a snapshot of the audit chain at that moment, recorded on the Bitcoin blockchain (an independent source no one can alter)."
     }
   },
   "stage": {

@@ -64,3 +64,36 @@ export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 /** Audit log'da qayd etiladigan aktor turi. */
 export const ACTOR_TYPES = ["user", "ai_agent", "system"] as const;
 export type ActorType = (typeof ACTOR_TYPES)[number];
+
+/** Qarz ishi (Debt Case) holati — avtonom undiruv OS state machine. */
+export const CASE_STATES = [
+  "created",
+  "intake_complete",
+  "scoring",
+  "strategy_assigned",
+  "pre_legal",
+  "debtor_responded",
+  "negotiation",
+  "escalate",
+  "legal",
+  "court_filed",
+  "judgment",
+  "enforcement",
+  "settled",
+  "recovered",
+  "closed",
+  "written_off",
+] as const;
+export type CaseState = (typeof CASE_STATES)[number];
+
+/** Undiruv strategiyasi turi (DS-Score natijasi). */
+export const STRATEGY_TYPES = ["soft_escalation", "standard", "aggressive", "legal"] as const;
+export type StrategyType = (typeof STRATEGY_TYPES)[number];
+
+/** AI tasdiq so'rov turi (human override). */
+export const OVERRIDE_TYPES = ["settlement", "court_filing", "write_off", "strategy_change"] as const;
+export type OverrideType = (typeof OVERRIDE_TYPES)[number];
+
+/** AI tasdiq so'rov holati. */
+export const OVERRIDE_STATUSES = ["pending", "approved", "rejected", "auto_executed", "expired"] as const;
+export type OverrideStatus = (typeof OVERRIDE_STATUSES)[number];

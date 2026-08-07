@@ -36,6 +36,20 @@
       "when": 1785732845134,
       "tag": "0004_true_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786000000000,
+      "tag": "0005_autonomous_os",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786032937006,
+      "tag": "0006_previous_kylun",
+      "breakpoints": true
     }
   ]
 }

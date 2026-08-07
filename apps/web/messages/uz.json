@@ -19,6 +19,7 @@
     "court": "Sud",
     "reports": "Hisobotlar",
     "agent": "AI Agent",
+    "commandCenter": "Boshqaruv markazi",
     "groupWork": "Ish",
     "chat": "Suhbat",
     "contracts": "Shartnomalar",
@@ -416,6 +417,20 @@
         "approved": "Hujjat tasdiqlandi",
         "rejected": "Hujjat rad etildi"
       }
+    },
+    "chain": {
+      "verified": "Zanjir tekshirildi — {count} ta yozuv, o'zgartirilmagan",
+      "broken": "DIQQAT: audit zanjiri buzilgan — yozuvlar o'zgartirilgan bo'lishi mumkin",
+      "checking": "Zanjir tekshirilmoqda…"
+    },
+    "anchors": {
+      "toggle": "Bitcoin isboti",
+      "title": "Bitcoin blokcheyniga langarlangan holatlar",
+      "empty": "Hali langar yuborilmagan",
+      "pending": "Kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "blockHeight": "Blok #{height}",
+      "hint": "Har bir yozuv — audit zanjirining o'sha paytdagi holati Bitcoin blokcheyniga (mustaqil, hech kim o'zgartira olmaydigan tashqi manba) yozib qo'yilgani."
     }
   },
   "stage": {

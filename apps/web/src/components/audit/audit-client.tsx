@@ -1,6 +1,6 @@
 "use client";
 
-import { GearSix, MagnifyingGlass, Robot, User, type Icon } from "@phosphor-icons/react";
+import { CurrencyBtc, GearSix, MagnifyingGlass, Robot, ShieldCheck, ShieldWarning, User, type Icon } from "@phosphor-icons/react";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { fetchAudit } from "@/app/(app)/audit/actions";
@@ -28,6 +28,20 @@ export interface AuditData {
   byActor: Record<string, number>;
   allTotal: number;
 }
+export interface AuditChainStatus {
+  totalRecords: number;
+  isValid: boolean;
+  brokenAtId: string | null;
+  brokenAtCreated: string | null;
+}
+export interface AuditAnchor {
+  id: string;
+  chainTipHash: string;
+  status: string;
+  bitcoinBlockHeight: number | null;
+  confirmedAt: string | null;
+  createdAt: string;
+}
 
 const ACTOR_META: Record<string, { icon: Icon; tone: BadgeProps["tone"]; ring: string }> = {
   ai_agent: { icon: Robot, tone: "primary", ring: "bg-primary-soft text-primary" },
@@ -36,7 +50,15 @@ const ACTOR_META: Record<string, { icon: Icon; tone: BadgeProps["tone"]; ring: s
 };
 const ACTOR_ORDER = ["ai_agent", "user", "system"];
 
-export function AuditClient({ initial }: { initial: AuditData }) {
+export function AuditClient({
+  initial,
+  initialChain,
+  initialAnchors,
+}: {
+  initial: AuditData;
+  initialChain: AuditChainStatus | null;
+  initialAnchors: AuditAnchor[];
+}) {
   const t = useTranslations("audit");
   const tStage = useTranslations("stage");
   const tChannel = useTranslations("channel");
@@ -46,6 +68,7 @@ export function AuditClient({ initial }: { initial: AuditData }) {
   const [actor, setActor] = useState("all");
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
+  const [anchorsOpen, setAnchorsOpen] = useState(false);
   const firstQ = useRef(true);
 
   const fmtDateTime = (d: string) =>
@@ -90,10 +113,68 @@ export function AuditClient({ initial }: { initial: AuditData }) {
           <h1 className="font-display text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2">
-          <Robot weight="fill" className="size-4 text-primary" />
-          <span className="text-xs text-muted-foreground">{t("total")}</span>
-          <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2">
+            <Robot weight="fill" className="size-4 text-primary" />
+            <span className="text-xs text-muted-foreground">{t("total")}</span>
+            <span className="tabular font-display text-lg font-semibold">{data.allTotal}</span>
+          </div>
+          {initialChain && (
+            <div
+              className={cn(
+                "flex items-center gap-2 rounded-lg border px-3.5 py-2",
+                initialChain.isValid ? "border-success/25 bg-success-soft text-success" : "border-danger/25 bg-danger-soft text-danger",
+              )}
+              title={initialChain.isValid ? undefined : `${initialChain.brokenAtId ?? ""} ${initialChain.brokenAtCreated ?? ""}`.trim()}
+            >
+              {initialChain.isValid ? (
+                <ShieldCheck weight="fill" className="size-4" />
+              ) : (
+                <ShieldWarning weight="fill" className="size-4" />
+              )}
+              <span className="text-xs font-medium">
+                {initialChain.isValid ? t("chain.verified", { count: initialChain.totalRecords }) : t("chain.broken")}
+              </span>
+            </div>
+          )}
+          <div className="relative">
+            <button
+              onClick={() => setAnchorsOpen((v) => !v)}
+              className={cn(
+                "flex items-center gap-2 rounded-lg border border-border bg-card px-3.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
+                anchorsOpen && "border-primary/25 text-foreground",
+              )}
+            >
+              <CurrencyBtc weight="fill" className="size-4 text-warning" />
+              {t("anchors.toggle")}
+            </button>
+            {anchorsOpen && (
+              <div className="absolute right-0 top-full z-10 mt-2 w-80 rounded-xl border border-border bg-card p-3 shadow-lg">
+                <p className="mb-2 text-xs font-semibold">{t("anchors.title")}</p>
+                <p className="mb-3 text-[11px] leading-relaxed text-muted-foreground">{t("anchors.hint")}</p>
+                {initialAnchors.length === 0 ? (
+                  <p className="py-2 text-center text-xs text-muted-foreground">{t("anchors.empty")}</p>
+                ) : (
+                  <ul className="scroll-clean max-h-64 space-y-2 overflow-y-auto">
+                    {initialAnchors.map((a) => (
+                      <li key={a.id} className="rounded-lg border border-border/70 p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <Badge tone={a.status === "confirmed" ? "success" : "warning"}>
+                            {a.status === "confirmed" ? t("anchors.confirmed") : t("anchors.pending")}
+                          </Badge>
+                          <span className="tabular text-[11px] text-muted-foreground">{fmtDateTime(a.createdAt)}</span>
+                        </div>
+                        <p className="mt-1 truncate font-mono text-[10px] text-muted-foreground/80">{a.chainTipHash}</p>
+                        {a.status === "confirmed" && a.bitcoinBlockHeight != null && (
+                          <p className="mt-0.5 text-[11px] font-medium text-success">{t("anchors.blockHeight", { height: a.bitcoinBlockHeight })}</p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

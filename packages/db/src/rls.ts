@@ -19,6 +19,11 @@ export const TENANT_SCOPED_TABLES = [
   "approval_requests",
   "audit_logs",
   "agent_tasks",
+  "debt_cases",
+  "recovery_playbooks",
+  "case_events",
+  "pending_overrides",
+  "chain_anchors",
 ] as const;
 
 /**

@@ -28,6 +28,12 @@ export interface CollectionContext {
   partialPaid?: boolean; // qisman to'laganmi
 }
 
+/** Explainability — recoveryScore'ga nima ta'sir qilganini raqamda ko'rsatadi (grafik/bar uchun). */
+export interface ScoreFactor {
+  label: string; // masalan "Kechikish (96 kun)"
+  impact: number; // -100..+100 — ballga qo'shgan/ayirgan hissasi
+}
+
 export interface CollectionDecision {
   action: CollectionAction;
   channel: ContactChannel | "none";
@@ -35,6 +41,7 @@ export interface CollectionDecision {
   recoveryScore: number; // 0-100 — hozir harakat qilinsa undirish ehtimoli
   priority: "high" | "medium" | "low";
   reason: string; // NEGA shu qaror — foydalanuvchi tiliда qisqa tushuntirish
+  factors: ScoreFactor[]; // recoveryScore'ni tashkil etuvchi raqamli sabablar (explainability)
   draftMessage?: string; // yuboriladigan xabar matni (agar action = xabar bo'lsa)
   settlementPercent?: number; // settlement_offer bo'lsa — minimal qabul foizi
   source: "ai" | "rule";
@@ -54,12 +61,33 @@ function clampScore(n: unknown, dflt: number): number {
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
+/**
+ * recoveryScore'ni RAQAMLI FAKTORLARGA ajratib hisoblaydi (explainability) — 100 balldan
+ * boshlab, har bir signal aniq miqdorda qo'shadi/ayiradi. UI shu ro'yxatni bar/grafik
+ * sifatida ko'rsatishi mumkin — "nega 61%" degan savolga aniq javob.
+ */
+function scoreFactors(ctx: CollectionContext): ScoreFactor[] {
+  const factors: ScoreFactor[] = [{ label: "Boshlang'ich baza", impact: 100 }];
+  if (ctx.riskScore > 0) factors.push({ label: `Xavf balli (${ctx.riskScore}/100)`, impact: -Math.round(ctx.riskScore * 0.6) });
+  const od = Math.min(ctx.overdueDays, 120);
+  if (od > 0) factors.push({ label: `Kechikish (${ctx.overdueDays} kun)`, impact: -Math.round(od * 0.3) });
+  if (ctx.respondedBefore) factors.push({ label: "Oldin murojaatga javob bergan", impact: 15 });
+  if (ctx.partialPaid) factors.push({ label: "Qisman to'lov qilgan", impact: 20 });
+  if (ctx.executedStages.length >= 3) factors.push({ label: `${ctx.executedStages.length} bosqich natijasiz o'tgan`, impact: -10 });
+  return factors;
+}
+
+function scoreFromFactors(factors: ScoreFactor[]): number {
+  const sum = factors.reduce((s, f) => s + f.impact, 0);
+  return Math.max(5, Math.min(95, Math.round(sum)));
+}
+
 /** Deterministik zaxira — LLM yo'q/xato bo'lganda mavjud undiruv zinasini takrorlaydi. */
 export function ruleDecision(ctx: CollectionContext): CollectionDecision {
   const done = new Set(ctx.executedStages);
   const channel = ctx.availableChannels[0] ?? "none";
-  // Risk yuqori + kechikish ko'p → undirish ehtimoli past.
-  const recoveryScore = Math.max(5, Math.min(95, Math.round(100 - ctx.riskScore * 0.6 - Math.min(ctx.overdueDays, 120) * 0.3)));
+  const factors = scoreFactors(ctx);
+  const recoveryScore = scoreFromFactors(factors);
   const priority: CollectionDecision["priority"] = ctx.amountMajor >= 10_000_000 || ctx.overdueDays >= 60 ? "high" : ctx.overdueDays >= 30 ? "medium" : "low";
   let action: CollectionAction = "wait";
   let tone: CollectionDecision["tone"] = "friendly";
@@ -86,6 +114,7 @@ export function ruleDecision(ctx: CollectionContext): CollectionDecision {
       action === "wait"
         ? "Barcha bosqichlar bajarilgan — javob kutilmoqda"
         : `${ctx.overdueDays} kun kechikish, ${done.size} bosqich bajarilgan — keyingi qadam: ${action}`,
+    factors,
     source: "rule",
   };
 }
@@ -136,6 +165,10 @@ export async function decideCollectionAction(ctx: CollectionContext): Promise<Co
     const priority = (["high", "medium", "low"] as const).includes(j.priority as "high") ? (j.priority as CollectionDecision["priority"]) : fallback.priority;
     const draft = typeof j.draftMessage === "string" && j.draftMessage.trim().length > 4 ? j.draftMessage.trim() : undefined;
     const settlement = action === "settlement_offer" ? Math.max(50, Math.min(90, clampScore(j.settlementPercent, 70))) : undefined;
+    // Explainability — LLM'ning recoveryScore'i har doim ham raqamli asoslanmagan bo'lishi
+    // mumkin; shu sabab AI qaroriga ham HAQIQIY ma'lumotdan hisoblangan deterministik
+    // faktorlarni (xavf/kechikish/javob tarixi) qo'shib qo'yamiz — UI'da "nega" ko'rinsin.
+    const factors = fallback.factors;
     return {
       action,
       channel,
@@ -143,6 +176,7 @@ export async function decideCollectionAction(ctx: CollectionContext): Promise<Co
       recoveryScore: clampScore(j.recoveryScore, fallback.recoveryScore),
       priority,
       reason: typeof j.reason === "string" && j.reason.trim() ? j.reason.trim() : fallback.reason,
+      factors,
       draftMessage: draft,
       settlementPercent: settlement,
       source: "ai",

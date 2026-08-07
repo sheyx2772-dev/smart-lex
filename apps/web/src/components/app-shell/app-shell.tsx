@@ -14,6 +14,7 @@ import {
   ShieldStar,
   SignOut,
   Sparkle,
+  SquaresFour,
   Truck,
   Wallet,
 } from "@phosphor-icons/react";
@@ -31,6 +32,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
   {
     label: "groupMain",
     items: [
+      { href: "/command-center", key: "commandCenter", icon: SquaresFour },
       { href: "/agent", key: "agent", icon: Robot },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/documents", key: "documents", icon: Files },

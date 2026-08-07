@@ -54,7 +54,12 @@ const ACTION_UZ: Record<string, string> = {
 const fmtTime = (d: string | null) =>
   d ? new Intl.DateTimeFormat("uz-UZ", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(d)) : "";
 
-function feedVisual(it: FeedItem): { icon: React.ReactNode; title: string; sub?: string; badges: { text: string; cls: string }[] } {
+interface ScoreFactor {
+  label: string;
+  impact: number;
+}
+
+function feedVisual(it: FeedItem): { icon: React.ReactNode; title: string; sub?: string; badges: { text: string; cls: string }[]; factors?: ScoreFactor[] } {
   const d = it.detail ?? {};
   const badges: { text: string; cls: string }[] = [];
   if (it.action === "agent.decision") {
@@ -64,11 +69,13 @@ function feedVisual(it: FeedItem): { icon: React.ReactNode; title: string; sub?:
       badges.push({ text: `undirish ${rec}%`, cls: rec >= 60 ? "bg-emerald-500/15 text-emerald-600" : rec >= 35 ? "bg-amber-500/15 text-amber-600" : "bg-red-500/15 text-red-500" });
     if (pr) badges.push({ text: pr === "high" ? "yuqori" : pr === "medium" ? "o'rta" : "past", cls: "bg-muted text-muted-foreground" });
     if (d.source === "ai") badges.push({ text: "AI", cls: "bg-primary/10 text-primary" });
+    const factors = Array.isArray(d.factors) ? (d.factors as ScoreFactor[]).filter((f) => f && typeof f.label === "string" && typeof f.impact === "number") : undefined;
     return {
       icon: <Brain weight="fill" className="size-4 text-primary" />,
       title: `AI qaror: ${ACTION_UZ[String(d.action)] ?? String(d.action)}`,
       sub: String(d.reason ?? ""),
       badges,
+      factors: factors && factors.length ? factors : undefined,
     };
   }
   if (it.action === "agent.suggested")
@@ -95,6 +102,7 @@ export function AgentAutopilot({ initial }: { initial: AutopilotData | null }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initial?.config.mode ?? "suggest");
   const [aggr, setAggr] = useState<Aggr>(initial?.config.aggressiveness ?? "normal");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [saving, startSave] = useTransition();
   const [running, startRun] = useTransition();
 
@@ -233,19 +241,48 @@ export function AgentAutopilot({ initial }: { initial: AutopilotData | null }) {
           <ul className="space-y-1.5">
             {feed.map((it) => {
               const v = feedVisual(it);
+              const open = expanded.has(it.id);
               return (
-                <li key={it.id} className="flex items-start gap-3 rounded-xl border border-border/50 bg-background/40 p-3">
-                  <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-muted">{v.icon}</span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold">{v.title}</span>
-                      {v.badges.map((b, i) => (
-                        <span key={i} className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${b.cls}`}>{b.text}</span>
-                      ))}
+                <li key={it.id} className="rounded-xl border border-border/50 bg-background/40 p-3">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-muted">{v.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold">{v.title}</span>
+                        {v.badges.map((b, i) => (
+                          <span key={i} className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${b.cls}`}>{b.text}</span>
+                        ))}
+                      </div>
+                      {v.sub && <p className="mt-0.5 truncate text-xs text-muted-foreground">{v.sub}</p>}
+                      {v.factors && (
+                        <button
+                          onClick={() => setExpanded((s) => { const n = new Set(s); if (n.has(it.id)) n.delete(it.id); else n.add(it.id); return n; })}
+                          className="mt-1 text-[11px] font-medium text-primary hover:underline"
+                        >
+                          {open ? "Yashirish" : "Nega? (raqamli asos)"}
+                        </button>
+                      )}
+                      {open && v.factors && (
+                        <div className="mt-2 space-y-1 rounded-lg bg-muted/50 p-2.5">
+                          {v.factors.map((f, i) => (
+                            <div key={i} className="flex items-center gap-2 text-[11px]">
+                              <span className="w-32 shrink-0 truncate text-muted-foreground">{f.label}</span>
+                              <span className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-border">
+                                <span
+                                  className={`absolute top-0 h-full rounded-full ${f.impact >= 0 ? "bg-emerald-500 left-1/2" : "bg-red-500 right-1/2"}`}
+                                  style={{ width: `${Math.min(50, Math.abs(f.impact) / 2)}%` }}
+                                />
+                              </span>
+                              <span className={`w-9 shrink-0 text-right font-mono font-semibold ${f.impact >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                                {f.impact >= 0 ? "+" : ""}{f.impact}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    {v.sub && <p className="mt-0.5 truncate text-xs text-muted-foreground">{v.sub}</p>}
+                    <span className="shrink-0 text-[11px] text-muted-foreground">{fmtTime(it.createdAt)}</span>
                   </div>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{fmtTime(it.createdAt)}</span>
                 </li>
               );
             })}

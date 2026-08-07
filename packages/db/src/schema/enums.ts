@@ -2,14 +2,18 @@ import {
   ACTOR_TYPES,
   APPROVAL_STATUSES,
   APPROVAL_TYPES,
+  CASE_STATES,
   COLLECTION_STAGES,
   CURRENCIES,
   DOCUMENT_TYPES,
   LOCALES,
+  OVERRIDE_STATUSES,
+  OVERRIDE_TYPES,
   PAYMENT_STATUSES,
   RECEIVABLE_STATUSES,
   REMINDER_CHANNELS,
   REMINDER_STATUSES,
+  STRATEGY_TYPES,
   TENANT_TYPES,
   USER_ROLES,
 } from "@lex/shared";
@@ -35,3 +39,7 @@ export const collectionStageEnum = pgEnum("collection_stage", tuple(COLLECTION_S
 export const approvalTypeEnum = pgEnum("approval_type", tuple(APPROVAL_TYPES));
 export const approvalStatusEnum = pgEnum("approval_status", tuple(APPROVAL_STATUSES));
 export const actorTypeEnum = pgEnum("actor_type", tuple(ACTOR_TYPES));
+export const caseStateEnum = pgEnum("case_state", tuple(CASE_STATES));
+export const strategyTypeEnum = pgEnum("strategy_type", tuple(STRATEGY_TYPES));
+export const overrideTypeEnum = pgEnum("override_type", tuple(OVERRIDE_TYPES));
+export const overrideStatusEnum = pgEnum("override_status", tuple(OVERRIDE_STATUSES));

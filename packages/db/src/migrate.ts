@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { chainStatements } from "./chain";
 import { appRoleStatements, authFunctionStatements, rlsStatements } from "./rls";
 
 /**
@@ -33,6 +34,11 @@ async function main(): Promise<void> {
 
   console.log("→ Auth funksiyasi (SECURITY DEFINER) o'rnatilmoqda...");
   for (const stmt of authFunctionStatements()) {
+    await db.execute(sql.raw(stmt));
+  }
+
+  console.log("→ O'zgartirib bo'lmaydigan audit zanjiri (hash trigger) o'rnatilmoqda...");
+  for (const stmt of chainStatements()) {
     await db.execute(sql.raw(stmt));
   }
 

@@ -30,6 +30,8 @@ import { reminderRoutes } from "./routes/reminders";
 import { reportRoutes } from "./routes/reports";
 import { syncRoutes } from "./routes/sync";
 import { settingsRoutes } from "./routes/settings";
+import { commandCenterRoutes } from "./routes/command-center";
+import { v2DebtRoutes } from "./routes/v2/debts";
 
 export function createApp() {
   const app = new Hono<{ Variables: Variables }>();
@@ -74,6 +76,8 @@ export function createApp() {
   api.route("/approvals", approvalRoutes);
   api.route("/settings", settingsRoutes);
   api.route("/", miscRoutes);
+  api.route("/v2", v2DebtRoutes);
+  api.route("/", commandCenterRoutes);
   app.route("/api", api);
 
   // Global xato ishlovchi — hamma javob envelope formatida.

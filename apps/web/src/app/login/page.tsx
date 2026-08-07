@@ -522,10 +522,16 @@ function LoginModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [showOferta, setShowOferta] = useState(false);
-  // Parol-kirish faqat xodim/admin uchun (?staff=1) — mijozlar faqat One-ID bilan kiradi.
+  // Parol-kirish: ?staff=1, localhost, yoki One-ID sozlanmagan bo'lsa.
   const [staffMode, setStaffMode] = useState(false);
+  const [isLocalDev, setIsLocalDev] = useState(false);
   useEffect(() => {
-    setStaffMode(new URLSearchParams(window.location.search).has("staff"));
+    const params = new URLSearchParams(window.location.search);
+    const host = window.location.hostname;
+    const localDev = host === "localhost" || host === "127.0.0.1";
+    const oneIdBroken = params.has("oneid_error");
+    setIsLocalDev(localDev);
+    setStaffMode(params.has("staff") || localDev || oneIdBroken);
   }, []);
 
   function validate(): boolean {
@@ -576,10 +582,17 @@ function LoginModal({ onClose }: { onClose: () => void }) {
           <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-white"><X className="size-4" /></button>
         </div>
 
-        {/* Xodim/admin parol-kirishi — faqat ?staff=1 bilan ko'rinadi (mijozlarga emas). */}
+        {/* Email/parol — localhost va xodim rejimida */}
         {staffMode && (
           <form onSubmit={onSubmit} noValidate className="mb-5 space-y-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40">Xodim kirishi</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40">
+              {isLocalDev ? "Lokal dev kirish (demo)" : "Xodim kirishi"}
+            </p>
+            {isLocalDev && (
+              <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[11px] text-emerald-200/90">
+                Demo: <strong>rahbar@alfatrade.uz</strong> / <strong>Parol123!</strong>
+              </p>
+            )}
             <div className="space-y-1.5">
               <label htmlFor="lm-email" className="text-xs font-semibold uppercase tracking-widest text-white/55">{t("email")}</label>
               <input id="lm-email" type="email" autoComplete="email" placeholder={t("emailPlaceholder")} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => errors.email && validate()} className={cn(field, errors.email && "border-red-500/70")} />
@@ -613,12 +626,19 @@ function LoginModal({ onClose }: { onClose: () => void }) {
 
         {error && <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">{error}</div>}
 
-        {/* One-ID — mijozlar uchun asosiy (yagona) kirish */}
+        {/* One-ID — production; lokalda sozlanmagan bo'lsa email/parol ishlating */}
+        {!isLocalDev && (
         <a href="/api/oneid" onClick={(e) => { if (!agreed) { e.preventDefault(); setError("Iltimos, ommaviy oferta shartlariga rozilik bering."); } }} className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#ff0000] px-4 py-4 text-sm font-bold uppercase tracking-widest text-white transition-transform hover:scale-[1.02]">
           <ShieldCheck weight="fill" className="size-5" />
           {t("oneid.button")}
         </a>
-        <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">{t("oneid.hint")}</p>
+        )}
+        {!isLocalDev && <p className="mt-3 text-center text-[11px] leading-relaxed text-white/35">{t("oneid.hint")}</p>}
+        {isLocalDev && (
+          <p className="mt-2 text-center text-[11px] leading-relaxed text-white/35">
+            One-ID lokalda ishlamaydi — yuqoridagi email va parol bilan kiring.
+          </p>
+        )}
       </div>
 
       {/* Ommaviy oferta — sahifani tark etmasdan, ichki modal (login/parol saqlanadi) */}

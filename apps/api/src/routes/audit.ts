@@ -1,4 +1,4 @@
-import { auditLogs, users, withTenant } from "@lex/db";
+import { auditLogs, chainAnchors, users, verifyAuditChain, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -67,4 +67,39 @@ auditRoutes.get("/audit", async (c) => {
       c.get("locale"),
     ),
   );
+});
+
+/**
+ * Audit zanjirining o'zgartirilmaganligini tekshiradi (har bir yozuv hash'ini
+ * qayta hisoblab, saqlangan qiymat bilan solishtiradi — DB darajasidagi trigger
+ * ilova kodidan mustaqil ishlaydi, shuning uchun natija ishonchli).
+ */
+auditRoutes.get("/audit/verify", async (c) => {
+  const { tenantId } = c.get("auth");
+  const status = await verifyAuditChain(tenantId);
+  return c.json(ok(status, "common.ok", c.get("locale")));
+});
+
+/**
+ * Zanjir "uchi"ni tashqi (Bitcoin) langarlash tarixi — OpenTimestamps orqali.
+ * Ichki hash-zanjirdan farqli o'laroq, bu ISBOTNI hech kim (biz ham) o'zgartira
+ * olmaydigan, mustaqil uchinchi tomon (Bitcoin blokcheyni)ga bog'laydi.
+ */
+auditRoutes.get("/audit/anchors", async (c) => {
+  const { tenantId } = c.get("auth");
+  const rows = await withTenant(tenantId, (tx) =>
+    tx
+      .select({
+        id: chainAnchors.id,
+        chainTipHash: chainAnchors.chainTipHash,
+        status: chainAnchors.status,
+        bitcoinBlockHeight: chainAnchors.bitcoinBlockHeight,
+        confirmedAt: chainAnchors.confirmedAt,
+        createdAt: chainAnchors.createdAt,
+      })
+      .from(chainAnchors)
+      .orderBy(desc(chainAnchors.createdAt))
+      .limit(20),
+  );
+  return c.json(ok({ items: rows }, "common.ok", c.get("locale")));
 });
