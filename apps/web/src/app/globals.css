@@ -255,6 +255,37 @@
     filter: hue-rotate(22deg) saturate(1.25);
   }
 }
+@keyframes drag-chevron-nudge {
+  0% {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+}
+.drag-chevron {
+  animation: drag-chevron-nudge 1.4s ease-in-out infinite;
+}
+@keyframes bookmarks-row-pulse {
+  0%,
+  100% {
+    fill-opacity: 0.5;
+  }
+  50% {
+    fill-opacity: 1;
+  }
+}
+.bookmarks-row-highlight {
+  animation: bookmarks-row-pulse 1.8s ease-in-out infinite;
+}
 @keyframes ai-toast-in {
   from {
     opacity: 0;

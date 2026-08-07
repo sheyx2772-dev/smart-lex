@@ -617,7 +617,9 @@
       "detectingExtension": "Brauzer kengaytmasi tekshirilmoqda...",
       "extensionFound": "Kengaytma topildi — qo'lda hech narsa qilish shart emas",
       "extensionWaitHint": "cabinet.sud.uz saytida One ID orqali kiring — ulanish avtomatik amalga oshadi.",
-      "extensionHint": "Maslahat: SmartLex.AI brauzer kengaytmasini o'rnatsangiz, bu qadamlar shart emas — ulanish avtomatik bo'ladi."
+      "extensionHint": "Maslahat: SmartLex.AI brauzer kengaytmasini o'rnatsangiz, bu qadamlar shart emas — ulanish avtomatik bo'ladi.",
+      "bookmarksBarLabel": "↑ Xatcho'qlar paneli — tugmani SHU YERGA suring",
+      "bookmarksBarHiddenHint": "Bu qator ko'rinmayaptimi? Klaviaturada Ctrl+Shift+B (Mac: Cmd+Shift+B) bosing — u ochiladi."
     },
     "stPending": "Tasdiq kutmoqda",
     "stReady": "Tasdiqlandi · Topshirishga tayyor",

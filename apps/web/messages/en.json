@@ -580,7 +580,9 @@
       "detectingExtension": "Checking for browser extension...",
       "extensionFound": "Extension found — nothing manual needed",
       "extensionWaitHint": "Sign in to cabinet.sud.uz via One ID — the connection will happen automatically.",
-      "extensionHint": "Tip: install the SmartLex.AI browser extension and these steps become unnecessary — connecting happens automatically."
+      "extensionHint": "Tip: install the SmartLex.AI browser extension and these steps become unnecessary — connecting happens automatically.",
+      "bookmarksBarLabel": "↑ Bookmarks bar — drag the button HERE",
+      "bookmarksBarHiddenHint": "Don't see this row? Press Ctrl+Shift+B (Mac: Cmd+Shift+B) to show it."
     },
     "stPending": "Awaiting approval",
     "stReady": "Approved · Ready to file",

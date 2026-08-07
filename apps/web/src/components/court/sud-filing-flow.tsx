@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowSquareOut, CheckCircle, CircleNotch, Gavel, Info, PlugsConnected, Question, SignIn, Warning } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretUp, CheckCircle, CircleNotch, Gavel, Info, Keyboard, PlugsConnected, Question, SignIn, Warning } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { connectCourtToken, getCourtEntities, getCourtTokenStatus, prepareCourtFiling, submitCourtFiling, type SudEntity } from "@/app/(app)/court/actions";
@@ -236,21 +236,44 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
               {/* 1-qadam */}
               <div className="rounded-lg border border-primary/25 bg-primary/[0.04] p-3">
                 <p className="mb-2 text-xs font-medium text-foreground">{t("bookmarkletDrag")}</p>
-                <div className="flex items-center gap-2">
-                  <a
-                    ref={bookmarkletRef}
-                    draggable
-                    onDragStart={() => setClickedNotDragged(false)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setClickedNotDragged(true);
-                    }}
-                    className="ai-breathe inline-flex cursor-grab items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm active:cursor-grabbing"
-                  >
-                    <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
-                  </a>
-                  <span className="text-xs text-muted-foreground">{t("dragHint")}</span>
+
+                {/* Brauzer yuqori qismining kichik sxemasi — xatcho'qlar paneli qayerda ekanini ko'rsatadi */}
+                <svg viewBox="0 0 280 62" className="mb-1 w-full max-w-[280px]" aria-hidden>
+                  <rect x="2" y="2" width="276" height="20" rx="6" className="fill-muted" />
+                  <circle cx="14" cy="12" r="3" className="fill-muted-foreground/40" />
+                  <rect x="24" y="9" width="120" height="6" rx="3" className="fill-muted-foreground/25" />
+                  <rect x="2" y="28" width="276" height="24" rx="6" className="bookmarks-row-highlight fill-primary/25" />
+                  <rect x="10" y="35" width="46" height="10" rx="4" className="fill-background/70" />
+                  <rect x="64" y="35" width="46" height="10" rx="4" className="fill-background/70" />
+                  <rect x="118" y="35" width="70" height="10" rx="4" strokeDasharray="3 2" className="fill-none stroke-primary" />
+                </svg>
+                <p className="mb-2 text-[11px] font-medium text-primary">{t("bookmarksBarLabel")}</p>
+
+                <div className="flex flex-col items-center">
+                  <CaretUp weight="bold" className="drag-chevron size-3.5 text-primary" style={{ animationDelay: "0ms" }} />
+                  <CaretUp weight="bold" className="drag-chevron -mt-1.5 size-3.5 text-primary" style={{ animationDelay: "200ms" }} />
+                  <div className="flex items-center gap-2">
+                    <a
+                      ref={bookmarkletRef}
+                      draggable
+                      onDragStart={() => setClickedNotDragged(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setClickedNotDragged(true);
+                      }}
+                      className="ai-breathe inline-flex cursor-grab items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary shadow-sm active:cursor-grabbing"
+                    >
+                      <PlugsConnected weight="fill" className="size-4" /> {t("bookmarkletName")}
+                    </a>
+                    <span className="text-xs text-muted-foreground">{t("dragHint")}</span>
+                  </div>
                 </div>
+
+                <p className="mt-2.5 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-2 text-xs text-foreground">
+                  <Keyboard weight="fill" className="size-3.5 shrink-0 text-muted-foreground" />
+                  {t("bookmarksBarHiddenHint")}
+                </p>
+
                 {clickedNotDragged && (
                   <p className="mt-2 flex items-start gap-1.5 rounded-lg border border-warning/30 bg-warning-soft px-2.5 py-2 text-xs text-warning">
                     <Warning weight="fill" className="mt-0.5 size-3.5 shrink-0" />
