@@ -107,9 +107,14 @@ export function SudFilingFlow({ id, defendantTin }: { id: string; defendantTin: 
   // React JSX `href` React'ning javascript: URL xavfsizlik filtridan o'tolmaydi
   // ("React has blocked a javascript: URL as a security precaution") — shuning
   // uchun DOM'ga to'g'ridan-to'g'ri (ref orqali) qo'yiladi.
+  // MUHIM: <a ref={bookmarkletRef}> faqat extensionDetected===false bo'lgandagina
+  // DOM'ga chiqadi (kengaytma aniqlanishi ~900ms kutiladi) — shuning uchun bu effekt
+  // FAQAT `stage`ga emas, `extensionDetected`ga ham bog'liq bo'lishi SHART, aks holda
+  // ref hali null bo'lgan paytda href o'rnatilmay qoladi va tugma bo'sh (href'siz)
+  // qolib, xatcho'qqa hech narsa saqlanmaydi.
   useEffect(() => {
     if (bookmarkletRef.current) bookmarkletRef.current.setAttribute("href", bookmarkletHref(window.location.origin));
-  }, [stage]);
+  }, [stage, extensionDetected]);
 
   // Bookmarklet cabinet.sud.uz'dan qaytganda #sudtoken=... bilan shu sahifaga tushadi.
   useEffect(() => {
