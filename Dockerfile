@@ -16,5 +16,9 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @lex/web build
 ENV NODE_ENV=production
 EXPOSE 3000 3001
+# Root emas — node:22-slim'dagi tayyor "node" foydalanuvchisi bilan ishga tushiriladi
+# (konteyner buzilsa ham host darajasida root huquqi berilmasin).
+RUN chown -R node:node /app
+USER node
 # Standart buyruq compose'да har xizmat uchun almashtiriladi.
 CMD ["pnpm", "--filter", "@lex/api", "start"]

@@ -11,6 +11,7 @@ import {
 } from "@lex/integrations";
 import { approvalRequests, auditLogs, contractors, documents, users, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
+import { decryptSecret } from "@lex/shared/secrets";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
@@ -72,7 +73,7 @@ courtRoutes.get("/court/:id/file/entities", async (c) => {
   if (!row?.token) return c.json(ok({ available: false, reason: "not_connected" }, "common.ok", locale));
 
   try {
-    const entities = await new CourtClient(row.token).getEntities();
+    const entities = await new CourtClient(decryptSecret(row.token)).getEntities();
     return c.json(ok({ available: true, entities }, "common.ok", locale));
   } catch (e) {
     return c.json(ok({ available: false, reason: "sud_error", detail: String((e as Error)?.message ?? e).slice(0, 300) }, "common.ok", locale));
@@ -93,6 +94,12 @@ courtRoutes.post("/court/:id/file/prepare", async (c) => {
   const parsed = validate(courtFilePrepareSchema, await c.req.json().catch(() => null));
   if (!parsed.ok) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: parsed.fields }), 422);
   const { entityId, signature } = parsed.data;
+  // DEMO/mock imzo — E-IMZO Client mavjud bo'lmaganda frontend fallback qiladi (eimzo.ts).
+  // Production'da HAQIQIY sudga soxta ("MOCK.PKCS7...") imzo tasdiqnomasi yuborilishi
+  // MUTLAQO mumkin emas — bu jinoiy-protsessual ahamiyatga ega hujjat.
+  if (signature.provider === "mock" && env.isProd) {
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "court.mock_signature_rejected", locale), 422);
+  }
   if (!env.soliqApiKey) return c.json(ok({ available: false, reason: "soliq_not_configured" }, "common.ok", locale));
 
   const loaded = await withTenant(tenantId, async (tx) => {
@@ -124,7 +131,7 @@ courtRoutes.post("/court/:id/file/prepare", async (c) => {
         ),
       );
     const existingEvidenceTypes = [...new Set(evidenceDocs.map((d) => d.type))];
-    return { doc, appr, contractor, token: user.token, demandLetter, existingEvidenceTypes };
+    return { doc, appr, contractor, token: decryptSecret(user.token), demandLetter, existingEvidenceTypes };
   });
 
   if (loaded === null) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
@@ -243,7 +250,7 @@ courtRoutes.post("/court/:id/file/submit", async (c) => {
         }
       | undefined;
     if (!prepare || !Array.isArray(prepare.documents) || prepare.documents.length === 0) return "not_prepared" as const;
-    return { doc, appr, token: user.token, prepare, extracted };
+    return { doc, appr, token: decryptSecret(user.token), prepare, extracted };
   });
 
   if (loaded === null) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);

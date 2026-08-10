@@ -99,6 +99,11 @@ export const MESSAGES = {
     ru: "Слишком много попыток — подождите немного и попробуйте снова",
     en: "Too many attempts — please wait a moment and try again",
   },
+  "court.mock_signature_rejected": {
+    uz: "DEMO imzo bilan sudga topshirib bo'lmaydi — E-IMZO Client orqali haqiqiy imzo qo'ying",
+    ru: "Нельзя подать в суд с DEMO-подписью — подпишите через настоящий E-IMZO Client",
+    en: "Cannot file with a DEMO signature — sign with the real E-IMZO Client",
+  },
 
   // ── Debitorlik / Receivable ─────────────────────────────
   "receivable.overdue": {

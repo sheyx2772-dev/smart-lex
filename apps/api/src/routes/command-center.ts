@@ -195,7 +195,11 @@ commandCenterRoutes.post("/command-center/overrides/:id/decide", async (c) => {
     return c.json({ success: false, data: null, error: "forbidden", message: "faqat rahbar" }, 403);
   }
   const overrideId = c.req.param("id");
-  const body = (await c.req.json()) as { decision: "approved" | "rejected" };
+  const raw = (await c.req.json().catch(() => ({}))) as { decision?: unknown };
+  if (raw.decision !== "approved" && raw.decision !== "rejected") {
+    return c.json({ success: false, data: null, error: "validation_failed", message: "decision noto'g'ri" }, 422);
+  }
+  const body = { decision: raw.decision };
 
   await withTenant(tenantId, async (tx) => {
     const [o] = await tx.select().from(pendingOverrides).where(eq(pendingOverrides.id, overrideId)).limit(1);

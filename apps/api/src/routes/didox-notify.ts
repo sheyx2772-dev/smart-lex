@@ -68,7 +68,7 @@ didoxNotifyRoutes.post("/approvals/:id/didox/sign", async (c) => {
   const locale = c.get("locale");
   const id = c.req.param("id");
   const body = (await c.req.json().catch(() => ({}))) as { pkcs7?: string };
-  const pkcs7 = String(body.pkcs7 ?? "");
+  const pkcs7 = String(body.pkcs7 ?? "").slice(0, 200_000); // PKCS7 imzo odatda bir necha KB — tashqi Didox chaqiruvini haddan tashqari katta yuklamadan himoya qiladi
   if (!pkcs7) return c.json(ok({ status: "failed", error: "no_signature" }, "common.ok", locale));
   const [signRow] = await getDb().select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId)).limit(1);
   const src = didoxSource(signRow?.settings);

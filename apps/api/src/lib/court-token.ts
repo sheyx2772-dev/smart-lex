@@ -1,9 +1,14 @@
 import { users, withTenant } from "@lex/db";
+import { encryptSecret } from "@lex/shared/secrets";
 import { eq } from "drizzle-orm";
 
-/** cabinet.sud.uz X-AUTH-TOKEN'ni foydalanuvchiga saqlaydi (POST /court/token va WS oqimi ikkalasi ham shu funksiyani ishlatadi). */
+/**
+ * cabinet.sud.uz X-AUTH-TOKEN'ni foydalanuvchiga saqlaydi (POST /court/token va WS oqimi
+ * ikkalasi ham shu funksiyani ishlatadi). Bu — jonli sud kabineti sessiya kalendari,
+ * boshqa integratsiya sirlari kabi shifrlab saqlanadi (packages/shared/src/auth/secrets.ts).
+ */
 export async function saveCourtToken(tenantId: string, userId: string, token: string): Promise<void> {
   await withTenant(tenantId, (tx) =>
-    tx.update(users).set({ courtAuthToken: token, courtAuthTokenAt: new Date() }).where(eq(users.id, userId)),
+    tx.update(users).set({ courtAuthToken: encryptSecret(token), courtAuthTokenAt: new Date() }).where(eq(users.id, userId)),
   );
 }

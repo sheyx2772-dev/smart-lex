@@ -1,9 +1,14 @@
 import { getDb, tenants } from "@lex/db";
-import { ok } from "@lex/shared";
+import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
 import { decryptSecret, encryptSecret } from "@lex/shared/secrets";
+
+// Click/Payme service_id/merchant_id — har doim raqamli identifikator. Bunga qat'iy
+// rioya qilish — checkout URL'ga qo'shimcha parametr in'ektsiya qilinishini oldini oladi
+// (masalan "123&return_url=evil.uz" kabi qiymat).
+const ID_RE = /^\d{1,20}$/;
 
 /**
  * Firma o'z to'lov merchantini ulaydi (qarzdor→firma karta to'lovi uchun).
@@ -47,13 +52,27 @@ merchantRoutes.post("/merchant", async (c) => {
 
   const next: Merchant = { click: { ...prev.click }, payme: { ...prev.payme } };
   if (body.click) {
-    if (typeof body.click.serviceId === "string") next.click!.serviceId = body.click.serviceId.trim();
-    if (typeof body.click.merchantId === "string") next.click!.merchantId = body.click.merchantId.trim();
+    if (typeof body.click.serviceId === "string" && body.click.serviceId.trim()) {
+      const v = body.click.serviceId.trim();
+      if (!ID_RE.test(v)) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", c.get("locale"), { fields: { serviceId: "invalid" } }), 422);
+      next.click!.serviceId = v;
+    }
+    if (typeof body.click.merchantId === "string" && body.click.merchantId.trim()) {
+      const v = body.click.merchantId.trim();
+      if (!ID_RE.test(v)) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", c.get("locale"), { fields: { merchantId: "invalid" } }), 422);
+      next.click!.merchantId = v;
+    }
     // Sirni faqat yangi qiymat berilganда (maskalangan emas) yangilaymiz — shifrlab saqlaymiz.
     if (typeof body.click.secretKey === "string" && body.click.secretKey && !body.click.secretKey.startsWith("••••")) next.click!.secretKey = encryptSecret(body.click.secretKey.trim());
   }
   if (body.payme) {
-    if (typeof body.payme.merchantId === "string") next.payme!.merchantId = body.payme.merchantId.trim();
+    if (typeof body.payme.merchantId === "string" && body.payme.merchantId.trim()) {
+      const v = body.payme.merchantId.trim();
+      // Payme merchant_id — alfanumerik (odatda 24 xonali hex). ";"/"=" kabi Payme
+      // checkout satrining o'z ajratuvchilari bo'lishi mumkin emas.
+      if (!/^[a-zA-Z0-9]{1,40}$/.test(v)) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", c.get("locale"), { fields: { merchantId: "invalid" } }), 422);
+      next.payme!.merchantId = v;
+    }
     if (typeof body.payme.secretKey === "string" && body.payme.secretKey && !body.payme.secretKey.startsWith("••••")) next.payme!.secretKey = encryptSecret(body.payme.secretKey.trim());
   }
   s.merchant = next;

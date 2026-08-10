@@ -2,6 +2,7 @@ import { ERROR_CODE, fail } from "@lex/shared";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
+import { secureHeaders } from "hono/secure-headers";
 import { type Variables } from "./lib/context";
 import { env } from "./lib/env";
 import { authMiddleware, localeMiddleware } from "./middleware";
@@ -38,6 +39,16 @@ export function createApp() {
   const app = new Hono<{ Variables: Variables }>();
 
   app.use("*", cors({ origin: [env.webUrl], credentials: true, allowHeaders: ["Content-Type", "Authorization", "X-Lang"] }));
+  app.use(
+    "*",
+    secureHeaders({
+      strictTransportSecurity: "max-age=63072000; includeSubDomains; preload",
+      xContentTypeOptions: "nosniff",
+      xFrameOptions: "DENY",
+      referrerPolicy: "strict-origin-when-cross-origin",
+      contentSecurityPolicy: { defaultSrc: ["'none'"] }, // JSON API — hujjat render qilmaydi
+    }),
+  );
   app.use("*", localeMiddleware);
   // Katta so'rov tanasi (masalan cheksiz base64 fayl) resurs tugashiga sabab bo'lmasin —
   // eng katta ruxsat etilgan yuklama (hujjat/rasm extract endpointlari) atrofida, xavfsiz zaxira bilan.

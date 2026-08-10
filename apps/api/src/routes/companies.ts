@@ -236,8 +236,12 @@ companyRoutes.post("/companies/:id/interaction", async (c) => {
   const { tenantId, userId, role } = c.get("auth");
   if (!CAN_LOG.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
   const id = c.req.param("id");
-  const body = (await c.req.json().catch(() => ({}))) as { kind?: string; outcome?: string; note?: string };
-  if (!body.note?.trim() && !body.outcome) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  const raw = (await c.req.json().catch(() => ({}))) as { kind?: string; outcome?: string; note?: string };
+  if (!raw.note?.trim() && !raw.outcome) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  const KNOWN_KINDS = new Set(["call", "email", "meeting", "sms", "other"]);
+  const kind = typeof raw.kind === "string" && KNOWN_KINDS.has(raw.kind) ? raw.kind : "call";
+  const outcome = typeof raw.outcome === "string" ? raw.outcome.slice(0, 200) : "";
+  const note = typeof raw.note === "string" ? raw.note.trim().slice(0, 2000) : "";
   await withTenant(tenantId, (tx) =>
     tx.insert(auditLogs).values({
       tenantId,
@@ -246,7 +250,7 @@ companyRoutes.post("/companies/:id/interaction", async (c) => {
       action: "interaction",
       entityType: "contractor",
       entityId: id,
-      detail: { kind: body.kind ?? "call", outcome: body.outcome ?? "", note: (body.note ?? "").trim() },
+      detail: { kind, outcome, note },
     }),
   );
   return c.json(ok({ ok: true }, "common.created", locale));

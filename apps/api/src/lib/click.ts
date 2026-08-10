@@ -42,11 +42,20 @@ export interface ClickCreds {
   merchantId: string;
   secretKey: string;
 }
-/** Firma merchanti bilan to'lov URL (qarzdor portali). */
+/**
+ * Firma merchanti bilan to'lov URL (qarzdor portali). Har bir maydon aniq
+ * encodeURIComponent qilinadi — tenant admin kiritgan serviceId/merchantId orqali
+ * URL'ga qo'shimcha query parametr (masalan soxta return_url) in'ektsiya qilinmasin.
+ */
 export function clickPaymentUrlWith(creds: ClickCreds, orderId: string, amount: number, returnUrl?: string): string {
-  let url = `https://my.click.uz/services/pay?service_id=${creds.serviceId}&merchant_id=${creds.merchantId}&amount=${amount.toFixed(2)}&transaction_param=${encodeURIComponent(orderId)}`;
-  if (returnUrl) url += `&return_url=${encodeURIComponent(returnUrl)}`;
-  return url;
+  const q = new URLSearchParams({
+    service_id: creds.serviceId,
+    merchant_id: creds.merchantId,
+    amount: amount.toFixed(2),
+    transaction_param: orderId,
+  });
+  if (returnUrl) q.set("return_url", returnUrl);
+  return `https://my.click.uz/services/pay?${q.toString()}`;
 }
 /** Imzoni BERILGAN sir bilan tekshirish (firma merchanti webhook'lari uchun). */
 export function verifyPrepareSignKey(secretKey: string, p: { click_trans_id: string; service_id: string; merchant_trans_id: string; amount: string; action: string; sign_time: string; sign_string: string }): boolean {
