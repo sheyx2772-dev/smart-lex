@@ -4,6 +4,7 @@ import { Hono } from "hono";
 import { clickPaymentUrlWith } from "../lib/click";
 import { type Variables } from "../lib/context";
 import { paymeCheckoutUrlWith } from "../lib/payme";
+import { decryptSecret } from "@lex/shared/secrets";
 
 /**
  * QARZDOR PORTALI (PUBLIC — login talab qilinmaydi).
@@ -231,7 +232,7 @@ debtorPortalRoutes.post("/pay/:id/pay/:provider", async (c) => {
 
   let url: string | null = null;
   if (provider === "click" && m.click?.serviceId && m.click?.merchantId && m.click?.secretKey) {
-    url = clickPaymentUrlWith({ serviceId: m.click.serviceId, merchantId: m.click.merchantId, secretKey: m.click.secretKey }, mid, amountSom, returnUrl);
+    url = clickPaymentUrlWith({ serviceId: m.click.serviceId, merchantId: m.click.merchantId, secretKey: decryptSecret(m.click.secretKey) }, mid, amountSom, returnUrl);
   } else if (provider === "payme" && m.payme?.merchantId && m.payme?.secretKey) {
     url = paymeCheckoutUrlWith(m.payme.merchantId, false, mid, totalMinor, returnUrl);
   }

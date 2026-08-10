@@ -1,5 +1,6 @@
 import { ERROR_CODE, fail } from "@lex/shared";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { cors } from "hono/cors";
 import { type Variables } from "./lib/context";
 import { env } from "./lib/env";
@@ -38,6 +39,9 @@ export function createApp() {
 
   app.use("*", cors({ origin: [env.webUrl], credentials: true, allowHeaders: ["Content-Type", "Authorization", "X-Lang"] }));
   app.use("*", localeMiddleware);
+  // Katta so'rov tanasi (masalan cheksiz base64 fayl) resurs tugashiga sabab bo'lmasin —
+  // eng katta ruxsat etilgan yuklama (hujjat/rasm extract endpointlari) atrofida, xavfsiz zaxira bilan.
+  app.use("*", bodyLimit({ maxSize: 15 * 1024 * 1024, onError: (c) => c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", c.get("locale") ?? "uz"), 413) }));
 
   app.get("/health", (c) => c.json({ status: "ok", service: "lex-api" }));
 

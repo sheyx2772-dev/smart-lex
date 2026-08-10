@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { env } from "../lib/env";
 import { type Variables } from "../lib/context";
+import { encryptSecret } from "@lex/shared/secrets";
 import {
   collectionSchema,
   companySchema,
@@ -43,6 +44,9 @@ function stripIntegrations(settings: Record<string, unknown>): Record<string, un
 }
 
 const CAN_EDIT_COMPANY = new Set(["owner", "admin"]);
+// Haqiqiy MAXFIY qiymatlar (API kalit/token) — DB'da shifrlab saqlanadi. Qolganlari
+// (eimzoSiteId, smsProvider, telegramChatId/topicId) identifikator, sir emas.
+const SECRET_INTEGRATION_FIELDS = new Set(["didoxToken", "bankApiKey", "smsApiKey", "telegramBotToken"]);
 const CAN_EDIT_COLLECTION = new Set(["owner", "admin", "finance"]);
 const CAN_MANAGE_USERS = new Set(["owner", "admin"]);
 
@@ -167,10 +171,10 @@ settingsRoutes.put("/integrations", async (c) => {
     const [existing] = await tx.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId));
     const prev = existing?.settings ?? {};
     const prevInt = (prev.integrations ?? {}) as Record<string, string>;
-    // Faqat kiritilgan (bo'sh bo'lmagan) maydonlarni yangilash.
+    // Faqat kiritilgan (bo'sh bo'lmagan) maydonlarni yangilash. Haqiqiy sirlar shifrlanadi.
     const next: Record<string, string> = { ...prevInt };
     for (const [k, v] of Object.entries(parsed.data)) {
-      if (typeof v === "string" && v.length > 0) next[k] = v;
+      if (typeof v === "string" && v.length > 0) next[k] = SECRET_INTEGRATION_FIELDS.has(k) ? encryptSecret(v) : v;
     }
     await tx.update(tenants).set({ settings: { ...prev, integrations: next } }).where(eq(tenants.id, tenantId));
     await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.integrations_updated", entityType: "tenant", entityId: tenantId });
@@ -210,8 +214,7 @@ settingsRoutes.post("/didox/connect", async (c) => {
     console.error("[didox/connect] timestamp fetch throw:", e);
     return null;
   });
-  const tsText = tsRes ? await tsRes.clone().text().catch(() => "") : "";
-  console.error("[didox/connect] timestamp", tsRes?.status, tsText.slice(0, 500));
+  console.error("[didox/connect] timestamp", tsRes?.status);
   const tsData = tsRes && tsRes.ok ? ((await tsRes.json().catch(() => null)) as { timeStampTokenB64?: string } | null) : null;
   if (!tsData?.timeStampTokenB64) {
     return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
@@ -225,8 +228,7 @@ settingsRoutes.post("/didox/connect", async (c) => {
     console.error("[didox/connect] auth fetch throw:", e);
     return null;
   });
-  const authText = authRes ? await authRes.clone().text().catch(() => "") : "";
-  console.error("[didox/connect] auth", authRes?.status, authText.slice(0, 500));
+  console.error("[didox/connect] auth", authRes?.status);
   const authData = authRes && authRes.ok ? ((await authRes.json().catch(() => null)) as { token?: string } | null) : null;
   if (!authData?.token) {
     return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
@@ -238,7 +240,7 @@ settingsRoutes.post("/didox/connect", async (c) => {
     const prevInt = (prev.integrations ?? {}) as Record<string, string>;
     await tx
       .update(tenants)
-      .set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: authData.token } } })
+      .set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: encryptSecret(authData.token) } } })
       .where(eq(tenants.id, tenantId));
     await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.didox_connected", entityType: "tenant", entityId: tenantId });
   });

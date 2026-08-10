@@ -22,6 +22,7 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { fetchTenantDetail, setSubscription, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
+import { sanitizeHtml } from "@/lib/doc-html";
 
 const SUB_LABEL: Record<string, string> = { none: "yo'q", trial: "sinov", active: "faol", expired: "tugagan" };
 const SUB_CLASS: Record<string, string> = {
@@ -407,7 +408,7 @@ export function AdminClient({ data }: { data: AdminData }) {
               </div>
             </div>
             <div className="scroll-clean min-h-0 flex-1 overflow-y-auto bg-white p-8">
-              <div className="prose prose-sm mx-auto max-w-none text-black [&_h2]:text-center" dangerouslySetInnerHTML={{ __html: viewDoc.body || "<p>Matn yo'q</p>" }} />
+              <div className="prose prose-sm mx-auto max-w-none text-black [&_h2]:text-center" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewDoc.body || "<p>Matn yo'q</p>") }} />
             </div>
           </div>
         </div>

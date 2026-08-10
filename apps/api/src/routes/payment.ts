@@ -7,6 +7,7 @@ import { clickConfigured, clickPaymentUrl, planPrice, verifyCompleteSign, verify
 import { env } from "../lib/env";
 import { PAYME_ERR, PAYME_STATE, paymeAuthOk, paymeAuthOkWith, paymeCheckoutUrl, paymeConfigured, somToTiyin } from "../lib/payme";
 import { resolvePromiseOnPayment } from "../lib/promises";
+import { decryptSecret } from "@lex/shared/secrets";
 
 interface PayOrder {
   plan: string;
@@ -62,10 +63,10 @@ async function activateSubscription(tenantId: string, plan: string, months: numb
 
 // ── Per-tenant (firma merchanti) — qarzdor→firma to'lovi uchun ──
 function firmClickSecret(settings: Record<string, unknown>): string {
-  return ((settings.merchant as { click?: { secretKey?: string } } | undefined)?.click?.secretKey) ?? "";
+  return decryptSecret((settings.merchant as { click?: { secretKey?: string } } | undefined)?.click?.secretKey);
 }
 function firmPaymeKey(settings: Record<string, unknown>): string {
-  return ((settings.merchant as { payme?: { secretKey?: string } } | undefined)?.payme?.secretKey) ?? "";
+  return decryptSecret((settings.merchant as { payme?: { secretKey?: string } } | undefined)?.payme?.secretKey);
 }
 /** Qarz to'lovi tasdiqlanганда — `payments`ga yozadi (recovery raqami o'zi ko'tariladi). */
 async function recordDebtPayment(tenantId: string, order: PayOrder): Promise<void> {
@@ -98,9 +99,14 @@ async function recordDebtPayment(tenantId: string, order: PayOrder): Promise<voi
 // ── Authed: to'lov buyurtmasi yaratish → Click URL ──
 export const paymentRoutes = new Hono<{ Variables: Variables }>();
 
+// Obuna to'lovini faqat rahbar/moliya boshlashi mumkin — oddiy xodim (viewer) tenant
+// hisobiga to'lov buyurtmasi yarata olmasin.
+const CAN_BILL = new Set(["owner", "admin", "finance"]);
+
 paymentRoutes.post("/payment/click/create", async (c) => {
-  const { tenantId } = c.get("auth");
+  const { tenantId, role } = c.get("auth");
   const locale = c.get("locale");
+  if (!CAN_BILL.has(role)) return c.json({ success: false, data: null, error: "forbidden", message: "faqat rahbar/moliya" }, 403);
   if (!clickConfigured()) return c.json(ok({ ok: false, error: "not_configured" }, "common.ok", locale));
   const body = (await c.req.json().catch(() => ({}))) as { plan?: string; months?: number };
   const plan = typeof body.plan === "string" ? body.plan : "Boshlang'ich";
@@ -118,8 +124,9 @@ paymentRoutes.post("/payment/click/create", async (c) => {
 });
 
 paymentRoutes.post("/payment/payme/create", async (c) => {
-  const { tenantId } = c.get("auth");
+  const { tenantId, role } = c.get("auth");
   const locale = c.get("locale");
+  if (!CAN_BILL.has(role)) return c.json({ success: false, data: null, error: "forbidden", message: "faqat rahbar/moliya" }, 403);
   if (!paymeConfigured()) return c.json(ok({ ok: false, error: "not_configured" }, "common.ok", locale));
   const body = (await c.req.json().catch(() => ({}))) as { plan?: string; months?: number };
   const plan = typeof body.plan === "string" ? body.plan : "Boshlang'ich";

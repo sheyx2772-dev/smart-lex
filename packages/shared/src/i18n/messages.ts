@@ -94,6 +94,11 @@ export const MESSAGES = {
     ru: "Вы успешно вошли в систему",
     en: "Logged in successfully",
   },
+  "auth.too_many_attempts": {
+    uz: "Juda ko'p urinish — biroz kutib qayta urinib ko'ring",
+    ru: "Слишком много попыток — подождите немного и попробуйте снова",
+    en: "Too many attempts — please wait a moment and try again",
+  },
 
   // ── Debitorlik / Receivable ─────────────────────────────
   "receivable.overdue": {

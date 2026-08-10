@@ -1,6 +1,7 @@
 import { approvalRequests, auditLogs, contractors, getDb, invoices, receivables, reminders, tenants, withTenant } from "@lex/db";
 import { createDataSource, DidoxDataSource } from "@lex/integrations";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
+import { decryptSecret } from "@lex/shared/secrets";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
@@ -18,7 +19,7 @@ export const didoxNotifyRoutes = new Hono<{ Variables: Variables }>();
 /** Didox real adapteri — tenant kaliti (yoki env), aks holda null. */
 function didoxSource(settings?: unknown): DidoxDataSource | null {
   const integrations = ((settings as Record<string, unknown>)?.integrations ?? {}) as Record<string, string>;
-  const src = createDataSource("company", { userKey: integrations.didoxToken }); // company/marketplace/government
+  const src = createDataSource("company", { userKey: decryptSecret(integrations.didoxToken) }); // company/marketplace/government
   return src instanceof DidoxDataSource ? src : null;
 }
 

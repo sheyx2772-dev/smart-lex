@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "generate": "drizzle-kit generate",
     "migrate": "tsx src/migrate.ts",
+    "migrate:secrets": "tsx src/migrate-secrets.ts",
     "push": "drizzle-kit push",
     "seed": "tsx src/seed.ts",
     "lint": "echo 'lint: db ok'"
@@ -20,7 +21,7 @@
   "dependencies": {
     "@lex/core": "workspace:*",
     "@lex/shared": "workspace:*",
-    "drizzle-orm": "^0.38.3",
+    "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.5"
   },
   "devDependencies": {

@@ -1,7 +1,8 @@
 import { serve } from "@hono/node-server";
 import { createApp } from "./app";
-import { env } from "./lib/env";
+import { env, validateEnv } from "./lib/env";
 
+validateEnv();
 const app = createApp();
 
 serve({ fetch: app.fetch, port: env.port }, (info) => {

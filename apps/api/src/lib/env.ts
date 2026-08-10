@@ -43,3 +43,29 @@ export const env = {
     partnerToken: process.env.DIDOX_PARTNER_TOKEN ?? "",
   },
 };
+
+/**
+ * Ishlab chiqarishda (NODE_ENV=production) majburiy sirlar haqiqatan o'rnatilganini
+ * tekshiradi — ular yo'q/standart (ochiq) qiymatda bo'lsa server ISHGA TUSHMAYDI.
+ * Sababi: JWT_SECRET standart bo'lib qolsa, HAR KIM istalgan foydalanuvchi/rol/tenant
+ * uchun to'g'ri token yasab, autentifikatsiyani butunlay chetlab o'ta oladi — bu
+ * "keyinroq foydalanish joyida xato beradi" emas, darhol to'xtatilishi shart muammo.
+ */
+export function validateEnv(): void {
+  if (!env.isProd) return;
+  const problems: string[] = [];
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "change-me-in-production") {
+    problems.push("JWT_SECRET o'rnatilmagan yoki standart qiymatda qolgan");
+  }
+  if (!process.env.SECRETS_ENCRYPTION_KEY) {
+    problems.push("SECRETS_ENCRYPTION_KEY o'rnatilmagan — tenant sirlarini (Click/Payme/Didox) shifrlab bo'lmaydi");
+  }
+  if (!process.env.DATABASE_URL) {
+    problems.push("DATABASE_URL o'rnatilmagan");
+  }
+  if (problems.length > 0) {
+    console.error("✗ Xavfsiz bo'lmagan konfiguratsiya bilan production'da ishga tushirish rad etildi:");
+    for (const p of problems) console.error(`  - ${p}`);
+    process.exit(1);
+  }
+}

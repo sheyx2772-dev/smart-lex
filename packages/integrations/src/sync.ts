@@ -1,4 +1,5 @@
 import { auditLogs, contractors, contracts, documents, invoices, tenants, withTenant } from "@lex/db";
+import { decryptSecret } from "@lex/shared/secrets";
 import { and, eq, inArray } from "drizzle-orm";
 import { createDataSource } from "./datasource/index";
 
@@ -16,7 +17,7 @@ export async function syncTenant(tenantId: string) {
   // Didox user-key AVVAL tenant sozlamasidan (har firma o'z kaliti), aks holda global env.
   const settings = (tenant.settings ?? {}) as Record<string, unknown>;
   const integrations = (settings.integrations ?? {}) as Record<string, string>;
-  const source = createDataSource(tenant.type, { userKey: integrations.didoxToken });
+  const source = createDataSource(tenant.type, { userKey: decryptSecret(integrations.didoxToken) });
 
   let snap;
   try {

@@ -15,6 +15,7 @@
     "test": "turbo run test",
     "db:generate": "pnpm --filter @lex/db generate",
     "db:migrate": "pnpm --filter @lex/db migrate",
+    "db:migrate:secrets": "pnpm --filter @lex/db migrate:secrets",
     "db:push": "pnpm --filter @lex/db push",
     "db:seed": "pnpm --filter @lex/db seed",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
@@ -28,7 +29,8 @@
   },
   "pnpm": {
     "overrides": {
-      "ioredis": "5.11.1"
+      "ioredis": "5.11.1",
+      "form-data": "^4.0.4"
     }
   }
 }

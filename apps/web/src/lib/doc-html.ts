@@ -1,6 +1,20 @@
+import DOMPurify from "isomorphic-dompurify";
+
 /** Matn HTML'mi (teg bormi). */
 export function isHtml(s: string): boolean {
   return /<\/?[a-z][\s\S]*>/i.test(s);
+}
+
+/**
+ * AI/foydalanuvchi tomonidan yaratilgan HTML'ni ko'rsatishdan oldin tozalaydi —
+ * hujjat matni (talabnoma/da'vo) Studio'da tahrirlanadi va keyin boshqa foydalanuvchi
+ * tomonidan ko'riladi, shuning uchun <script>/onerror kabi zararli belgilarni olib
+ * tashlash shart (stored XSS'ning oldini olish). isomorphic-dompurify — server (Next.js
+ * SSR, jsdom orqali) va brauzerda BIR XIL ishlaydi, shuning uchun SSR bosqichida ham
+ * tozalanmagan HTML sahifa manbaida qolib ketmaydi.
+ */
+export function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 }
 
 function escapeHtml(s: string): string {
@@ -41,7 +55,7 @@ export function plainToHtml(plain: string): string {
   return out.join("");
 }
 
-/** Ko'rsatish uchun HTML (agar oddiy matn bo'lsa — HTML'ga o'giradi). */
+/** Ko'rsatish uchun HTML (agar oddiy matn bo'lsa — HTML'ga o'giradi). Har doim tozalanadi. */
 export function toDisplayHtml(body: string): string {
-  return isHtml(body) ? body : plainToHtml(body);
+  return sanitizeHtml(isHtml(body) ? body : plainToHtml(body));
 }
