@@ -1,6 +1,6 @@
 import { encryptSecret, isEncrypted } from "@lex/shared/secrets";
 import { eq } from "drizzle-orm";
-import { getDb, tenants } from "./client";
+import { getDb, tenants, users, withTenant } from "./client";
 
 /**
  * BIR MARTALIK skript: production'da hozirgi ochiq matnda saqlangan tenant sirlarini
@@ -52,9 +52,20 @@ async function main(): Promise<void> {
       changed++;
       console.log(`  tenant ${row.id}: sirlar shifrlandi`);
     }
+
+    // cabinet.sud.uz sessiya tokeni — users jadvali RLS bilan himoyalangan, shuning
+    // uchun withTenant() orqali (users tenant_scoped table ro'yxatida).
+    const userRows = await withTenant(row.id, (tx) => tx.select({ id: users.id, courtAuthToken: users.courtAuthToken }).from(users));
+    for (const u of userRows) {
+      if (u.courtAuthToken && !isEncrypted(u.courtAuthToken)) {
+        await withTenant(row.id, (tx) => tx.update(users).set({ courtAuthToken: encryptSecret(u.courtAuthToken) }).where(eq(users.id, u.id)));
+        changed++;
+        console.log(`  user ${u.id}: sud tokeni shifrlandi`);
+      }
+    }
   }
 
-  console.log(`✓ Tayyor. ${changed}/${rows.length} tenant yangilandi.`);
+  console.log(`✓ Tayyor. ${changed} ta yozuv yangilandi (${rows.length} tenant tekshirildi).`);
 }
 
 main()
