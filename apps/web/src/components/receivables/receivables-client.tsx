@@ -148,7 +148,7 @@ export function ReceivablesClient({ initial, portfolio }: { initial: Receivables
   const tabs = ["all", ...STATUS_ORDER.filter((s) => data.byStatus[s])];
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex min-h-full w-full flex-col">
       {/* Header */}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -225,7 +225,7 @@ export function ReceivablesClient({ initial, portfolio }: { initial: Receivables
       </div>
 
       {/* Master-detail */}
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[400px_1fr]">
+      <div className="grid min-h-[560px] flex-1 gap-4 lg:grid-cols-[400px_1fr]">
         {/* List + pagination */}
         <div className="flex min-h-0 flex-col">
         <div className={cn("scroll-clean min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 transition-opacity", listLoading && "opacity-50")}>
