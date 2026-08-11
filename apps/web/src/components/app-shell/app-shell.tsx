@@ -190,6 +190,21 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, chil
               <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">Platforma</p>
               <div className="space-y-0.5">
                 <Link
+                  href="/admin/financing"
+                  className={cn(
+                    "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
+                    isActive("/admin/financing") ? "bg-white/[0.10] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white/90",
+                  )}
+                >
+                  {isActive("/admin/financing") && (
+                    <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white" style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }} />
+                  )}
+                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", isActive("/admin/financing") ? "bg-white text-zinc-900 shadow-sm" : "bg-white/[0.06] text-white/60 group-hover:text-white")}>
+                    <HandCoins weight={isActive("/admin/financing") ? "fill" : "regular"} className="size-[16px]" />
+                  </span>
+                  <span className="flex-1">Factoring (B2B)</span>
+                </Link>
+                <Link
                   href="/admin"
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
@@ -203,21 +218,6 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, chil
                     <ShieldStar weight={pathname === "/admin" ? "fill" : "regular"} className="size-[16px]" />
                   </span>
                   <span className="flex-1">Boshqaruv</span>
-                </Link>
-                <Link
-                  href="/admin/financing"
-                  className={cn(
-                    "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
-                    isActive("/admin/financing") ? "bg-white/[0.10] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white/90",
-                  )}
-                >
-                  {isActive("/admin/financing") && (
-                    <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white" style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }} />
-                  )}
-                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", isActive("/admin/financing") ? "bg-white text-zinc-900 shadow-sm" : "bg-white/[0.06] text-white/60 group-hover:text-white")}>
-                    <HandCoins weight={isActive("/admin/financing") ? "fill" : "regular"} className="size-[16px]" />
-                  </span>
-                  <span className="flex-1">Moliyalashtirish</span>
                 </Link>
               </div>
             </div>

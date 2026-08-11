@@ -35,10 +35,10 @@ export function FinancingAdminClient({ items }: { items: FinancingListingRow[] }
     <div className="mx-auto w-full max-w-5xl space-y-5">
       <div>
         <h1 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight">
-          <HandCoins weight="fill" className="size-6 text-primary" /> Moliyalashtirish bozori
+          <HandCoins weight="fill" className="size-6 text-primary" /> Factoring bozori (B2B)
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Mijozlar ro'yxatga qo'ygan qarzlar — bank/NBKT hamkorlar bilan qo'lda moslashtiring. Haqiqiy bitim (pul o'tkazmasi) platformadan tashqarida bo'ladi.
+          B2B mijozlar ro'yxatga qo'ygan qarzlar — bank/NBKT (nobank kredit tashkiloti) hamkorlar bilan qo'lda moslashtiring. SmartLex talab huquqi yoki pulni o'ziga olmaydi; haqiqiy bitim (moliyalashtirish + talab tsessiyasi) platformadan tashqarida, xaridor bilan to'g'ridan-to'g'ri bo'ladi.
         </p>
       </div>
 
