@@ -104,6 +104,16 @@ export const MESSAGES = {
     ru: "Нельзя подать в суд с DEMO-подписью — подпишите через настоящий E-IMZO Client",
     en: "Cannot file with a DEMO signature — sign with the real E-IMZO Client",
   },
+  "financing.not_eligible": {
+    uz: "Bu qarz moliyalashtirish bozori uchun mos emas (xavf darajasi yuqori)",
+    ru: "Этот долг не подходит для рынка финансирования (высокий уровень риска)",
+    en: "This debt isn't eligible for the financing marketplace (risk level too high)",
+  },
+  "financing.already_listed": {
+    uz: "Bu qarz allaqachon bozorga qo'yilgan",
+    ru: "Этот долг уже размещён на рынке",
+    en: "This debt is already listed on the marketplace",
+  },
 
   // ── Debitorlik / Receivable ─────────────────────────────
   "receivable.overdue": {

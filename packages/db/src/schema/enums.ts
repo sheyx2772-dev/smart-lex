@@ -6,6 +6,7 @@ import {
   COLLECTION_STAGES,
   CURRENCIES,
   DOCUMENT_TYPES,
+  FINANCING_LISTING_STATUSES,
   LOCALES,
   OVERRIDE_STATUSES,
   OVERRIDE_TYPES,
@@ -47,3 +48,4 @@ export const overrideTypeEnum = pgEnum("override_type", tuple(OVERRIDE_TYPES));
 export const overrideStatusEnum = pgEnum("override_status", tuple(OVERRIDE_STATUSES));
 export const promiseTypeEnum = pgEnum("promise_type", tuple(PROMISE_TYPES));
 export const promiseStatusEnum = pgEnum("promise_status", tuple(PROMISE_STATUSES));
+export const financingListingStatusEnum = pgEnum("financing_listing_status", tuple(FINANCING_LISTING_STATUSES));

@@ -676,7 +676,13 @@
     "promiseKept": "Обещание выполнено",
     "promiseBroken": "Обещание нарушено — срок истёк",
     "promiseAmount": "Сумма",
-    "promiseDueDate": "Срок"
+    "promiseDueDate": "Срок",
+    "financingHeading": "Рынок финансирования",
+    "financingSuggested": "Предлагаемая скидка",
+    "financingHint": "Показывается банкам/финансовым организациям. Сделка (перевод денег) происходит вне платформы, напрямую с покупателем.",
+    "financingList": "Разместить на рынке",
+    "financingListed": "Этот долг сейчас на рынке — ожидается ответ покупателя.",
+    "financingWithdraw": "Снять с рынка"
   },
   "companies": {
     "title": "Контрагенты",

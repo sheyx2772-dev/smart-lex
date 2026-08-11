@@ -19,6 +19,7 @@ import {
   collectionStageEnum,
   currencyEnum,
   documentTypeEnum,
+  financingListingStatusEnum,
   localeEnum,
   overrideStatusEnum,
   overrideTypeEnum,
@@ -319,6 +320,46 @@ export const paymentPromises = pgTable(
   (t) => [
     index("promises_tenant_receivable_idx").on(t.tenantId, t.receivableId),
     index("promises_tenant_status_due_idx").on(t.tenantId, t.status, t.dueDate),
+  ],
+);
+
+/**
+ * Moliyalashtirish bozori (factoring marketplace) — mijoz DS-Score bilan tasdiqlangan
+ * qarzini bank/NBKT xaridorlariga ko'rsatish uchun ro'yxatga qo'yadi. SmartLex bu yerda
+ * pul yoki talab huquqini O'ZIGA OLMAYDI — faqat moslashtiradi (Ishonchli Reestr modeli).
+ * Haqiqiy bitim (moliyalashtirish + talab tsessiyasi) platformadan tashqarida, xaridor
+ * bilan to'g'ridan-to'g'ri amalga oshadi; matchedPartnerName/discount shuni qo'lda
+ * (MC Legal tomonidan) qayd etish uchun.
+ */
+export const financingListings = pgTable(
+  "financing_listings",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    receivableId: uuid("receivable_id")
+      .notNull()
+      .references(() => receivables.id, { onDelete: "cascade" }),
+    status: financingListingStatusEnum("status").notNull().default("listed"),
+    amountMinor: bigint("amount_minor", { mode: "bigint" }).notNull(),
+    currency: currencyEnum("currency").notNull(),
+    /** Ro'yxatga qo'yilgan paytdagi risk-skor snapshoti (keyin o'zgarsa ham tarix saqlanadi). */
+    riskScoreAtListing: integer("risk_score_at_listing").notNull(),
+    suggestedDiscountBps: integer("suggested_discount_bps").notNull(),
+    /** Sotuvchi o'zi so'ragan stavka (C2FO "Name Your Rate" — taklifni o'zgartirishi mumkin). */
+    requestedDiscountBps: integer("requested_discount_bps"),
+    matchedPartnerName: text("matched_partner_name"),
+    matchedDiscountBps: integer("matched_discount_bps"),
+    notes: text("notes"),
+    matchedAt: timestamp("matched_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index("financing_tenant_status_idx").on(t.tenantId, t.status),
+    index("financing_tenant_receivable_idx").on(t.tenantId, t.receivableId),
   ],
 );
 

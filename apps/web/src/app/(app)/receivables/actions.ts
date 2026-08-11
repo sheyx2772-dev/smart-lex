@@ -24,6 +24,17 @@ export async function sendReminder(id: string) {
   return apiServer<{ channel: string; address: string }>(`/api/receivables/${id}/reminder`, { method: "POST" });
 }
 
+export async function listForFinancing(receivableId: string, requestedDiscountBps?: number) {
+  return apiServer<{ id: string }>("/api/financing/list", {
+    method: "POST",
+    body: JSON.stringify({ receivableId, requestedDiscountBps }),
+  });
+}
+
+export async function withdrawFromFinancing(listingId: string) {
+  return apiServer(`/api/financing/${listingId}/withdraw`, { method: "POST" });
+}
+
 export async function fetchReceivables(params: {
   page: number;
   status: string;

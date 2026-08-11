@@ -37,6 +37,14 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 export const PROMISE_TYPES = ["settlement", "installment"] as const;
 export type PromiseType = (typeof PROMISE_TYPES)[number];
 
+/**
+ * Moliyalashtirish bozori (factoring marketplace) — sotuvchi (mijoz) qarzni bank/NBKT
+ * xaridorlariga sotish uchun ro'yxatga qo'yadi. SmartLex talab yoki pulni O'ZIGA OLMAYDI —
+ * faqat moslashtiradi; haqiqiy bitim (pul + talab tsessiyasi) platformadan tashqarida.
+ */
+export const FINANCING_LISTING_STATUSES = ["listed", "withdrawn", "matched", "completed"] as const;
+export type FinancingListingStatus = (typeof FINANCING_LISTING_STATUSES)[number];
+
 /** Va'da holati — muddat kelmaguncha "pending", to'lov qilinsa "kept", muddat o'tsa "broken". */
 export const PROMISE_STATUSES = ["pending", "kept", "broken"] as const;
 export type PromiseStatus = (typeof PROMISE_STATUSES)[number];

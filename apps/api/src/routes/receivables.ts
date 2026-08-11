@@ -1,8 +1,9 @@
-import { type AgingBucket, calcPenalty, calcRisk, evaluateReceivable, format, money } from "@lex/core";
+import { type AgingBucket, calcPenalty, calcRisk, evaluateReceivable, format, money, suggestFactoringQuote } from "@lex/core";
 import {
   auditLogs,
   contractors,
   contracts,
+  financingListings,
   invoices,
   paymentPromises,
   payments,
@@ -288,14 +289,21 @@ receivableRoutes.get("/receivables/:id", async (c) => {
       .orderBy(desc(paymentPromises.createdAt))
       .limit(1);
 
-    return { row, paymentRows, reminderRows, decisionRow, promiseRow };
+    // Moliyalashtirish bozorida faol ro'yxatga qo'yilganmi.
+    const [activeListing] = await tx
+      .select({ id: financingListings.id, requestedDiscountBps: financingListings.requestedDiscountBps })
+      .from(financingListings)
+      .where(and(eq(financingListings.receivableId, id), eq(financingListings.status, "listed")))
+      .limit(1);
+
+    return { row, paymentRows, reminderRows, decisionRow, promiseRow, activeListing };
   });
 
   if (!result) {
     return c.json(ok(null, "common.ok", c.get("locale")));
   }
 
-  const { row, paymentRows, reminderRows, decisionRow, promiseRow } = result;
+  const { row, paymentRows, reminderRows, decisionRow, promiseRow, activeListing } = result;
   const cur = row.currency;
   const paidMinor = paymentRows.reduce((s, p) => s + p.amountMinor, 0n);
   const decisionDetail = decisionRow?.detail as { reason?: string; factors?: unknown[]; action?: string; recoveryScore?: number } | undefined;
@@ -377,6 +385,10 @@ receivableRoutes.get("/receivables/:id", async (c) => {
           offerText: promiseRow.offerText,
         }
       : null,
+    financing:
+      row.status === "paid" || row.status === "written_off"
+        ? { eligible: false, band: "not_eligible" as const, suggestedDiscountBps: 0, activeListingId: null }
+        : { ...suggestFactoringQuote(row.riskScore), activeListingId: activeListing?.id ?? null },
   };
 
   return c.json(ok(data, "common.ok", c.get("locale")));

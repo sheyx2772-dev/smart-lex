@@ -87,4 +87,10 @@ export interface ReceivableDetail {
     status: string;
     offerText: string;
   } | null;
+  financing: {
+    eligible: boolean;
+    band: "low" | "medium" | "not_eligible";
+    suggestedDiscountBps: number;
+    activeListingId: string | null;
+  };
 }

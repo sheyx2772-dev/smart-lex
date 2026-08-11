@@ -57,6 +57,13 @@
       "when": 1786140014179,
       "tag": "0007_jittery_kang",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786392891113,
+      "tag": "0008_narrow_king_cobra",
+      "breakpoints": true
     }
   ]
 }

@@ -676,7 +676,13 @@
     "promiseKept": "Promise kept",
     "promiseBroken": "Promise broken — deadline passed",
     "promiseAmount": "Amount",
-    "promiseDueDate": "Deadline"
+    "promiseDueDate": "Deadline",
+    "financingHeading": "Financing Marketplace",
+    "financingSuggested": "Suggested discount",
+    "financingHint": "Shown to banks/financial institutions. The deal (money transfer) happens off-platform, directly with the buyer.",
+    "financingList": "List on marketplace",
+    "financingListed": "This debt is currently listed — waiting on a buyer response.",
+    "financingWithdraw": "Remove from marketplace"
   },
   "companies": {
     "title": "Counterparties",

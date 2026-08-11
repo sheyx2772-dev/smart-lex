@@ -11,6 +11,7 @@ import { auditRoutes } from "./routes/audit";
 import { authRoutes } from "./routes/auth";
 import { chatRoutes } from "./routes/chat";
 import { didoxNotifyRoutes } from "./routes/didox-notify";
+import { financingRoutes } from "./routes/financing";
 import { paymentRoutes, paymentWebhookRoutes } from "./routes/payment";
 import { debtorPortalRoutes } from "./routes/debtor-portal";
 import { merchantRoutes } from "./routes/merchant";
@@ -88,6 +89,7 @@ export function createApp() {
   api.route("/", reminderRoutes);
   api.route("/", syncRoutes);
   api.route("/", auditRoutes);
+  api.route("/", financingRoutes);
   api.route("/approvals", approvalRoutes);
   api.route("/settings", settingsRoutes);
   api.route("/", miscRoutes);

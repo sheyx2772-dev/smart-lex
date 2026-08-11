@@ -10,6 +10,7 @@ import {
   EnvelopeSimple,
   FileText,
   Gavel,
+  HandCoins,
   MagnifyingGlass,
   MapPin,
   PaperPlaneTilt,
@@ -25,7 +26,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { generateLawsuit } from "@/app/(app)/companies/[id]/actions";
-import { fetchReceivables, getReceivableDetail, recordPayment, sendReminder, writeOffReceivable } from "@/app/(app)/receivables/actions";
+import {
+  fetchReceivables,
+  getReceivableDetail,
+  listForFinancing,
+  recordPayment,
+  sendReminder,
+  withdrawFromFinancing,
+  writeOffReceivable,
+} from "@/app/(app)/receivables/actions";
 import { formatMoneyInput, unformatMoney } from "@/lib/format";
 import { Badge, STATUS_TONE, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -366,6 +375,22 @@ function DetailPanel({
     if (res.success) onPaid();
   }
 
+  const [financingBusy, setFinancingBusy] = useState(false);
+  async function doListForFinancing() {
+    if (financingBusy) return;
+    setFinancingBusy(true);
+    const res = await listForFinancing(row.id);
+    setFinancingBusy(false);
+    if (res.success) onPaid();
+  }
+  async function doWithdrawFinancing(listingId: string) {
+    if (financingBusy) return;
+    setFinancingBusy(true);
+    const res = await withdrawFromFinancing(listingId);
+    setFinancingBusy(false);
+    if (res.success) onPaid();
+  }
+
   async function submitPayment() {
     const minor = unformatMoney(payAmount);
     if (!minor || minor === "0" || paying) return;
@@ -477,6 +502,34 @@ function DetailPanel({
           <p className="mt-2 text-xs text-muted-foreground">
             {t("promiseAmount")}: <span className="font-medium text-foreground">{detail.promise.amount.formatted}</span> · {t("promiseDueDate")}: {fmtDate(detail.promise.dueDate)}
           </p>
+        </Card>
+      )}
+
+      {/* Moliyalashtirish bozori — DS-Score bilan tasdiqlangan qarzni bank/NBKT ga sotish (sud o'rniga muqobil) */}
+      {detail?.financing && (detail.financing.eligible || detail.financing.activeListingId) && (
+        <Card className="border-primary/20 bg-primary-soft/10 p-5">
+          <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+            <HandCoins weight="fill" className="size-3.5" /> {t("financingHeading")}
+          </h3>
+          {detail.financing.activeListingId ? (
+            <>
+              <p className="text-sm">{t("financingListed")}</p>
+              <Button variant="outline" onClick={() => doWithdrawFinancing(detail.financing.activeListingId!)} disabled={financingBusy} className="mt-3">
+                {financingBusy ? t("saving") : t("financingWithdraw")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {t("financingSuggested")}: <span className="font-medium text-foreground">{(detail.financing.suggestedDiscountBps / 100).toFixed(1)}%</span>
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{t("financingHint")}</p>
+              <Button onClick={doListForFinancing} disabled={financingBusy} className="mt-3">
+                <HandCoins weight="fill" className="size-4" />
+                {financingBusy ? t("saving") : t("financingList")}
+              </Button>
+            </>
+          )}
         </Card>
       )}
 

@@ -5,5 +5,6 @@ export * from "./receivable.js";
 export * from "./collection.js";
 export * from "./risk.js";
 export * from "./ds-score.js";
+export * from "./factoring.js";
 export * from "./case-state.js";
 export * from "./legal.js";
