@@ -1,9 +1,11 @@
 import { calcPenalty, calcRisk, evaluateReceivable, money } from "@lex/core";
-import { closeDb, contracts as contractsTable, getDb, invoices as invoicesTable, payments as paymentsTable, receivables, withTenant } from "@lex/db";
-import { eq, inArray, isNull } from "drizzle-orm";
+import { closeDb, contracts as contractsTable, getDb, invoices as invoicesTable, payments as paymentsTable, receivables, tenants as tenantsTable, withTenant } from "@lex/db";
+import { eq, isNull, inArray } from "drizzle-orm";
 
 /**
  * Invoice → receivable snapshot hisoblaydi (LLM/Groq'siz — faqat deterministik core).
+ * Har bir tenant o'z RLS kontekstida (withTenant) tekshiriladi — tenants jadvali
+ * o'zi RLS'siz, lekin invoices/receivables RLS bilan himoyalangan.
  * Sinxronlashdan keyin monitor cron LLM rate-limit'da tiqilib qolganda ishlatiladi:
  *   pnpm --filter @lex/worker backfill:receivables
  */
@@ -11,23 +13,21 @@ async function main(): Promise<void> {
   const db = getDb();
   const now = new Date();
 
-  const missing = await db
-    .select({ invoiceId: invoicesTable.id, tenantId: invoicesTable.tenantId })
-    .from(invoicesTable)
-    .leftJoin(receivables, eq(receivables.invoiceId, invoicesTable.id))
-    .where(isNull(receivables.id));
-
-  const byTenant = new Map<string, string[]>();
-  for (const row of missing) {
-    const arr = byTenant.get(row.tenantId) ?? [];
-    arr.push(row.invoiceId);
-    byTenant.set(row.tenantId, arr);
-  }
+  const allTenants = await db.select({ id: tenantsTable.id }).from(tenantsTable);
 
   let created = 0;
-  for (const [tenantId, invoiceIds] of byTenant) {
-    await withTenant(tenantId, async (tx) => {
-      const invoiceRows = await tx.select().from(invoicesTable).where(inArray(invoicesTable.id, invoiceIds));
+  let tenantsWithWork = 0;
+  for (const { id: tenantId } of allTenants) {
+    const count = await withTenant(tenantId, async (tx) => {
+      const invoiceRows = await tx
+        .select()
+        .from(invoicesTable)
+        .leftJoin(receivables, eq(receivables.invoiceId, invoicesTable.id))
+        .where(isNull(receivables.id))
+        .then((rows) => rows.map((r) => r.invoices));
+      if (invoiceRows.length === 0) return 0;
+
+      const invoiceIds = invoiceRows.map((i) => i.id);
       const contractIds = invoiceRows.map((i) => i.contractId).filter((id): id is string => Boolean(id));
       const contractRows = contractIds.length ? await tx.select().from(contractsTable).where(inArray(contractsTable.id, contractIds)) : [];
       const contractById = new Map(contractRows.map((c) => [c.id, c]));
@@ -38,6 +38,7 @@ async function main(): Promise<void> {
         paidByInvoice.set(p.invoiceId, (paidByInvoice.get(p.invoiceId) ?? 0n) + p.amountMinor);
       }
 
+      let insertedForTenant = 0;
       for (const invoice of invoiceRows) {
         const contract = invoice.contractId ? contractById.get(invoice.contractId) : undefined;
         const invoiced = money(invoice.amountMinor, invoice.currency);
@@ -68,13 +69,18 @@ async function main(): Promise<void> {
             lastEvaluatedAt: now,
           })
           .onConflictDoNothing({ target: receivables.invoiceId });
-        created++;
+        insertedForTenant++;
       }
+      return insertedForTenant;
     });
-    console.log(`[backfill] tenant ${tenantId}: ${invoiceIds.length} invoices`);
+    if (count > 0) {
+      created += count;
+      tenantsWithWork++;
+      console.log(`[backfill] tenant ${tenantId}: ${count} receivables created`);
+    }
   }
 
-  console.log(`[backfill] done. tenants=${byTenant.size} receivablesCreated=${created}`);
+  console.log(`[backfill] done. tenantsWithWork=${tenantsWithWork} receivablesCreated=${created}`);
   await closeDb();
 }
 
