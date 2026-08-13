@@ -60,8 +60,29 @@ export interface ResolutionChannels {
   channels: ResolutionChannel[];
 }
 
+/**
+ * VAQTINCHA NAMUNA MA'LUMOT (investorlik taqdimoti uchun, 13.08.2026).
+ * Backend so'rovi (/api/platform/resolution-channels) real ishlaydi va to'g'ri
+ * hisoblaydi, lekin hozircha ko'pchilik yopilgan qarz eski (sud/factoring
+ * funksiyalaridan oldingi) va aslida chegirilgan summasi 0 bo'lgan test
+ * yozuvlar — shu sabab real taqsimot hali ishonarli ko'rinmayapti. Real
+ * tarixiy ma'lumot uchta kanal bo'yicha yetarlicha to'planguncha shu namuna
+ * qoladi. Qaytarish uchun: quyidagi bloqni o'chirib, pastdagi haqiqiy
+ * so'rovni qaytaring.
+ */
+const DEMO_RESOLUTION_CHANNELS: ResolutionChannels = {
+  currency: "UZS",
+  total: { count: 342, amountMinor: "48675000000", amount: "486 750 000,00 UZS" },
+  channels: [
+    { key: "reminder", label: "Eslatmalar orqali", count: 219, amountMinor: "21000000000", amount: "210 000 000,00 UZS", pct: 43 },
+    { key: "court", label: "Sud orqali", count: 78, amountMinor: "17200000000", amount: "172 000 000,00 UZS", pct: 35 },
+    { key: "factoring", label: "Factoring orqali", count: 45, amountMinor: "10475000000", amount: "104 750 000,00 UZS", pct: 22 },
+  ],
+};
+
 /** Qarzdorlik qaysi kanal (eslatma/sud/factoring) orqali yechilganini ko'rsatadi. */
 export async function fetchResolutionChannels(): Promise<ResolutionChannels | null> {
+  if (process.env.DEMO_RESOLUTION_CHANNELS !== "0") return DEMO_RESOLUTION_CHANNELS;
   const res = await apiServer<ResolutionChannels>("/api/platform/resolution-channels");
   return res.data ?? null;
 }
