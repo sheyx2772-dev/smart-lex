@@ -47,7 +47,7 @@ export async function fetchTenantDetail(id: string): Promise<TenantDetail | null
 }
 
 export interface ResolutionChannel {
-  key: "reminder" | "court" | "factoring";
+  key: "reminder" | "court" | "tax" | "factoring";
   label: string;
   count: number;
   amountMinor: string;
@@ -66,9 +66,14 @@ export interface ResolutionChannels {
  * hisoblaydi, lekin hozircha ko'pchilik yopilgan qarz eski (sud/factoring
  * funksiyalaridan oldingi) va aslida chegirilgan summasi 0 bo'lgan test
  * yozuvlar — shu sabab real taqsimot hali ishonarli ko'rinmayapti. Real
- * tarixiy ma'lumot uchta kanal bo'yicha yetarlicha to'planguncha shu namuna
+ * tarixiy ma'lumot kanallar bo'yicha yetarlicha to'planguncha shu namuna
  * qoladi. Qaytarish uchun: quyidagi bloqni o'chirib, pastdagi haqiqiy
  * so'rovni qaytaring.
+ *
+ * Factoring 0 — xizmat hali ishga tushirilmagan (bozorga birinchi qarz
+ * chiqarilmagan). Soliq orqali — akt sverka + hisob-faktura orqali qarzni
+ * kontragentning soliq qarziga o'tkazish mexanizmi (haqiqiy undiruv usuli,
+ * lekin hali alohida kuzatilmaydi — shu ham namuna).
  */
 const DEMO_RESOLUTION_CHANNELS: ResolutionChannels = {
   currency: "UZS",
@@ -76,7 +81,8 @@ const DEMO_RESOLUTION_CHANNELS: ResolutionChannels = {
   channels: [
     { key: "reminder", label: "Eslatmalar orqali", count: 219, amountMinor: "21000000000", amount: "210 000 000,00 UZS", pct: 43 },
     { key: "court", label: "Sud orqali", count: 78, amountMinor: "17200000000", amount: "172 000 000,00 UZS", pct: 35 },
-    { key: "factoring", label: "Factoring orqali", count: 45, amountMinor: "10475000000", amount: "104 750 000,00 UZS", pct: 22 },
+    { key: "tax", label: "Soliq orqali", count: 45, amountMinor: "10475000000", amount: "104 750 000,00 UZS", pct: 22 },
+    { key: "factoring", label: "Factoring orqali", count: 0, amountMinor: "0", amount: "0,00 UZS", pct: 0 },
   ],
 };
 

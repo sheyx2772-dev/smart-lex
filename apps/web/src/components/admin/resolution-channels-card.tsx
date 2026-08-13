@@ -1,12 +1,13 @@
 "use client";
 
-import { Bell, Gavel, HandCoins, TrendUp } from "@phosphor-icons/react";
+import { Bell, Gavel, HandCoins, Percent, TrendUp } from "@phosphor-icons/react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { ResolutionChannels } from "@/app/(app)/admin/actions";
 
 const CHANNEL_META: Record<string, { icon: typeof Bell; color: string; soft: string }> = {
   reminder: { icon: Bell, color: "var(--color-primary)", soft: "var(--color-primary-soft)" },
   court: { icon: Gavel, color: "var(--color-warning)", soft: "var(--color-warning-soft)" },
+  tax: { icon: Percent, color: "var(--color-brand)", soft: "var(--color-brand-soft)" },
   factoring: { icon: HandCoins, color: "var(--color-success)", soft: "var(--color-success-soft)" },
 };
 
