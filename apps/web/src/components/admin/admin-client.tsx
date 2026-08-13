@@ -2,6 +2,9 @@
 
 import {
   Buildings,
+  CaretDown,
+  CaretUp,
+  CaretUpDown,
   CheckCircle,
   CircleNotch,
   Clock,
@@ -20,7 +23,7 @@ import {
   XCircle,
   type Icon,
 } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { fetchTenantDetail, setSubscription, setTenantPlan, type TenantDetail, type TenantDoc } from "@/app/(app)/admin/actions";
 import { sanitizeHtml } from "@/lib/doc-html";
 
@@ -91,6 +94,52 @@ export interface AdminData {
 
 const PLANS = ["Boshlang'ich", "Standart", "Professional"];
 
+const SUB_RANK: Record<string, number> = { none: 0, expired: 1, trial: 2, active: 3 };
+
+type SortKey = "name" | "plan" | "users" | "receivables" | "outstanding" | "documents" | "reminders" | "pendingApprovals" | "oferta" | "subscription" | "lastActivity";
+
+const SORT_COLUMNS: { key: SortKey; label: string; align?: "center" | "right" }[] = [
+  { key: "name", label: "Mijoz" },
+  { key: "plan", label: "Tarif / Limit" },
+  { key: "users", label: "Foyd.", align: "center" },
+  { key: "receivables", label: "Qarzlar", align: "center" },
+  { key: "outstanding", label: "Qoldiq", align: "right" },
+  { key: "documents", label: "Hujjat", align: "center" },
+  { key: "reminders", label: "Eslatma", align: "center" },
+  { key: "pendingApprovals", label: "Tasdiq", align: "center" },
+  { key: "oferta", label: "Oferta" },
+  { key: "subscription", label: "Obuna" },
+  { key: "lastActivity", label: "Oxirgi faoliyat" },
+];
+
+/** Har bir ustun uchun taqqoslanadigan qiymat — raqam/matn/sana aralash bo'lgani uchun. */
+function sortValue(tn: AdminTenant, key: SortKey): string | number {
+  switch (key) {
+    case "name":
+      return tn.name;
+    case "plan":
+      return tn.plan ?? "";
+    case "users":
+      return tn.users;
+    case "receivables":
+      return tn.receivables;
+    case "outstanding":
+      return Number(tn.outstanding.replace(/[^\d.-]/g, "")) || 0;
+    case "documents":
+      return tn.documents;
+    case "reminders":
+      return tn.reminders;
+    case "pendingApprovals":
+      return tn.pendingApprovals;
+    case "oferta":
+      return tn.ofertaAccepted ? 1 : 0;
+    case "subscription":
+      return SUB_RANK[tn.subscription.status] ?? 0;
+    case "lastActivity":
+      return tn.lastActivity ? new Date(tn.lastActivity).getTime() : -Infinity;
+  }
+}
+
 export function AdminClient({ data }: { data: AdminData }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [plan, setPlan] = useState("");
@@ -103,6 +152,21 @@ export function AdminClient({ data }: { data: AdminData }) {
   const [proofOpen, setProofOpen] = useState(false);
 
   const [subBusy, setSubBusy] = useState<string | null>(null);
+
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
+  function toggleSort(key: SortKey) {
+    setSort((prev) => (prev && prev.key === key ? (prev.dir === "asc" ? { key, dir: "desc" } : null) : { key, dir: "asc" }));
+  }
+  const sortedTenants = useMemo(() => {
+    if (!sort) return data.tenants;
+    const { key, dir } = sort;
+    return [...data.tenants].sort((a, b) => {
+      const va = sortValue(a, key);
+      const vb = sortValue(b, key);
+      const cmp = typeof va === "string" && typeof vb === "string" ? va.localeCompare(vb, "uz") : (va as number) - (vb as number);
+      return dir === "asc" ? cmp : -cmp;
+    });
+  }, [data.tenants, sort]);
 
   async function openDetail(id: string) {
     setLoadingDetail(true);
@@ -185,21 +249,26 @@ export function AdminClient({ data }: { data: AdminData }) {
           <table className="w-full min-w-[900px] text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <th className="px-5 py-2.5 font-medium">Mijoz</th>
-                <th className="px-4 py-2.5 font-medium">Tarif / Limit</th>
-                <th className="px-4 py-2.5 text-center font-medium">Foyd.</th>
-                <th className="px-4 py-2.5 text-center font-medium">Qarzlar</th>
-                <th className="px-4 py-2.5 text-right font-medium">Qoldiq</th>
-                <th className="px-4 py-2.5 text-center font-medium">Hujjat</th>
-                <th className="px-4 py-2.5 text-center font-medium">Eslatma</th>
-                <th className="px-4 py-2.5 text-center font-medium">Tasdiq</th>
-                <th className="px-4 py-2.5 font-medium">Oferta</th>
-                <th className="px-4 py-2.5 font-medium">Obuna</th>
-                <th className="px-4 py-2.5 font-medium">Oxirgi faoliyat</th>
+                {SORT_COLUMNS.map((col) => {
+                  const active = sort?.key === col.key;
+                  const CaretIcon = active ? (sort!.dir === "asc" ? CaretUp : CaretDown) : CaretUpDown;
+                  return (
+                    <th key={col.key} className={`px-4 py-2.5 font-medium first:px-5 ${col.align === "center" ? "text-center" : col.align === "right" ? "text-right" : "text-left"}`}>
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(col.key)}
+                        className={`inline-flex items-center gap-1 transition-colors hover:text-foreground ${active ? "text-foreground" : ""} ${col.align === "center" ? "justify-center" : col.align === "right" ? "justify-end" : ""}`}
+                      >
+                        {col.label}
+                        <CaretIcon weight={active ? "bold" : "regular"} className={`size-3 ${active ? "" : "opacity-40"}`} />
+                      </button>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
-              {data.tenants.map((tn) => (
+              {sortedTenants.map((tn) => (
                 <tr
                   key={tn.id}
                   onClick={() => openDetail(tn.id)}
