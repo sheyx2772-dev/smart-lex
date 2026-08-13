@@ -1,10 +1,12 @@
 import { ShieldWarning } from "@phosphor-icons/react/dist/ssr";
+import { fetchResolutionChannels } from "./actions";
 import { AdminClient, type AdminData } from "@/components/admin/admin-client";
+import { ResolutionChannelsCard } from "@/components/admin/resolution-channels-card";
 import { apiServer } from "@/lib/api";
 
 /** Platforma admin paneli — faqat platforma egasi (tenant) uchun. Menyuda ko'rinmaydi. */
 export default async function AdminPage() {
-  const res = await apiServer<AdminData>("/api/platform/overview");
+  const [res, resolutionChannels] = await Promise.all([apiServer<AdminData>("/api/platform/overview"), fetchResolutionChannels()]);
   if (!res.success || !res.data) {
     return (
       <div className="mx-auto mt-10 max-w-md rounded-2xl border border-border bg-card p-8 text-center">
@@ -16,5 +18,10 @@ export default async function AdminPage() {
       </div>
     );
   }
-  return <AdminClient data={res.data} />;
+  return (
+    <div className="space-y-6">
+      {resolutionChannels && <ResolutionChannelsCard data={resolutionChannels} />}
+      <AdminClient data={res.data} />
+    </div>
+  );
 }

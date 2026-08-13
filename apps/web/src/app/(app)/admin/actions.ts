@@ -46,6 +46,26 @@ export async function fetchTenantDetail(id: string): Promise<TenantDetail | null
   return res.data ?? null;
 }
 
+export interface ResolutionChannel {
+  key: "reminder" | "court" | "factoring";
+  label: string;
+  count: number;
+  amountMinor: string;
+  amount: string;
+  pct: number;
+}
+export interface ResolutionChannels {
+  currency: string;
+  total: { count: number; amountMinor: string; amount: string };
+  channels: ResolutionChannel[];
+}
+
+/** Qarzdorlik qaysi kanal (eslatma/sud/factoring) orqali yechilganini ko'rsatadi. */
+export async function fetchResolutionChannels(): Promise<ResolutionChannels | null> {
+  const res = await apiServer<ResolutionChannels>("/api/platform/resolution-channels");
+  return res.data ?? null;
+}
+
 /** Mijoz (tenant) tarifi/limitini o'rnatish (platforma admini). */
 export async function setTenantPlan(id: string, plan: string, limit: number): Promise<{ ok: boolean }> {
   const res = await apiServer(`/api/platform/tenants/${id}/plan`, {

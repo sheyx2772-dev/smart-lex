@@ -1,5 +1,5 @@
 import { format, money } from "@lex/core";
-import { approvalRequests, auditLogs, debtCases, documents, getDb, receivables, reminders, tenants, users, withTenant } from "@lex/db";
+import { approvalRequests, auditLogs, debtCases, documents, financingListings, getDb, invoices, receivables, reminders, tenants, users, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { desc, eq, sql } from "drizzle-orm";
 import { Hono, type Context } from "hono";
@@ -94,6 +94,87 @@ platformRoutes.get("/platform/overview", async (c) => {
       {
         totals: { ...totals, outstanding: format(money(totalOutMinor, currency)) },
         tenants: list,
+      },
+      "common.ok",
+      locale,
+    ),
+  );
+});
+
+/**
+ * Qarzdorlik qanday kanal orqali yechilganini ko'rsatadi — eslatma orqali o'z-o'zidan
+ * to'langan, sudgacha yetib borgan yoki factoring bozori orqali sotilgan. Hech qaysi
+ * jadvalda tayyor "resolutionMethod" ustuni yo'q — har bir to'langan (status=paid)
+ * qarz uchun ustuvorlik bilan aniqlanadi: 1) financing_listings'da completed yozuv
+ * bormi (factoring) → 2) executed_stages ichida "court" bormi (sud) → 3) aks holda
+ * faqat eslatma bosqichida to'langan (eslatma). Barcha tenant bo'yicha yig'iladi —
+ * investorlarga real natijani ko'rsatish uchun (platforma admin paneli).
+ */
+platformRoutes.get("/platform/resolution-channels", async (c) => {
+  const locale = c.get("locale");
+  if (!isPlatformAdmin(c)) return c.json(fail(ERROR_CODE.UNAUTHORIZED, "auth.unauthorized", locale), 403);
+
+  const db = getDb();
+  const tenantRows = await db.select({ id: tenants.id }).from(tenants);
+
+  let currency = "UZS";
+  const amountMinor = { reminder: 0n, court: 0n, factoring: 0n };
+  const counts = { reminder: 0, court: 0, factoring: 0 };
+
+  for (const tr of tenantRows) {
+    await withTenant(tr.id, async (tx) => {
+      const paidRows = await tx
+        .select({
+          id: receivables.id,
+          executedStages: receivables.executedStages,
+          amountMinor: invoices.amountMinor,
+          currency: invoices.currency,
+        })
+        .from(receivables)
+        .innerJoin(invoices, eq(invoices.id, receivables.invoiceId))
+        .where(eq(receivables.status, "paid"));
+      if (paidRows.length === 0) return;
+
+      const factoringRows = await tx
+        .select({ receivableId: financingListings.receivableId })
+        .from(financingListings)
+        .where(eq(financingListings.status, "completed"));
+      const factoringSet = new Set(factoringRows.map((r) => r.receivableId));
+
+      for (const row of paidRows) {
+        currency = row.currency || currency;
+        const amt = BigInt(row.amountMinor);
+        const stages = (row.executedStages ?? []) as string[];
+        const channel: "factoring" | "court" | "reminder" = factoringSet.has(row.id) ? "factoring" : stages.includes("court") ? "court" : "reminder";
+        amountMinor[channel] += amt;
+        counts[channel] += 1;
+      }
+    });
+  }
+
+  const totalMinor = amountMinor.reminder + amountMinor.court + amountMinor.factoring;
+  const totalCount = counts.reminder + counts.court + counts.factoring;
+  const pct = (n: bigint) => (totalMinor > 0n ? Math.round(Number((n * 10000n) / (totalMinor || 1n))) / 100 : 0);
+
+  const channel = (key: "reminder" | "court" | "factoring", label: string) => ({
+    key,
+    label,
+    count: counts[key],
+    amountMinor: amountMinor[key].toString(),
+    amount: format(money(amountMinor[key], currency)),
+    pct: pct(amountMinor[key]),
+  });
+
+  return c.json(
+    ok(
+      {
+        currency,
+        total: { count: totalCount, amountMinor: totalMinor.toString(), amount: format(money(totalMinor, currency)) },
+        channels: [
+          channel("reminder", "Eslatmalar orqali"),
+          channel("court", "Sud orqali"),
+          channel("factoring", "Factoring orqali"),
+        ],
       },
       "common.ok",
       locale,
