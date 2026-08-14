@@ -119,7 +119,12 @@ export class DidoxDataSource implements DataSource {
 
   async fetchSnapshot(): Promise<DataSourceSnapshot> {
     const [incoming, outgoing] = await Promise.all([this.getDocuments(0), this.getDocuments(1)]);
-    const raw = [...incoming, ...outgoing];
+    // Yo'nalish shu yerda BIRINCHI marta va OXIRGI marta aniq — pastda birlashtirilgach
+    // qaytadan tiklab bo'lmaydi, shuning uchun har bir hujjatga darhol yorliq qo'yiladi.
+    const raw: (RawDidoxDoc & { __direction: "incoming" | "outgoing" })[] = [
+      ...incoming.map((d) => ({ ...d, __direction: "incoming" as const })),
+      ...outgoing.map((d) => ({ ...d, __direction: "outgoing" as const })),
+    ];
 
     const contractors = new Map<string, ExternalContractor>();
     const contractsMap = new Map<string, ExternalContract>();
@@ -128,6 +133,7 @@ export class DidoxDataSource implements DataSource {
     const documents: ExternalDocument[] = [];
 
     for (const d of raw) {
+      const direction = d.__direction;
       const tin = first(d, ["partnerTin", "contragent_tin", "partner_tin", "tin"]);
       const name = first(d, ["partnerCompany", "contragent_name", "partner_name", "name"]);
       const number = first(d, ["name", "doc_number", "number", "facture_no"]) ?? "—";
@@ -161,6 +167,7 @@ export class DidoxDataSource implements DataSource {
           // Didox hujjat ro'yxatida to'lov muddati yo'q — Document Agent shartnoma matnidan aniqlaydi.
           dueDate: this.toISO(first(d, ["due_date", "payment_date", "doc_date"])),
           didoxId,
+          direction,
         });
       }
 

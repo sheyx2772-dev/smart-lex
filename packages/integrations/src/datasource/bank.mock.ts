@@ -18,7 +18,7 @@ export class BankMockDataSource implements DataSource {
       ],
       invoices: [
         // Oylik to'lov grafigi — muddati o'tgan bo'lak
-        { number: "KRED-INV-777-06", contractNumber: "KREDIT-2026-777", contractorTin: "51234567890123", amountMinor: "150000000", currency: "UZS", issuedAt: iso(-40), dueDate: iso(-12) },
+        { number: "KRED-INV-777-06", contractNumber: "KREDIT-2026-777", contractorTin: "51234567890123", amountMinor: "150000000", currency: "UZS", issuedAt: iso(-40), dueDate: iso(-12), direction: "outgoing" },
       ],
       payments: [],
       documents: [],

@@ -1,4 +1,4 @@
-import { auditLogs, contractors, contracts, documents, invoices, tenants, withTenant } from "@lex/db";
+import { auditLogs, contractors, contracts, documents, invoices, payables, tenants, withTenant } from "@lex/db";
 import { decryptSecret } from "@lex/shared/secrets";
 import { and, eq, inArray } from "drizzle-orm";
 import { createDataSource } from "./datasource/index";
@@ -52,12 +52,26 @@ export async function syncTenant(tenantId: string) {
     const contractRows = await tx.select({ id: contracts.id, number: contracts.number }).from(contracts);
     const byContractNo = new Map(contractRows.map((r) => [r.number, r.id]));
 
-    // 3) Invoicelar (raqam bo'yicha).
-    const invoiceVals = snap.invoices
+    // 3) Invoicelar — YO'NALISHGA QARAB IKKI XIL JADVALGA:
+    //    "outgoing" (tenant sotuvchi) => invoices/receivables — HAQIQIY debitorlik, undiriladi.
+    //    "incoming" (tenant xaridor) => payables — tenantning O'Z krediti, undiruvga hech
+    //    qachon kirmaydi. Aralashtirilsa, AI agent o'z yetkazib beruvchisiga xato ravishda
+    //    da'vo/talabnoma yuboradi — shu sabab bu ajratish shart.
+    const outgoing = snap.invoices.filter((i) => i.direction === "outgoing");
+    const incoming = snap.invoices.filter((i) => i.direction === "incoming");
+
+    const invoiceVals = outgoing
       .map((i) => ({ tenantId, contractId: byContractNo.get(i.contractNumber) ?? null, contractorId: byTin.get(i.contractorTin), number: i.number, amountMinor: BigInt(i.amountMinor), currency: i.currency, issuedAt: new Date(i.issuedAt), dueDate: new Date(i.dueDate), didoxId: i.didoxId ?? null }))
       .filter((i): i is typeof i & { contractorId: string } => Boolean(i.contractorId));
     if (invoiceVals.length) {
       await tx.insert(invoices).values(invoiceVals).onConflictDoNothing({ target: [invoices.tenantId, invoices.number] });
+    }
+
+    const payableVals = incoming
+      .map((i) => ({ tenantId, contractorId: byTin.get(i.contractorTin), number: i.number, amountMinor: BigInt(i.amountMinor), currency: i.currency, issuedAt: new Date(i.issuedAt), dueDate: new Date(i.dueDate), didoxId: i.didoxId ?? null }))
+      .filter((i): i is typeof i & { contractorId: string } => Boolean(i.contractorId));
+    if (payableVals.length) {
+      await tx.insert(payables).values(payableVals).onConflictDoNothing({ target: [payables.tenantId, payables.number] });
     }
 
     // 4) Hujjatlar (didoxId bo'yicha — mavjudini o'tkazamiz).
@@ -78,10 +92,10 @@ export async function syncTenant(tenantId: string) {
       action: "didox.synced",
       entityType: "tenant",
       entityId: tenantId,
-      detail: { source: source.name, contractors: snap.contractors.length, contracts: contractVals.length, invoices: invoiceVals.length, documents: docVals.length },
+      detail: { source: source.name, contractors: snap.contractors.length, contracts: contractVals.length, invoices: invoiceVals.length, payables: payableVals.length, documents: docVals.length },
     });
 
-    return { contractors: snap.contractors.length, contracts: contractVals.length, invoices: invoiceVals.length, documents: docVals.length };
+    return { contractors: snap.contractors.length, contracts: contractVals.length, invoices: invoiceVals.length, payables: payableVals.length, documents: docVals.length };
   });
 
   return { source: source.name, ...counts };

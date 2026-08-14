@@ -197,6 +197,39 @@ export const invoices = pgTable(
   ],
 );
 
+/**
+ * Kreditorlik — tenantning O'Z qarzi (u kimgadir qarzdor: xarid qilingan tovar/xizmat
+ * uchun to'lanmagan hisob-faktura). Didox sinxronizatsiyasida "kiruvchi" (owner=0)
+ * hujjatlar shu yerga tushadi — receivables'ga HECH QACHON qo'shilmaydi, aks holda
+ * AI agent tenantning o'z yetkazib beruvchisiga xato ravishda da'vo/talabnoma yuboradi.
+ * Faqat kuzatuv uchun (debit-kredit nazorati) — undiruv jarayoni ishlamaydi.
+ */
+export const payables = pgTable(
+  "payables",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    contractorId: uuid("contractor_id")
+      .notNull()
+      .references(() => contractors.id, { onDelete: "restrict" }),
+    number: text("number").notNull(),
+    /** Summa eng kichik birlikda (tiyin). */
+    amountMinor: bigint("amount_minor", { mode: "bigint" }).notNull(),
+    currency: currencyEnum("currency").notNull().default("UZS"),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull(),
+    dueDate: timestamp("due_date", { withTimezone: true }).notNull(),
+    didoxId: text("didox_id"),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("payables_tenant_number_uq").on(t.tenantId, t.number),
+    index("payables_tenant_due_idx").on(t.tenantId, t.dueDate),
+  ],
+);
+
 export const payments = pgTable(
   "payments",
   {

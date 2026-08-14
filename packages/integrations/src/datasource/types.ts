@@ -34,6 +34,13 @@ export interface ExternalInvoice {
   issuedAt: string; // ISO
   dueDate: string; // ISO
   didoxId?: string;
+  /**
+   * "outgoing" — tenant sotuvchi, ya'ni bu HAQIQIY debitorlik (mijoz bizga qarzdor).
+   * "incoming" — tenant xaridor, ya'ni bu tenantning O'Z kreditorlik qarzi (biz kimgadir
+   * qarzdormiz). Hech qachon receivables'ga aylantirilmaydi — aks holda AI agent xato
+   * ravishda o'z yetkazib beruvchisiga da'vo/talabnoma yuborishi mumkin.
+   */
+  direction: "outgoing" | "incoming";
 }
 
 export interface ExternalPayment {

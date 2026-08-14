@@ -12,6 +12,7 @@ export const TENANT_SCOPED_TABLES = [
   "contracts",
   "documents",
   "invoices",
+  "payables",
   "payments",
   "receivables",
   "collection_rules",

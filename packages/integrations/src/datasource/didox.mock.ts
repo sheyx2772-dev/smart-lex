@@ -18,7 +18,7 @@ export class DidoxMockDataSource implements DataSource {
         { number: "SH-2026-100", contractorTin: "310222333", signedAt: iso(-40), penaltyDailyBps: 5, penaltyCapBps: 5000, didoxId: "didox-c-100" },
       ],
       invoices: [
-        { number: "INV-9001", contractNumber: "SH-2026-100", contractorTin: "310222333", amountMinor: "750000000", currency: "UZS", issuedAt: iso(-35), dueDate: iso(-7), didoxId: "didox-i-9001" },
+        { number: "INV-9001", contractNumber: "SH-2026-100", contractorTin: "310222333", amountMinor: "750000000", currency: "UZS", issuedAt: iso(-35), dueDate: iso(-7), didoxId: "didox-i-9001", direction: "outgoing" },
       ],
       payments: [],
       documents: [
