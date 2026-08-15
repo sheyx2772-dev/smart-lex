@@ -137,9 +137,11 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
-  /* Pul/raqamlar uchun tabular mono. */
+  /* Pul/raqamlar uchun tabular mono. `!important` shart — Tailwind utilities
+     qatlami (masalan font-display) shu bazaviy qatlamdan har doim ustun keladi,
+     shuning uchun "tabular font-display" birga ishlatilganda mono g'olib chiqishi kerak. */
   .tabular {
-    font-family: var(--font-mono);
+    font-family: var(--font-mono) !important;
     font-feature-settings: "tnum" 1;
     letter-spacing: -0.01em;
   }
