@@ -8,6 +8,7 @@
     "groupSystem": "System",
     "dashboard": "Dashboard",
     "receivables": "Receivables",
+    "payables": "Payables",
     "overdue": "Overdue",
     "approvals": "Approvals",
     "documents": "Documents",

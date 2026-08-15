@@ -43,6 +43,7 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     label: "groupWork",
     items: [
       { href: "/receivables", key: "receivables", icon: Wallet },
+      { href: "/payables", key: "payables", icon: HandCoins },
       { href: "/reminders", key: "reminders", icon: PaperPlaneTilt },
       { href: "/court", key: "court", icon: Gavel },
       { href: "/enforcement", key: "enforcement", icon: Truck },

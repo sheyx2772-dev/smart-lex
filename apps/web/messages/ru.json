@@ -8,6 +8,7 @@
     "groupSystem": "Система",
     "dashboard": "Панель управления",
     "receivables": "Дебиторка",
+    "payables": "Кредиторка",
     "overdue": "Просроченные",
     "approvals": "Подтверждения",
     "documents": "Документы",

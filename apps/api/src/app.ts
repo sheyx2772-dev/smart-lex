@@ -26,6 +26,7 @@ import { documentRoutes } from "./routes/documents";
 import { miscRoutes } from "./routes/misc";
 import { oneIdRoutes } from "./routes/oneid";
 import { overdueRoutes } from "./routes/overdue";
+import { payableRoutes } from "./routes/payables";
 import { receivableRoutes } from "./routes/receivables";
 import { agentConsoleRoutes } from "./routes/agent-console";
 import { agentAutopilotRoutes } from "./routes/agent-autopilot";
@@ -83,6 +84,7 @@ export function createApp() {
   api.route("/", contractRoutes);
   api.route("/", courtRoutes);
   api.route("/", receivableRoutes);
+  api.route("/", payableRoutes);
   api.route("/", overdueRoutes);
   api.route("/", reportRoutes);
   api.route("/", documentRoutes);
