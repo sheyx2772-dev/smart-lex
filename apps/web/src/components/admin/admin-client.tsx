@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  ArrowLineDown,
+  ArrowLineUp,
   Buildings,
   CaretDown,
   CaretUp,
@@ -13,6 +15,7 @@ import {
   Gavel,
   PaperPlaneTilt,
   Robot,
+  Scales,
   SealCheck,
   ShieldCheck,
   Truck,
@@ -88,7 +91,16 @@ export interface AdminTenant {
   isPlatform: boolean;
 }
 export interface AdminData {
-  totals: { tenants: number; users: number; receivables: number; documents: number; reminders: number; pendingApprovals: number; outstanding: string };
+  totals: {
+    tenants: number;
+    users: number;
+    receivables: number;
+    documents: number;
+    reminders: number;
+    pendingApprovals: number;
+    outstanding: string;
+    balance: { currency: string; debitMinor: string; debit: string; kreditMinor: string; kredit: string; monitoredMinor: string; monitored: string };
+  };
   tenants: AdminTenant[];
 }
 
@@ -215,12 +227,33 @@ export function AdminClient({ data }: { data: AdminData }) {
           <h1 className="font-display text-2xl font-semibold tracking-tight">Platforma boshqaruvi</h1>
           <p className="mt-1 text-sm text-muted-foreground">Barcha mijozlar, jarayonlar, obuna va hujjatlar — faqat administrator uchun.</p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary-soft px-4 py-2.5">
-          <Wallet weight="fill" className="size-5 text-primary" />
-          <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Jami qoldiq (qarz)</p>
-            <p className="tabular font-display text-lg font-semibold">{t.outstanding}</p>
+      </div>
+
+      {/* Debit / Kredit / Nazoratdagi umumiy summa — platforma bo'ylab real balans */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <ArrowLineDown weight="fill" className="size-4 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wide">Debit</span>
           </div>
+          <p className="tabular mt-1.5 font-display text-2xl font-extrabold tracking-tight">{t.balance.debit}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Mijozlar sizga qarzdor</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <ArrowLineUp weight="fill" className="size-4 text-warning" />
+            <span className="text-xs font-semibold uppercase tracking-wide">Kredit</span>
+          </div>
+          <p className="tabular mt-1.5 font-display text-2xl font-extrabold tracking-tight">{t.balance.kredit}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Siz boshqalarga qarzdorsiz</p>
+        </div>
+        <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary-soft to-primary-soft/40 p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-primary">
+            <Scales weight="fill" className="size-4" />
+            <span className="text-xs font-semibold uppercase tracking-wide">Nazoratdagi umumiy summa</span>
+          </div>
+          <p className="tabular mt-1.5 font-display text-2xl font-extrabold tracking-tight text-primary">{t.balance.monitored}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">AI real vaqtda kuzatib turgan jami mablag&apos;</p>
         </div>
       </div>
 

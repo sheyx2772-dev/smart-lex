@@ -1,5 +1,5 @@
 import { format, money } from "@lex/core";
-import { approvalRequests, auditLogs, debtCases, documents, financingListings, getDb, invoices, receivables, reminders, tenants, users, withTenant } from "@lex/db";
+import { approvalRequests, auditLogs, debtCases, documents, financingListings, getDb, invoices, payables, receivables, reminders, tenants, users, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { desc, eq, sql } from "drizzle-orm";
 import { Hono, type Context } from "hono";
@@ -32,6 +32,7 @@ platformRoutes.get("/platform/overview", async (c) => {
 
   let currency = "UZS";
   let totalOutMinor = 0n;
+  let totalPayableMinor = 0n;
   const totals = { tenants: tenantRows.length, users: 0, receivables: 0, documents: 0, reminders: 0, pendingApprovals: 0 };
 
   const list = [];
@@ -41,6 +42,7 @@ platformRoutes.get("/platform/overview", async (c) => {
       const [r] = await tx
         .select({ n: sql<number>`count(*)::int`, out: sql<string>`coalesce(sum(${receivables.outstandingMinor}),0)::text`, cur: sql<string | null>`max(${receivables.currency})` })
         .from(receivables);
+      const [p] = await tx.select({ out: sql<string>`coalesce(sum(${payables.amountMinor}),0)::text` }).from(payables);
       const [d] = await tx.select({ n: sql<number>`count(*)::int` }).from(documents);
       const [rem] = await tx.select({ n: sql<number>`count(*)::int` }).from(reminders);
       const [ap] = await tx.select({ n: sql<number>`count(*)::int` }).from(approvalRequests).where(eq(approvalRequests.status, "pending"));
@@ -49,6 +51,7 @@ platformRoutes.get("/platform/overview", async (c) => {
         users: u?.n ?? 0,
         receivables: r?.n ?? 0,
         outMinor: r?.out ?? "0",
+        payableMinor: p?.out ?? "0",
         cur: r?.cur ?? "UZS",
         documents: d?.n ?? 0,
         reminders: rem?.n ?? 0,
@@ -61,6 +64,7 @@ platformRoutes.get("/platform/overview", async (c) => {
     currency = cur;
     const outMinor = BigInt(m.outMinor || "0");
     totalOutMinor += outMinor;
+    totalPayableMinor += BigInt(m.payableMinor || "0");
     totals.users += m.users;
     totals.receivables += m.receivables;
     totals.documents += m.documents;
@@ -89,10 +93,23 @@ platformRoutes.get("/platform/overview", async (c) => {
     });
   }
 
+  const totalMonitoredMinor = totalOutMinor + totalPayableMinor;
   return c.json(
     ok(
       {
-        totals: { ...totals, outstanding: format(money(totalOutMinor, currency)) },
+        totals: {
+          ...totals,
+          outstanding: format(money(totalOutMinor, currency)),
+          balance: {
+            currency,
+            debitMinor: totalOutMinor.toString(),
+            debit: format(money(totalOutMinor, currency)),
+            kreditMinor: totalPayableMinor.toString(),
+            kredit: format(money(totalPayableMinor, currency)),
+            monitoredMinor: totalMonitoredMinor.toString(),
+            monitored: format(money(totalMonitoredMinor, currency)),
+          },
+        },
         tenants: list,
       },
       "common.ok",
