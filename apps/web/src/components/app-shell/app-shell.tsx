@@ -135,20 +135,27 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
     router.refresh();
   }
 
+  const isLegal = workMode === "legal";
+
   return (
     <div
+      data-work-mode={workMode}
       className="grid h-screen grid-cols-[248px_1fr] overflow-hidden bg-background"
       style={{ "--font-display": "var(--font-inter), ui-sans-serif, system-ui, sans-serif" } as React.CSSProperties}
     >
       {/* ── Sidebar — yumshoq "command rail" ───────────────────── */}
       <aside
         className="relative flex h-screen flex-col overflow-hidden text-white"
-        style={{ background: "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
+        style={{ background: isLegal ? "linear-gradient(178deg, #14263b 0%, #0f1d2e 55%, #0a141f 100%)" : "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
       >
-        {/* Ambient glow — brend rangida, sekin nafas oladi */}
+        {/* Ambient glow — rejimga qarab: Debitorlik=binafsha/pushti, Yuridik=ko'k/azure — sekin nafas oladi */}
         <div
           className="ai-breathe pointer-events-none absolute inset-x-0 top-0 h-72 opacity-80"
-          style={{ background: "radial-gradient(120% 80% at 15% 0%, rgba(139,92,246,0.16), rgba(236,72,153,0.08) 45%, transparent 72%)" }}
+          style={{
+            background: isLegal
+              ? "radial-gradient(120% 80% at 15% 0%, rgba(64,152,232,0.20), rgba(34,184,207,0.09) 45%, transparent 72%)"
+              : "radial-gradient(120% 80% at 15% 0%, rgba(139,92,246,0.16), rgba(236,72,153,0.08) 45%, transparent 72%)",
+          }}
         />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/12 via-white/6 to-transparent" />
 
@@ -195,7 +202,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
         <div className="relative mx-3.5 mb-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">
           <div
             className="pointer-events-none absolute -left-8 -bottom-8 size-24 rounded-full opacity-50"
-            style={{ background: "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
+            style={{ background: isLegal ? "radial-gradient(circle, rgba(64,152,232,0.3), transparent 70%)" : "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
           />
           <div
             className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40"

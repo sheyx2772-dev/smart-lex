@@ -81,6 +81,31 @@
   --danger-soft: #2a1213;
 }
 
+/* ── "Yuridik jarayon" rejimi — Debitorlik'dan ko'zga aniq farqlanadigan
+   ko'k-azure identifikatsiya (banklar/davlat/yuridik firmalar uchun
+   alohida platforma his qilinsin). AppShell root'iga data-work-mode="legal"
+   qo'yiladi — barcha komponentlar --color-primary/--color-brand token
+   orqali avtomatik shu ranglarga o'tadi, alohida qayta yozish shart emas. */
+[data-work-mode="legal"] {
+  --primary: #0b5fae;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e3edf9;
+  --ring: #0b5fae;
+  --brand: #0e7490;
+  --brand-foreground: #ffffff;
+  --brand-soft: #e0f2f4;
+}
+.dark[data-work-mode="legal"],
+[data-work-mode="legal"].dark {
+  --primary: #4098e8;
+  --primary-foreground: #051324;
+  --primary-soft: #112945;
+  --ring: #4098e8;
+  --brand: #22b8cf;
+  --brand-foreground: #051f22;
+  --brand-soft: #0c2a2e;
+}
+
 /* ── Tailwind theme mapping ─────────────────────────────── */
 @theme inline {
   --color-background: var(--background);
