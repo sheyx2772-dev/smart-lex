@@ -784,6 +784,7 @@
     "amountPh": "e.g. 5 000 000",
     "issuedAt": "Issued date",
     "dueDate": "Due date",
+    "newBtn": "New contract",
     "submit": "Create case",
     "creating": "Creating…",
     "error": "Error — check the fields",

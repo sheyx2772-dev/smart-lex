@@ -41,7 +41,8 @@ function riskTone(score: number): BadgeProps["tone"] {
   return "success";
 }
 
-export function CompaniesClient({ initial }: { initial: CompaniesData }) {
+export function CompaniesClient({ initial, workMode = "debt" }: { initial: CompaniesData; workMode?: "debt" | "legal" }) {
+  const isLegal = workMode === "legal";
   const t = useTranslations("companies");
   const tNew = useTranslations("newContract");
   const [data, setData] = useState<CompaniesData>(initial);
@@ -116,26 +117,38 @@ export function CompaniesClient({ initial }: { initial: CompaniesData }) {
                     <p className="truncate font-semibold leading-tight">{c.name}</p>
                     <p className="text-xs text-muted-foreground">{t("tin")}: {c.tin}</p>
                   </div>
-                  <Badge tone={riskTone(c.riskScore)}>
-                    <ShieldWarning weight="fill" className="size-3" />
-                    {c.riskScore}
-                  </Badge>
-                </div>
-
-                <div className="mt-3 flex items-end justify-between">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("totalDebt")}</p>
-                    <p className="tabular font-display text-lg font-semibold">{c.outstanding.formatted}</p>
-                  </div>
-                  {c.overdueCount > 0 ? (
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-danger-soft px-2 py-1 text-xs font-medium text-danger">
-                      <Timer weight="fill" className="size-3.5" />
-                      {c.overdueCount} {t("overdue")}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-success">{t("noOverdue")}</span>
+                  {!isLegal && (
+                    <Badge tone={riskTone(c.riskScore)}>
+                      <ShieldWarning weight="fill" className="size-3" />
+                      {c.riskScore}
+                    </Badge>
                   )}
                 </div>
+
+                {isLegal ? (
+                  <div className="mt-3 flex items-end justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("contracts")}</p>
+                      <p className="tabular font-display text-lg font-semibold">{c.contractsCount}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{c.documentsCount} {t("docs")}</span>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-end justify-between">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{t("totalDebt")}</p>
+                      <p className="tabular font-display text-lg font-semibold">{c.outstanding.formatted}</p>
+                    </div>
+                    {c.overdueCount > 0 ? (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-danger-soft px-2 py-1 text-xs font-medium text-danger">
+                        <Timer weight="fill" className="size-3.5" />
+                        {c.overdueCount} {t("overdue")}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-success">{t("noOverdue")}</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
                   <span className="flex items-center gap-3">

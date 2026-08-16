@@ -100,13 +100,15 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
   const tStage = await getTranslations("stage");
   const tDocType = await getTranslations("docType");
 
-  const [res, intRes] = await Promise.all([
+  const [res, intRes, meRes] = await Promise.all([
     apiServer<CaseData>(`/api/companies/${id}`),
     apiServer<{ items: Interaction[] }>(`/api/companies/${id}/interactions`),
+    apiServer<{ workMode?: "debt" | "legal" }>("/api/me"),
   ]);
   const d = res.data;
   if (!d) notFound();
   const interactions = intRes.data?.items ?? [];
+  const isLegal = meRes.data?.workMode === "legal";
 
   const s = d.summary;
   const fmtDate = (x: string | null) => (x ? new Date(x).toLocaleDateString() : "—");
@@ -169,13 +171,15 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <PaymentReminderButton name={d.contractor.name} amount={d.summary.totalOutstanding.formatted} />
-            <ReconciliationButton contractorId={d.contractor.id} />
+            {!isLegal && <PaymentReminderButton name={d.contractor.name} amount={d.summary.totalOutstanding.formatted} />}
+            {!isLegal && <ReconciliationButton contractorId={d.contractor.id} />}
             <LawsuitButton contractorId={d.contractor.id} />
-            <Badge tone={riskTone(s.riskScore)}>
-              <ShieldWarning weight="fill" className="size-3.5" />
-              {t("risk")} · {s.riskScore}
-            </Badge>
+            {!isLegal && (
+              <Badge tone={riskTone(s.riskScore)}>
+                <ShieldWarning weight="fill" className="size-3.5" />
+                {t("risk")} · {s.riskScore}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -189,42 +193,53 @@ export default async function CasePage({ params }: { params: Promise<{ id: strin
         </dl>
       </Card>
 
-      {/* Undiruv voronkasi — hozirgi bosqich + keyingi qadam (chalkashlikni kamaytiradi) */}
-      <CollectionPipeline current={pipeStage} labels={pipeLabels} heading={t("pipeHeading")} nextLabel={t("pipeNextLabel")} next={pipeNext} />
+      {!isLegal && (
+        <>
+          {/* Undiruv voronkasi — hozirgi bosqich + keyingi qadam (chalkashlikni kamaytiradi) */}
+          <CollectionPipeline current={pipeStage} labels={pipeLabels} heading={t("pipeHeading")} nextLabel={t("pipeNextLabel")} next={pipeNext} />
 
-      {/* Stat tiles */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile label={t("totalDebt")} value={s.totalOutstanding.formatted} tone="primary" icon={<CurrencyCircleDollar weight="fill" className="size-4" />} />
-        <StatTile label={t("paid")} value={s.totalPaid.formatted} tone="secondary" icon={<CheckCircle weight="fill" className="size-4" />} />
-        <StatTile label={t("penalty")} value={s.totalPenalty.formatted} tone="warning" icon={<Warning weight="fill" className="size-4" />} />
-        <StatTile label={t("overdueCount")} value={String(s.overdueCount)} tone="danger" plain icon={<Timer weight="fill" className="size-4" />} />
-      </div>
+          {/* Stat tiles */}
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatTile label={t("totalDebt")} value={s.totalOutstanding.formatted} tone="primary" icon={<CurrencyCircleDollar weight="fill" className="size-4" />} />
+            <StatTile label={t("paid")} value={s.totalPaid.formatted} tone="secondary" icon={<CheckCircle weight="fill" className="size-4" />} />
+            <StatTile label={t("penalty")} value={s.totalPenalty.formatted} tone="warning" icon={<Warning weight="fill" className="size-4" />} />
+            <StatTile label={t("overdueCount")} value={String(s.overdueCount)} tone="danger" plain icon={<Timer weight="fill" className="size-4" />} />
+          </div>
 
-      {/* AI recommendation */}
-      <div
-        className={`flex items-center gap-3 rounded-xl border p-4 ${
-          recTone === "success"
-            ? "border-success/30 bg-success-soft"
-            : recTone === "warning"
-              ? "border-warning/30 bg-warning-soft"
-              : recTone === "danger"
-                ? "border-danger/30 bg-danger-soft"
-                : "border-primary/30 bg-primary-soft"
-        }`}
-      >
-        <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-card/70">
-          <SealCheck weight="fill" className={`size-5 ${recTone === "success" ? "text-success" : recTone === "warning" ? "text-warning" : recTone === "danger" ? "text-danger" : "text-primary"}`} />
+          {/* AI recommendation */}
+          <div
+            className={`flex items-center gap-3 rounded-xl border p-4 ${
+              recTone === "success"
+                ? "border-success/30 bg-success-soft"
+                : recTone === "warning"
+                  ? "border-warning/30 bg-warning-soft"
+                  : recTone === "danger"
+                    ? "border-danger/30 bg-danger-soft"
+                    : "border-primary/30 bg-primary-soft"
+            }`}
+          >
+            <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-card/70">
+              <SealCheck weight="fill" className={`size-5 ${recTone === "success" ? "text-success" : recTone === "warning" ? "text-warning" : recTone === "danger" ? "text-danger" : "text-primary"}`} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t("aiHeading")} · {t("recommend")}</p>
+              <p className="font-medium">{t(recKey as never)}</p>
+            </div>
+            {hasPendingApproval && (
+              <Link href="/approvals" className="ml-auto shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
+                {t("aiHeading")}
+              </Link>
+            )}
+          </div>
+        </>
+      )}
+      {isLegal && (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatTile label={t("contractsSection")} value={String(s.contractsCount)} tone="primary" icon={<Scroll weight="fill" className="size-4" />} />
+          <StatTile label={t("documents")} value={String(s.documentsCount)} tone="secondary" icon={<FileText weight="fill" className="size-4" />} />
+          <StatTile label={t("invoices")} value={String(s.invoicesCount)} tone="primary" plain icon={<Receipt weight="fill" className="size-4" />} />
         </div>
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{t("aiHeading")} · {t("recommend")}</p>
-          <p className="font-medium">{t(recKey as never)}</p>
-        </div>
-        {hasPendingApproval && (
-          <Link href="/approvals" className="ml-auto shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground">
-            {t("aiHeading")}
-          </Link>
-        )}
-      </div>
+      )}
 
       {/* Timeline + sections */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
