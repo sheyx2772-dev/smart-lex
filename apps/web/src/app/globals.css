@@ -87,19 +87,19 @@
    qo'yiladi — barcha komponentlar --color-primary/--color-brand token
    orqali avtomatik shu ranglarga o'tadi, alohida qayta yozish shart emas. */
 [data-work-mode="legal"] {
-  --primary: #0b5fae;
+  --primary: #3d5afe;
   --primary-foreground: #ffffff;
-  --primary-soft: #e3edf9;
-  --ring: #0b5fae;
-  --brand: #0e7490;
+  --primary-soft: #e8ecff;
+  --ring: #3d5afe;
+  --brand: #2f5fe0;
   --brand-foreground: #ffffff;
-  --brand-soft: #e0f2f4;
+  --brand-soft: #e6ecfe;
 }
 .dark[data-work-mode="legal"],
 [data-work-mode="legal"].dark {
-  --primary: #4098e8;
-  --primary-foreground: #051324;
-  --primary-soft: #112945;
+  --primary: #6b83ff;
+  --primary-foreground: #06102b;
+  --primary-soft: #182247;
   --ring: #4098e8;
   --brand: #22b8cf;
   --brand-foreground: #051f22;

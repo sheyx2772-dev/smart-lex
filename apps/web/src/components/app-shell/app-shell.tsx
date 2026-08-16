@@ -166,7 +166,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
           className="ai-breathe pointer-events-none absolute inset-x-0 top-0 h-72 opacity-80"
           style={{
             background: isLegal
-              ? "radial-gradient(120% 80% at 15% 0%, rgba(11,95,174,0.14), rgba(14,116,144,0.07) 45%, transparent 72%)"
+              ? "radial-gradient(120% 80% at 15% 0%, rgba(61,90,254,0.16), rgba(47,95,224,0.08) 45%, transparent 72%)"
               : "radial-gradient(120% 80% at 15% 0%, rgba(139,92,246,0.16), rgba(236,72,153,0.08) 45%, transparent 72%)",
           }}
         />
@@ -215,7 +215,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
         <div className={cn("relative mx-3.5 mb-4 overflow-hidden rounded-xl border p-3 backdrop-blur", borderC(10), surfC(isLegal ? 3 : 4))}>
           <div
             className="pointer-events-none absolute -left-8 -bottom-8 size-24 rounded-full opacity-50"
-            style={{ background: isLegal ? "radial-gradient(circle, rgba(11,95,174,0.22), transparent 70%)" : "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
+            style={{ background: isLegal ? "radial-gradient(circle, rgba(61,90,254,0.25), transparent 70%)" : "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
           />
           <div
             className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40"
