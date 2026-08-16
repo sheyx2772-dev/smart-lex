@@ -21,6 +21,23 @@ export async function signDocument(id: string, signature: Sig) {
   return apiServer(`/api/documents/${id}/sign`, { method: "POST", body: JSON.stringify({ signature }) });
 }
 
+export interface RiskFinding {
+  area: string;
+  riskLevel: "low" | "medium" | "high" | "critical";
+  reason: string;
+}
+export interface RiskAnalysis {
+  riskLevel: "low" | "medium" | "high" | "critical";
+  findings: RiskFinding[];
+  missingClauses: string[];
+  unusualClauses: string[];
+  analyzedAt: string;
+}
+
+export async function analyzeDocumentRisk(id: string) {
+  return apiServer<{ riskAnalysis: RiskAnalysis }>(`/api/documents/${id}/analyze-risk`, { method: "POST", body: "{}" });
+}
+
 export async function syncDidox() {
   const res = await apiServer("/api/integrations/sync", { method: "POST", body: "{}" });
   if (res.success) {

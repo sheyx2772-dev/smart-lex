@@ -33,6 +33,15 @@ export async function agentChat(messages: { role: "user" | "assistant"; content:
   return res.data ?? { reply: "", steps: [] };
 }
 
+/** Yuridik AI Agent: suhbat tarixi → agent (tool-calling) javobi + bajarilgan qadamlar (legal_matters/shartnoma/sud). */
+export async function legalAgentChat(messages: { role: "user" | "assistant"; content: string }[]): Promise<{ reply: string; steps: AgentStep[] }> {
+  const res = await apiServer<{ reply: string; steps: AgentStep[] }>("/api/legal/agent/chat", {
+    method: "POST",
+    body: JSON.stringify({ messages }),
+  });
+  return res.data ?? { reply: "", steps: [] };
+}
+
 /** Studio hujjat-fokusli AI: instruction + (ochiq hujjat matni) → LLM javob (draft yoki tahlil). */
 export async function studioAi(instruction: string, document?: string): Promise<{ reply: string }> {
   const res = await apiServer<{ reply: string }>("/api/studio/ai", {

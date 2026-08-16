@@ -70,8 +70,22 @@ export const COLLECTION_STAGES = [
 export type CollectionStage = (typeof COLLECTION_STAGES)[number];
 
 /** Tasdiq turi (rahbar tasdig'i talab qiladigan huquqiy ahamiyatli qadamlar). */
-export const APPROVAL_TYPES = ["demand_letter", "court_claim", "write_off"] as const;
+export const APPROVAL_TYPES = ["demand_letter", "court_claim", "write_off", "matter_action"] as const;
 export type ApprovalType = (typeof APPROVAL_TYPES)[number];
+
+/** Yuridik ish (Legal Matter) holati — umumiy yuridik jarayon (qarz undirishga bog'liq emas). */
+export const LEGAL_MATTER_STATUSES = [
+  "new",
+  "in_review",
+  "in_progress",
+  "waiting_for_approval",
+  "filed",
+  "in_court",
+  "decision",
+  "execution",
+  "closed",
+] as const;
+export type LegalMatterStatus = (typeof LEGAL_MATTER_STATUSES)[number];
 
 /** Tasdiq holati. */
 export const APPROVAL_STATUSES = ["pending", "approved", "rejected"] as const;

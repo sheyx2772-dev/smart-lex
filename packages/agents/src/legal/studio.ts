@@ -42,7 +42,7 @@ const SYS: Record<Locale, string> = {
  * QOIDALAR. Faqat prinsiplar va kodeks NOMLARI (aniqligi kafolatlangan);
  * modda RAQAMLARI kiritilmagan — model ularni o'ylab topmasligi shart.
  */
-const LEGAL_KB: Record<Locale, string> = {
+export const LEGAL_KB: Record<Locale, string> = {
   uz: `HUQUQIY ASOS — faqat quyidagi tekshirilgan qoidalarga tayan. Iqtibos berганда kodeks NOMINI to'liq yoz (masalan "O'zbekiston Respublikasi Fuqarolik kodeksi"). MODDA RAQAMINI FAQAT 100% ishonchli bo'lsang yoz; aks holda "tegishli modda" deb yoz — RAQAM O'YLAB TOPISH QAT'IYAN TAQIQLANADI:
 - Fuqarolik kodeksi (FK): majburiyatlar lozim darajada va o'z vaqtida bajarilishi shart; majburiyatni bir tomonlama bajarishdan bosh tortishga yo'l qo'yilmaydi. Shartnoma buzilганда kreditor asosiy qarz, neustoyka (penya) va yetkazilgan real zararni talab qilishga haqli.
 - Neustoyka (penya): shartnoma yoki qonunда belgilangan miqdorda, kechiktirilgan har kalendar kun uchun hisoblanadi; miqdori shartnomada aniq ko'rsatilishi kerak.

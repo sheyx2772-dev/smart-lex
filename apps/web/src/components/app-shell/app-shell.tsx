@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  Briefcase,
   Buildings,
   ChartBar,
   CreditCard,
@@ -71,6 +72,8 @@ const LEGAL_GROUPS: { label: string; items: { href: string; key: string; icon: I
   {
     label: "groupMain",
     items: [
+      { href: "/legal", key: "dashboard", icon: Briefcase },
+      { href: "/legal/agent", key: "legalAgent", icon: Robot },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/documents", key: "documents", icon: Files },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
@@ -116,7 +119,8 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
   const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
   const canSwitchMode = user.role === "owner" || user.role === "admin";
 
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // "/legal" alohida ekzakt taqqoslanadi — aks holda "/legal/agent" ham unga mos kelib ketardi.
+  const isActive = (href: string) => (href === "/" || href === "/legal" ? pathname === href : pathname.startsWith(href));
   const activeItem = ALL_ITEMS.find((i) => isActive(i.href)) ?? ALL_ITEMS[0]!;
   const ActiveIcon = activeItem.icon;
 
@@ -124,7 +128,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
     if (next === workMode || switching) return;
     startSwitch(async () => {
       await setWorkMode(next);
-      router.push(next === "legal" ? "/contracts" : "/agent");
+      router.push(next === "legal" ? "/legal" : "/agent");
       router.refresh();
     });
   }

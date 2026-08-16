@@ -1,4 +1,4 @@
-import { approvalRequests, auditLogs, contractors, documents, invoices, receivables, reminders, withTenant } from "@lex/db";
+import { approvalRequests, auditLogs, contractors, documents, invoices, legalMatters, receivables, reminders, withTenant } from "@lex/db";
 import { ERROR_CODE, fail, ok } from "@lex/shared";
 import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -128,6 +128,24 @@ approvalRoutes.post("/:id/decide", async (c) => {
             detail: { channel: "hybrid_post", edited: Boolean(parsed.data.body) },
           });
         }
+      }
+    }
+
+    // ── Tasdiqlangan yuridik ish amali → tegishli legal_matters yozuvini "topshirildi"
+    //    bosqichiga o'tkazamiz (AI-first oqim: odam tasdiqladi, tizim holatni ilgarilatdi). ──
+    if (parsed.data.decision === "approved" && updated.type === "matter_action") {
+      const matterId = typeof payload.matterId === "string" ? payload.matterId : null;
+      if (matterId) {
+        await tx.update(legalMatters).set({ status: "filed" }).where(eq(legalMatters.id, matterId));
+        await tx.insert(auditLogs).values({
+          tenantId,
+          actorType: "system",
+          actorId: "legal-agent",
+          action: "matter.filed",
+          entityType: "legal_matter",
+          entityId: matterId,
+          detail: { via: "approval", approvalId: id },
+        });
       }
     }
 

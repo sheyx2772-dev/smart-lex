@@ -103,7 +103,7 @@ export default async function DashboardPage() {
   ];
 
   const meRes = await apiServer<{ workMode?: "debt" | "legal" }>("/api/me");
-  if (meRes.data?.workMode === "legal") redirect("/contracts");
+  if (meRes.data?.workMode === "legal") redirect("/legal");
 
   const res = await apiServer<Dashboard>("/api/dashboard");
   const d = res.data;

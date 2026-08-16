@@ -1,3 +1,4 @@
+import { analyzeContractRisk } from "@lex/agents";
 import { auditLogs, contractors, contracts, documents, withTenant } from "@lex/db";
 import { DOCUMENT_TYPES, ERROR_CODE, fail, ok } from "@lex/shared";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
@@ -130,4 +131,41 @@ documentRoutes.post("/documents/:id/sign", async (c) => {
 
   if (!done) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
   return c.json(ok({ signed: true }, "common.updated", locale));
+});
+
+/** Shartnoma hujjatini AI orqali huquqiy xavf nuqtai nazaridan tahlil qiladi ("Tahlil qil").
+ * Natija documents.extracted.riskAnalysis'ga yoziladi — schema o'zgarishisiz, imzo bilan
+ * bir xil o'qi-birlashtir-yoz naqshi. Ikkala ish rejimida ham ishlaydi (universal). */
+documentRoutes.post("/documents/:id/analyze-risk", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, userId, role } = c.get("auth");
+  if (!CAN_SIGN.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const id = c.req.param("id");
+
+  const result = await withTenant(tenantId, async (tx) => {
+    const [doc] = await tx.select({ id: documents.id, extracted: documents.extracted }).from(documents).where(eq(documents.id, id)).limit(1);
+    if (!doc) return null;
+    const bodyText = typeof (doc.extracted as Record<string, unknown> | null)?.body === "string" ? String((doc.extracted as Record<string, unknown>).body) : "";
+    if (!bodyText.trim()) return { error: "no_text" as const };
+
+    const riskAnalysis = await analyzeContractRisk(bodyText, locale);
+    await tx
+      .update(documents)
+      .set({ extracted: { ...((doc.extracted ?? {}) as object), riskAnalysis } })
+      .where(eq(documents.id, id));
+    await tx.insert(auditLogs).values({
+      tenantId,
+      actorType: "user",
+      actorId: userId,
+      action: "document.risk_analyzed",
+      entityType: "document",
+      entityId: id,
+      detail: { riskLevel: riskAnalysis.riskLevel, findingsCount: riskAnalysis.findings.length },
+    });
+    return { riskAnalysis };
+  });
+
+  if (!result) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  if ("error" in result) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  return c.json(ok(result, "common.updated", locale));
 });

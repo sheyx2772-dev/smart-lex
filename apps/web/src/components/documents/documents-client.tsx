@@ -18,6 +18,7 @@ import {
   Scroll,
   SealCheck,
   ShieldCheck,
+  ShieldWarning,
   Sparkle,
   Tray,
   TrayArrowUp,
@@ -30,7 +31,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { fetchDocuments, getDocumentDetail, signDocument, syncDidox } from "@/app/(app)/documents/actions";
+import { analyzeDocumentRisk, fetchDocuments, getDocumentDetail, signDocument, syncDidox, type RiskAnalysis } from "@/app/(app)/documents/actions";
 import { signWithEimzo } from "@/lib/eimzo";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,6 +107,8 @@ const AI_ACTION: Record<string, { cat: "sign" | "reply" | "monitor" | "legal"; h
   court_claim: { cat: "legal", href: "/court", icon: Gavel },
   other: { cat: "reply", href: "/studio", icon: NotePencil },
 };
+
+const RISK_TONE: Record<string, BadgeProps["tone"]> = { low: "success", medium: "warning", high: "danger", critical: "danger" };
 
 /**
  * Intl.DateTimeFormat ishlatilmaydi — "uz" lokal uchun Node (server) va brauzer
@@ -380,7 +383,7 @@ export function DocumentsClient({ initial }: { initial: DocumentsData }) {
                 <X className="size-4" />
               </button>
             </div>
-            {detail && <DetailBody detail={detail} t={t} tType={tType} locale={locale} onSigned={() => openDoc(detail.id)} />}
+            {detail && <DetailBody detail={detail} t={t} tType={tType} locale={locale} onUpdated={() => openDoc(detail.id)} />}
             {detailLoading && <p className="text-sm text-muted-foreground">…</p>}
           </div>
         </div>
@@ -395,20 +398,33 @@ function DetailBody({
   t,
   tType,
   locale,
-  onSigned,
+  onUpdated,
 }: {
   detail: DocDetail;
   t: ReturnType<typeof useTranslations>;
   tType: ReturnType<typeof useTranslations>;
   locale: string;
-  onSigned: () => void;
+  onUpdated: () => void;
 }) {
   const tA = useTranslations("approvals");
   const body = typeof detail.extracted?.body === "string" ? (detail.extracted.body as string) : null;
   const signature = (detail.extracted?.signature ?? null) as { signerName: string; certSerial: string; provider: string } | null;
+  const riskAnalysis = (detail.extracted?.riskAnalysis ?? null) as RiskAnalysis | null;
   const [signing, setSigning] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const a = AI_ACTION[detail.type] ?? AI_ACTION.other!;
   const AIcon = a.icon;
+
+  async function doAnalyzeRisk() {
+    if (analyzing) return;
+    setAnalyzing(true);
+    try {
+      const res = await analyzeDocumentRisk(detail.id);
+      if (res.success) onUpdated();
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   /** Hujjat matnini Studioga o'tkazadi (tahrirlash + AI tahlil uchun). */
   function openInStudio() {
@@ -427,7 +443,7 @@ function DetailBody({
     try {
       const sig = await signWithEimzo(body ?? detail.title, "Rahbar");
       const res = await signDocument(detail.id, sig);
-      if (res.success) onSigned();
+      if (res.success) onUpdated();
     } finally {
       setSigning(false);
     }
@@ -479,6 +495,58 @@ function DetailBody({
           </Button>
         )}
       </div>
+
+      {/* Shartnoma xavf tahlili — faqat "contract" turidagi hujjatlarda, matn mavjud bo'lsa */}
+      {detail.type === "contract" && body && (
+        <div className="rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {locale === "ru" ? "Анализ риска" : "Xavf tahlili"}
+            </p>
+            <Button variant="outline" onClick={doAnalyzeRisk} disabled={analyzing}>
+              <ShieldWarning weight="fill" className="size-4" />
+              {analyzing ? (locale === "ru" ? "Анализирую…" : "Tahlil qilinmoqda…") : locale === "ru" ? "Анализировать" : "Tahlil qil"}
+            </Button>
+          </div>
+          {riskAnalysis && (
+            <div className="mt-3 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <Badge tone={RISK_TONE[riskAnalysis.riskLevel] ?? "neutral"}>{riskAnalysis.riskLevel}</Badge>
+                <span className="text-xs text-muted-foreground">{new Date(riskAnalysis.analyzedAt).toLocaleString()}</span>
+              </div>
+              {riskAnalysis.findings.map((f, i) => (
+                <div key={i} className="rounded-lg border border-border bg-muted/20 p-2.5">
+                  <div className="flex items-center gap-2">
+                    <Badge tone={RISK_TONE[f.riskLevel] ?? "neutral"}>{f.riskLevel}</Badge>
+                    <span className="text-sm font-medium">{f.area}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">{f.reason}</p>
+                </div>
+              ))}
+              {riskAnalysis.missingClauses.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{locale === "ru" ? "Отсутствующие пункты" : "Yetishmayotgan bandlar"}</p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {riskAnalysis.missingClauses.map((cl, i) => (
+                      <span key={i} className="rounded-md bg-warning-soft px-2 py-0.5 text-xs text-warning">{cl}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {riskAnalysis.unusualClauses.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{locale === "ru" ? "Необычные пункты" : "G'ayrioddiy bandlar"}</p>
+                  <div className="mt-1 flex flex-wrap gap-1.5">
+                    {riskAnalysis.unusualClauses.map((cl, i) => (
+                      <span key={i} className="rounded-md bg-danger-soft px-2 py-0.5 text-xs text-danger">{cl}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {body && (
         <div className="rounded-lg border border-border p-3">

@@ -18,10 +18,12 @@ import { merchantRoutes } from "./routes/merchant";
 import { platformRoutes } from "./routes/platform";
 import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
+import { legalAgentRoutes } from "./routes/legal-agent";
 import { companyRoutes } from "./routes/companies";
 import { contractRoutes } from "./routes/contracts";
 import { courtRoutes } from "./routes/court";
 import { dashboardRoutes } from "./routes/dashboard";
+import { legalDashboardRoutes } from "./routes/legal-dashboard";
 import { documentRoutes } from "./routes/documents";
 import { miscRoutes } from "./routes/misc";
 import { oneIdRoutes } from "./routes/oneid";
@@ -71,6 +73,7 @@ export function createApp() {
   const api = new Hono<{ Variables: Variables }>();
   api.use("*", authMiddleware);
   api.route("/", dashboardRoutes);
+  api.route("/", legalDashboardRoutes);
   api.route("/", agentConsoleRoutes);
   api.route("/", agentAutopilotRoutes);
   api.route("/", merchantRoutes);
@@ -81,6 +84,7 @@ export function createApp() {
   api.route("/", platformRoutes);
   api.route("/", paymentRoutes);
   api.route("/", agentChatRoutes);
+  api.route("/", legalAgentRoutes);
   api.route("/", contractRoutes);
   api.route("/", courtRoutes);
   api.route("/", receivableRoutes);

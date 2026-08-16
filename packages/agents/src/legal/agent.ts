@@ -54,6 +54,8 @@ export async function runAgent(opts: {
   messages: { role: "user" | "assistant"; content: string }[];
   tools: AgentToolDef[];
   maxSteps?: number;
+  /** Bergan bo'lsa, standart undiruv SYS o'rniga shu tizim ko'rsatmasi ishlatiladi (masalan yuridik agent). */
+  system?: string;
 }): Promise<{ text: string; steps: AgentRunStep[] }> {
   const model = getAgentModel();
   if (!model) return { text: noKey(opts.locale), steps: [] };
@@ -86,7 +88,7 @@ export async function runAgent(opts: {
   try {
     const { text } = await generateText({
       model,
-      system: SYS[opts.locale] ?? SYS.uz,
+      system: opts.system ?? (SYS[opts.locale] ?? SYS.uz),
       messages: opts.messages,
       tools: aiTools,
       maxSteps: opts.maxSteps ?? 6,

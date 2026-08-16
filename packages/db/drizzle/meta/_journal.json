@@ -71,6 +71,13 @@
       "when": 1786739656032,
       "tag": "0009_dark_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786903600378,
+      "tag": "0010_previous_the_phantom",
+      "breakpoints": true
     }
   ]
 }

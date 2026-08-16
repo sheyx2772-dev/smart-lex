@@ -20,6 +20,7 @@ import {
   currencyEnum,
   documentTypeEnum,
   financingListingStatusEnum,
+  legalMatterStatusEnum,
   localeEnum,
   overrideStatusEnum,
   overrideTypeEnum,
@@ -227,6 +228,45 @@ export const payables = pgTable(
   (t) => [
     uniqueIndex("payables_tenant_number_uq").on(t.tenantId, t.number),
     index("payables_tenant_due_idx").on(t.tenantId, t.dueDate),
+  ],
+);
+
+/** Yuridik ish (Legal Matter) — "Yuridik" ish rejimi uchun umumiy yuridik jarayon
+ * (qarz undirishga bog'liq emas — debt_cases'dan butunlay mustaqil). Kontragent,
+ * shartnoma va hujjatga bog'lanishi ixtiyoriy — sof huquqiy so'rov (masalan
+ * shartnoma tekshiruvi) hech qaysi biriga ega bo'lmasligi mumkin. */
+export const legalMatters = pgTable(
+  "legal_matters",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    matterNumber: text("matter_number").notNull(),
+    title: text("title").notNull(),
+    /** "contract_review" | "litigation" | "consultation" | "compliance" | "other" — erkin matn, yangi turlar uchun migratsiya kerak emas. */
+    type: text("type").notNull(),
+    status: legalMatterStatusEnum("status").notNull().default("new"),
+    /** "low" | "normal" | "high" | "urgent" */
+    priority: text("priority").notNull().default("normal"),
+    /** null | "low" | "medium" | "high" | "critical" */
+    riskLevel: text("risk_level"),
+    contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "set null" }),
+    contractId: uuid("contract_id").references(() => contracts.id, { onDelete: "set null" }),
+    documentId: uuid("document_id").references(() => documents.id, { onDelete: "set null" }),
+    assignedUserId: uuid("assigned_user_id").references(() => users.id, { onDelete: "set null" }),
+    description: text("description"),
+    dueDate: timestamp("due_date", { withTimezone: true }),
+    /** Erkin qo'shimcha holat (AI omillar, tarix) — Phase 1'da yangi migratsiyasiz kengaytirish uchun. */
+    meta: jsonb("meta").$type<Record<string, unknown>>().notNull().default({}),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("legal_matters_tenant_number_uq").on(t.tenantId, t.matterNumber),
+    index("legal_matters_tenant_status_idx").on(t.tenantId, t.status),
+    index("legal_matters_tenant_due_idx").on(t.tenantId, t.dueDate),
   ],
 );
 
