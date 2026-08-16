@@ -205,7 +205,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
                   workMode === "legal" ? "bg-primary text-primary-foreground shadow-sm" : cn(inkC(55), "hover:opacity-80"),
                 )}
               >
-                Yuridik jarayon
+                Yuridik
               </button>
             </div>
           </div>
