@@ -6,9 +6,12 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 // (/public/eimzo/ dan, 'self' bilan qamrab olinadi) — imzolash oqimi buzilmasin deb
 // connect-src'ga aniq qo'shilgan. Next.js hydration/inline skriptlari uchun 'unsafe-inline'
 // hozircha kerak (to'liq nonce-asoslangan CSP — alohida, ehtiyotkorlik bilan qilinadigan qadam).
+// `next dev`ning HMR/refresh runtime'i eval() ishlatadi — shuning uchun faqat devda
+// 'unsafe-eval' qo'shiladi; production build'da eval umuman kerak emas, CSP qat'iy qoladi.
+const isDev = process.env.NODE_ENV !== "production";
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
