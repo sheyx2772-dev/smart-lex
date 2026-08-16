@@ -136,6 +136,14 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
   }
 
   const isLegal = workMode === "legal";
+  // Sidebar "ink" — Debitorlik: oq matn qorong'i fonda. Yuridik: to'q ko'k matn
+  // och oq/ko'k fonda ("ochroq oq va ko'k" — talab qilingan yorug' identifikatsiya).
+  // Bitta RGB triplet o'zgaruvchisi orqali butun sidebar rangi bir joydan boshqariladi.
+  const ink = isLegal ? "11 40 74" : "255 255 255";
+  const sbStyle = { "--sb-ink": ink } as React.CSSProperties;
+  const inkC = (opacity: number) => `text-[rgb(var(--sb-ink)/${opacity}%)]`;
+  const surfC = (opacity: number) => `bg-[rgb(var(--sb-ink)/${opacity}%)]`;
+  const borderC = (opacity: number) => `border-[rgb(var(--sb-ink)/${opacity}%)]`;
 
   return (
     <div
@@ -145,41 +153,46 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
     >
       {/* ── Sidebar — yumshoq "command rail" ───────────────────── */}
       <aside
-        className="relative flex h-screen flex-col overflow-hidden text-white"
-        style={{ background: isLegal ? "linear-gradient(178deg, #14263b 0%, #0f1d2e 55%, #0a141f 100%)" : "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)" }}
+        className={cn("relative flex h-screen flex-col overflow-hidden", `text-[rgb(var(--sb-ink))]`)}
+        style={{
+          ...sbStyle,
+          background: isLegal
+            ? "linear-gradient(178deg, #ffffff 0%, #f2f7fd 55%, #e7f0fb 100%)"
+            : "linear-gradient(178deg, #282a31 0%, #202228 55%, #191b20 100%)",
+        }}
       >
         {/* Ambient glow — rejimga qarab: Debitorlik=binafsha/pushti, Yuridik=ko'k/azure — sekin nafas oladi */}
         <div
           className="ai-breathe pointer-events-none absolute inset-x-0 top-0 h-72 opacity-80"
           style={{
             background: isLegal
-              ? "radial-gradient(120% 80% at 15% 0%, rgba(64,152,232,0.20), rgba(34,184,207,0.09) 45%, transparent 72%)"
+              ? "radial-gradient(120% 80% at 15% 0%, rgba(11,95,174,0.14), rgba(14,116,144,0.07) 45%, transparent 72%)"
               : "radial-gradient(120% 80% at 15% 0%, rgba(139,92,246,0.16), rgba(236,72,153,0.08) 45%, transparent 72%)",
           }}
         />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/12 via-white/6 to-transparent" />
+        <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b to-transparent", isLegal ? "from-[rgb(var(--sb-ink)/16%)] via-[rgb(var(--sb-ink)/8%)]" : "from-white/12 via-white/6")} />
 
         {/* Logo */}
         <div className="relative flex items-center gap-2.5 px-5 pb-4 pt-5">
-          <div className="grid size-9 place-items-center rounded-xl bg-white shadow-lg ring-1 ring-white/20">
+          <div className={cn("grid size-9 place-items-center rounded-xl shadow-lg ring-1", isLegal ? "bg-white ring-primary/20" : "bg-white ring-white/20")}>
             <AiWaveLogo size={20} />
           </div>
           <div className="leading-tight">
             <span className="block font-display text-[15px] font-semibold tracking-tight">{tApp("name")}</span>
-            <span className="block text-[10px] uppercase tracking-[0.14em] text-white/35">{tenant.type}</span>
+            <span className={cn("block text-[10px] uppercase tracking-[0.14em]", inkC(45))}>{tenant.type}</span>
           </div>
         </div>
 
         {/* Ish rejimi — Debitorlik / Yuridik jarayon (faqat owner/admin almashtira oladi) */}
         {canSwitchMode && (
           <div className="relative mx-3.5 mb-3.5">
-            <div className="grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-white/[0.04] p-1">
+            <div className={cn("grid grid-cols-2 gap-1 rounded-lg border p-1", borderC(10), surfC(4))}>
               <button
                 onClick={() => switchMode("debt")}
                 disabled={switching}
                 className={cn(
                   "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
-                  workMode === "debt" ? "bg-white text-zinc-900 shadow-sm" : "text-white/50 hover:text-white/80",
+                  workMode === "debt" ? "bg-primary text-primary-foreground shadow-sm" : cn(inkC(55), "hover:opacity-80"),
                 )}
               >
                 Debitorlik
@@ -189,7 +202,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
                 disabled={switching}
                 className={cn(
                   "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
-                  workMode === "legal" ? "bg-white text-zinc-900 shadow-sm" : "text-white/50 hover:text-white/80",
+                  workMode === "legal" ? "bg-primary text-primary-foreground shadow-sm" : cn(inkC(55), "hover:opacity-80"),
                 )}
               >
                 Yuridik jarayon
@@ -199,10 +212,10 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
         )}
 
         {/* Agent status */}
-        <div className="relative mx-3.5 mb-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">
+        <div className={cn("relative mx-3.5 mb-4 overflow-hidden rounded-xl border p-3 backdrop-blur", borderC(10), surfC(isLegal ? 3 : 4))}>
           <div
             className="pointer-events-none absolute -left-8 -bottom-8 size-24 rounded-full opacity-50"
-            style={{ background: isLegal ? "radial-gradient(circle, rgba(64,152,232,0.3), transparent 70%)" : "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
+            style={{ background: isLegal ? "radial-gradient(circle, rgba(11,95,174,0.22), transparent 70%)" : "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
           />
           <div
             className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40"
@@ -215,15 +228,15 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-success">{tAgent("active")}</span>
           </div>
-          <p className="relative mt-1.5 truncate font-display text-sm font-semibold text-white">{tenant.name}</p>
-          <p className="relative mt-0.5 text-[11px] text-white/45">{tAgent("monitoring")}</p>
+          <p className="relative mt-1.5 truncate font-display text-sm font-semibold">{tenant.name}</p>
+          <p className={cn("relative mt-0.5 text-[11px]", inkC(55))}>{tAgent("monitoring")}</p>
         </div>
 
         {/* Nav */}
         <nav className="relative flex-1 space-y-5 overflow-y-auto px-3 pb-3">
           {GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">
+              <p className={cn("mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em]", inkC(40))}>
                 {t(group.label)}
               </p>
               <div className="space-y-0.5">
@@ -237,21 +250,14 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
                       href={item.href}
                       className={cn(
                         "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
-                        active ? "bg-white/[0.10] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white/90",
+                        active ? surfC(isLegal ? 6 : 10) : cn(inkC(65), "hover:opacity-90"),
                       )}
                     >
-                      {active && (
-                        <span
-                          className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white"
-                          style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }}
-                        />
-                      )}
+                      {active && <span className={cn("absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary")} />}
                       <span
                         className={cn(
                           "grid size-7 shrink-0 place-items-center rounded-lg transition-all",
-                          active
-                            ? "bg-white text-zinc-900 shadow-sm"
-                            : "bg-white/[0.06] text-white/60 group-hover:text-white",
+                          active ? "bg-primary text-primary-foreground shadow-sm" : cn(surfC(isLegal ? 5 : 6), inkC(65), "group-hover:opacity-100"),
                         )}
                       >
                         <ItemIcon weight={active ? "fill" : "regular"} className="size-[16px]" />
@@ -272,19 +278,17 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
           {/* Platforma admin — faqat platforma egasiga ko'rinadi (mijozlarga emas) */}
           {isPlatformAdmin && (
             <div>
-              <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/30">Platforma</p>
+              <p className={cn("mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-[0.14em]", inkC(40))}>Platforma</p>
               <div className="space-y-0.5">
                 <Link
                   href="/admin/financing"
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
-                    isActive("/admin/financing") ? "bg-white/[0.10] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white/90",
+                    isActive("/admin/financing") ? surfC(isLegal ? 6 : 10) : cn(inkC(65), "hover:opacity-90"),
                   )}
                 >
-                  {isActive("/admin/financing") && (
-                    <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white" style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }} />
-                  )}
-                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", isActive("/admin/financing") ? "bg-white text-zinc-900 shadow-sm" : "bg-white/[0.06] text-white/60 group-hover:text-white")}>
+                  {isActive("/admin/financing") && <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
+                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", isActive("/admin/financing") ? "bg-primary text-primary-foreground shadow-sm" : cn(surfC(isLegal ? 5 : 6), inkC(65)))}>
                     <HandCoins weight={isActive("/admin/financing") ? "fill" : "regular"} className="size-[16px]" />
                   </span>
                   <span className="flex-1">Factoring (B2B)</span>
@@ -293,13 +297,11 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
                   href="/admin"
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
-                    pathname === "/admin" ? "bg-white/[0.10] text-white" : "text-white/60 hover:bg-white/[0.05] hover:text-white/90",
+                    pathname === "/admin" ? surfC(isLegal ? 6 : 10) : cn(inkC(65), "hover:opacity-90"),
                   )}
                 >
-                  {pathname === "/admin" && (
-                    <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-white" style={{ boxShadow: "0 0 10px 0 rgba(255,255,255,0.4)" }} />
-                  )}
-                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", pathname === "/admin" ? "bg-white text-zinc-900 shadow-sm" : "bg-white/[0.06] text-white/60 group-hover:text-white")}>
+                  {pathname === "/admin" && <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary" />}
+                  <span className={cn("grid size-7 shrink-0 place-items-center rounded-lg transition-all", pathname === "/admin" ? "bg-primary text-primary-foreground shadow-sm" : cn(surfC(isLegal ? 5 : 6), inkC(65)))}>
                     <ShieldStar weight={pathname === "/admin" ? "fill" : "regular"} className="size-[16px]" />
                   </span>
                   <span className="flex-1">Boshqaruv</span>
@@ -310,18 +312,18 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
         </nav>
 
         {/* User footer */}
-        <div className="relative border-t border-white/10 p-3">
+        <div className={cn("relative border-t p-3", borderC(10))}>
           <div className="flex items-center gap-2.5 rounded-lg px-1.5 py-1">
-            <div className="grid size-9 shrink-0 place-items-center rounded-full bg-white/[0.10] font-display text-xs font-semibold text-white ring-1 ring-white/20">
+            <div className={cn("grid size-9 shrink-0 place-items-center rounded-full font-display text-xs font-semibold ring-1", surfC(isLegal ? 6 : 10), borderC(20))}>
               {user.fullName.slice(0, 1)}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium text-white/90">{user.fullName}</p>
-              <p className="truncate text-[11px] capitalize text-white/40">{user.role}</p>
+              <p className={cn("truncate text-[13px] font-medium", inkC(90))}>{user.fullName}</p>
+              <p className={cn("truncate text-[11px] capitalize", inkC(45))}>{user.role}</p>
             </div>
             <button
               onClick={logout}
-              className="grid size-8 place-items-center rounded-lg text-white/50 transition-colors hover:bg-danger/20 hover:text-danger"
+              className={cn("grid size-8 place-items-center rounded-lg transition-colors hover:bg-danger/20 hover:text-danger", inkC(55))}
               title={tCommon("logout")}
             >
               <SignOut className="size-[18px]" />
