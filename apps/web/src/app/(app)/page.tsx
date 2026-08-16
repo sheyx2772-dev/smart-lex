@@ -19,6 +19,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AgingBar } from "@/components/dashboard/aging-bar";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { Badge, STATUS_TONE } from "@/components/ui/badge";
@@ -100,6 +101,9 @@ export default async function DashboardPage() {
     { href: "/court", label: tNav("court"), icon: Gavel },
     { href: "/enforcement", label: tNav("enforcement"), icon: Truck },
   ];
+
+  const meRes = await apiServer<{ workMode?: "debt" | "legal" }>("/api/me");
+  if (meRes.data?.workMode === "legal") redirect("/contracts");
 
   const res = await apiServer<Dashboard>("/api/dashboard");
   const d = res.data;

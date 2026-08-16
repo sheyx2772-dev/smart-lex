@@ -17,6 +17,7 @@ miscRoutes.get("/me", async (c) => {
   });
   const [tenant] = await getDb().select().from(tenants).where(eq(tenants.id, tenantId));
 
+  const settings = (tenant?.settings ?? {}) as Record<string, unknown>;
   return c.json(
     ok(
       {
@@ -24,6 +25,7 @@ miscRoutes.get("/me", async (c) => {
         tenant: tenant ? { id: tenant.id, name: tenant.name, type: tenant.type, tin: tenant.tin, defaultLocale: tenant.defaultLocale } : null,
         isPlatformAdmin: Boolean(env.platformTenantId) && tenantId === env.platformTenantId && (role === "owner" || role === "admin"),
         subscription: readSub(tenant?.settings as Record<string, unknown> | undefined),
+        workMode: settings.workMode === "legal" ? "legal" : "debt",
       },
       "common.ok",
       c.get("locale"),

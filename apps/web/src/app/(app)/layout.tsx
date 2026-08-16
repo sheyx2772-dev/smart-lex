@@ -7,6 +7,7 @@ interface Me {
   user: { fullName: string; role: string; email: string } | null;
   tenant: { name: string; type: string } | null;
   isPlatformAdmin?: boolean;
+  workMode?: "debt" | "legal";
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +21,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const pendingApprovals = approvalsRes.success ? (approvalsRes.data?.length ?? 0) : 0;
 
   return (
-    <AppShell user={meRes.data.user} tenant={meRes.data.tenant} pendingApprovals={pendingApprovals} isPlatformAdmin={Boolean(meRes.data.isPlatformAdmin)}>
+    <AppShell
+      user={meRes.data.user}
+      tenant={meRes.data.tenant}
+      pendingApprovals={pendingApprovals}
+      isPlatformAdmin={Boolean(meRes.data.isPlatformAdmin)}
+      workMode={meRes.data.workMode ?? "debt"}
+    >
       {children}
       <SiteWindowHost />
     </AppShell>

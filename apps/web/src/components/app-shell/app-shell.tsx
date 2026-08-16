@@ -2,6 +2,8 @@
 
 import {
   Bell,
+  Buildings,
+  ChartBar,
   CreditCard,
   Files,
   Gavel,
@@ -11,6 +13,7 @@ import {
   NotePencil,
   PaperPlaneTilt,
   Robot,
+  ScrollIcon,
   SealCheck,
   ShieldStar,
   SignOut,
@@ -20,6 +23,8 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { setWorkMode } from "@/app/(app)/settings/actions";
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { AiWaveLogo } from "@/components/ai-wave-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -29,7 +34,12 @@ import { cn } from "@/lib/utils";
 // mantig'i shu yerda). CRM/analitika ekranlari va Boshqaruv markazi navigatsiyadan olib
 // tashlandi (route'lar saqlanadi — kerak bo'lsa qaytariladi): Boshqaruv markazining
 // portfel/prioritet bo'limi Debitorlikka, AI tasdiq so'rovlari esa Tasdiqlarga ko'chirildi.
-const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
+//
+// Ish rejimi (workMode): "debt" — undiruv-markazlashgan mijozlar (asosiy mahsulot).
+// "legal" — yuridik firmalar uchun umumiy ish yuritish (bank/davlat mijozlarining
+// so'rovi bilan qo'shildi) — bir xil yadro, faqat navigatsiya boshqacha guruhlangan.
+type WorkMode = "debt" | "legal";
+const DEBT_GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
   {
     label: "groupMain",
     items: [
@@ -57,28 +67,67 @@ const GROUPS: { label: string; items: { href: string; key: string; icon: Icon; b
     ],
   },
 ];
-
-const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
+const LEGAL_GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
+  {
+    label: "groupMain",
+    items: [
+      { href: "/studio", key: "studio", icon: NotePencil },
+      { href: "/documents", key: "documents", icon: Files },
+      { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
+    ],
+  },
+  {
+    label: "groupWork",
+    items: [
+      { href: "/contracts", key: "contracts", icon: ScrollIcon },
+      { href: "/companies", key: "companies", icon: Buildings },
+      { href: "/court", key: "court", icon: Gavel },
+      { href: "/reports", key: "reports", icon: ChartBar },
+    ],
+  },
+  {
+    label: "groupSystem",
+    items: [
+      { href: "/billing", key: "billing", icon: CreditCard },
+      { href: "/settings", key: "settings", icon: GearSix },
+    ],
+  },
+];
 
 interface Props {
   user: { fullName: string; role: string };
   tenant: { name: string; type: string };
   pendingApprovals: number;
   isPlatformAdmin?: boolean;
+  workMode?: WorkMode;
   children: React.ReactNode;
 }
 
-export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, children }: Props) {
+export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, workMode = "debt", children }: Props) {
   const t = useTranslations("nav");
   const tApp = useTranslations("app");
   const tAgent = useTranslations("agent");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
   const router = useRouter();
+  const [switching, startSwitch] = useTransition();
+
+  const GROUPS = workMode === "legal" ? LEGAL_GROUPS : DEBT_GROUPS;
+  const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
+  const canSwitchMode = user.role === "owner" || user.role === "admin";
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
   const activeItem = ALL_ITEMS.find((i) => isActive(i.href)) ?? ALL_ITEMS[0]!;
   const ActiveIcon = activeItem.icon;
+
+  function switchMode(next: WorkMode) {
+    if (next === workMode || switching) return;
+    startSwitch(async () => {
+      await setWorkMode(next);
+      router.push(next === "legal" ? "/contracts" : "/agent");
+      router.refresh();
+    });
+  }
 
   async function logout() {
     await fetch("/api/session", { method: "DELETE" });
@@ -113,6 +162,34 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, chil
             <span className="block text-[10px] uppercase tracking-[0.14em] text-white/35">{tenant.type}</span>
           </div>
         </div>
+
+        {/* Ish rejimi — Debitorlik / Yuridik jarayon (faqat owner/admin almashtira oladi) */}
+        {canSwitchMode && (
+          <div className="relative mx-3.5 mb-3.5">
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-white/10 bg-white/[0.04] p-1">
+              <button
+                onClick={() => switchMode("debt")}
+                disabled={switching}
+                className={cn(
+                  "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
+                  workMode === "debt" ? "bg-white text-zinc-900 shadow-sm" : "text-white/50 hover:text-white/80",
+                )}
+              >
+                Debitorlik
+              </button>
+              <button
+                onClick={() => switchMode("legal")}
+                disabled={switching}
+                className={cn(
+                  "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
+                  workMode === "legal" ? "bg-white text-zinc-900 shadow-sm" : "text-white/50 hover:text-white/80",
+                )}
+              >
+                Yuridik jarayon
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Agent status */}
         <div className="relative mx-3.5 mb-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 backdrop-blur">

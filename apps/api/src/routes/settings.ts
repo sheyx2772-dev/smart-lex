@@ -157,6 +157,22 @@ settingsRoutes.put("/company", async (c) => {
   return c.json(ok({ saved: true }, "common.updated", locale));
 });
 
+/** Ish rejimi — "debt" (debitorlik/undiruv) yoki "legal" (yuridik firma uchun umumiy
+ * ish yuritish). Navigatsiyani AppShell shu qiymatga qarab qayta quradi. */
+settingsRoutes.put("/work-mode", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, role } = c.get("auth");
+  if (!CAN_EDIT_COMPANY.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+  const body = (await c.req.json().catch(() => ({}))) as { mode?: string };
+  const mode = body.mode === "legal" ? "legal" : "debt";
+  await withTenant(tenantId, async (tx) => {
+    const [existing] = await tx.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId));
+    const settings = { ...((existing?.settings ?? {}) as Record<string, unknown>), workMode: mode };
+    await tx.update(tenants).set({ settings }).where(eq(tenants.id, tenantId));
+  });
+  return c.json(ok({ workMode: mode }, "common.updated", locale));
+});
+
 /** Integratsiyalar — maxfiy kalitlar (settings.integrations). Faqat bo'sh bo'lmagan
  * maydonlar yangilanadi (bo'sh qoldirsa eskisi saqlanadi). */
 settingsRoutes.put("/integrations", async (c) => {

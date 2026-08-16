@@ -15,6 +15,12 @@ export async function savePassword(input: { currentPassword: string; newPassword
   return apiServer("/api/settings/password", { method: "PUT", body: JSON.stringify(input) });
 }
 
+export async function setWorkMode(mode: "debt" | "legal") {
+  const res = await apiServer("/api/settings/work-mode", { method: "PUT", body: JSON.stringify({ mode }) });
+  revalidatePath("/", "layout");
+  return res;
+}
+
 export async function saveCompany(input: Record<string, unknown>) {
   const res = await apiServer("/api/settings/company", { method: "PUT", body: JSON.stringify(input) });
   revalidatePath("/settings");
