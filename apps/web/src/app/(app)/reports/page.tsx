@@ -1,6 +1,7 @@
 import { Bank, ChartLineUp, CurrencyCircleDollar, ShieldWarning, TrendUp, Warning } from "@phosphor-icons/react/dist/ssr";
 import { getTranslations } from "next-intl/server";
 import { StatTile } from "@/components/dashboard/stat-tile";
+import { LegalReports } from "@/components/reports/legal-reports";
 import { ReportActions, type ReportData } from "@/components/reports/report-actions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,9 @@ function riskTone(score: number): "danger" | "warning" | "success" {
 }
 
 export default async function ReportsPage() {
+  const meRes = await apiServer<{ workMode?: "debt" | "legal" }>("/api/me");
+  if (meRes.data?.workMode === "legal") return <LegalReports />;
+
   const t = await getTranslations("reports");
   const tAging = await getTranslations("aging");
   const tStage = await getTranslations("stage");

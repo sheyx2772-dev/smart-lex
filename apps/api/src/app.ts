@@ -34,6 +34,7 @@ import { agentConsoleRoutes } from "./routes/agent-console";
 import { agentAutopilotRoutes } from "./routes/agent-autopilot";
 import { reminderRoutes } from "./routes/reminders";
 import { reportRoutes } from "./routes/reports";
+import { legalReportRoutes } from "./routes/legal-reports";
 import { syncRoutes } from "./routes/sync";
 import { settingsRoutes } from "./routes/settings";
 import { commandCenterRoutes } from "./routes/command-center";
@@ -91,6 +92,7 @@ export function createApp() {
   api.route("/", payableRoutes);
   api.route("/", overdueRoutes);
   api.route("/", reportRoutes);
+  api.route("/", legalReportRoutes);
   api.route("/", documentRoutes);
   api.route("/", reminderRoutes);
   api.route("/", syncRoutes);
