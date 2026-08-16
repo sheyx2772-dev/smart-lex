@@ -1,4 +1,5 @@
-import { auditLogs, getDb, payments, receivables, tenants, withTenant } from "@lex/db";
+import { format, money } from "@lex/core";
+import { auditLogs, contractors, getDb, invoices, payables, payments, receivables, tenants, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
 import { desc, eq, ne, sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -28,6 +29,16 @@ function readConfig(settings: Record<string, unknown> | null | undefined): Agent
     mode: MODES.includes(a.mode as AgentMode) ? (a.mode as AgentMode) : "suggest",
     aggressiveness: AGGR.includes(a.aggressiveness as Aggr) ? (a.aggressiveness as Aggr) : "normal",
   };
+}
+
+/** Keyingi bosqich — collection/decide.ts'dagi haqiqiy undiruv zinasi bilan bir xil chegaralar (15/30/60 kun). */
+function nextAction(executedStages: string[], overdueDays: number): { label: string; tone: "primary" | "warning" | "brand" | "danger" | "muted" } {
+  const done = new Set(executedStages ?? []);
+  if (!done.has("soft_reminder")) return { label: "Yumshoq eslatma", tone: "primary" };
+  if (!done.has("firm_reminder") && overdueDays >= 15) return { label: "Qat'iy eslatma", tone: "warning" };
+  if (!done.has("demand_letter") && overdueDays >= 30) return { label: "Talabnoma", tone: "brand" };
+  if (!done.has("court") && overdueDays >= 60) return { label: "Sudga tayyor", tone: "danger" };
+  return { label: "Javob kutilmoqda", tone: "muted" };
 }
 
 /** Autopilot holati: sozlama + jonli tasma + bugungi statistika. */
@@ -94,7 +105,55 @@ agentAutopilotRoutes.get("/agent/autopilot", async (c) => {
     recoveryRate: recVal + outVal > 0 ? Math.round((recVal / (recVal + outVal)) * 100) : null,
   };
 
-  return c.json(ok({ config, feed, stats, recovery }, "common.ok", c.get("locale")));
+  // ── Debit / Kredit / Nazoratdagi umumiy summa — mijozning o'z balansi.
+  const [payableRow] = await withTenant(tenantId, (tx) => tx.select({ sum: sql<string>`coalesce(sum(${payables.amountMinor}),0)::text` }).from(payables));
+  const debitMinor = BigInt(rec.outstandingMinor);
+  const kreditMinor = BigInt(payableRow?.sum ?? "0");
+  const currency = "UZS";
+  const balance = {
+    currency,
+    debit: format(money(debitMinor, currency)),
+    kredit: format(money(kreditMinor, currency)),
+    monitored: format(money(debitMinor + kreditMinor, currency)),
+  };
+
+  // ── Faol qarzdorlar — eng ko'p kechikkan hujjatlar, keyingi bosqich tavsiyasi bilan.
+  const debtorRows = await withTenant(tenantId, (tx) =>
+    tx
+      .select({
+        id: receivables.id,
+        contractorId: contractors.id,
+        contractorName: contractors.name,
+        contractorTin: contractors.tin,
+        outstandingMinor: receivables.outstandingMinor,
+        currency: receivables.currency,
+        overdueDays: receivables.overdueDays,
+        executedStages: receivables.executedStages,
+        invoiceNumber: invoices.number,
+      })
+      .from(receivables)
+      .innerJoin(contractors, eq(receivables.contractorId, contractors.id))
+      .innerJoin(invoices, eq(receivables.invoiceId, invoices.id))
+      .where(ne(receivables.status, "paid"))
+      .orderBy(desc(receivables.overdueDays))
+      .limit(8),
+  );
+  const debtors = debtorRows.map((d) => {
+    const action = nextAction((d.executedStages ?? []) as string[], d.overdueDays);
+    return {
+      id: d.id,
+      contractorId: d.contractorId,
+      name: d.contractorName,
+      tin: d.contractorTin,
+      invoiceNumber: d.invoiceNumber,
+      outstanding: format(money(d.outstandingMinor, d.currency)),
+      overdueDays: d.overdueDays,
+      action: action.label,
+      actionTone: action.tone,
+    };
+  });
+
+  return c.json(ok({ config, feed, stats, recovery, balance, debtors }, "common.ok", c.get("locale")));
 });
 
 /** Autopilot sozlamasini yangilash (faqat owner/admin). */
