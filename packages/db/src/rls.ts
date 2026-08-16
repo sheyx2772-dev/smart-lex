@@ -28,6 +28,7 @@ export const TENANT_SCOPED_TABLES = [
   "payment_promises",
   "financing_listings",
   "legal_matters",
+  "legal_agent_tasks",
 ] as const;
 
 /**

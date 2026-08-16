@@ -1,7 +1,9 @@
 import { Briefcase, ChartBar, Clock, FileText, Gavel, Robot, ShieldWarning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { fetchLegalTasks } from "@/app/(app)/legal/actions";
 import { LegalAgentChat } from "@/components/agent/legal-agent-chat";
 import { StatTile } from "@/components/dashboard/stat-tile";
+import { LegalTasksPanel } from "@/components/legal/legal-tasks-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiServer } from "@/lib/api";
@@ -52,7 +54,7 @@ const STATUS_LABEL: Record<string, string> = {
  * falsafa: sof "ma'lumotlar bazasi" (raqamlar) emas, balki real ishlaydigan AI agent +
  * kontekst uchun real ko'rsatkichlar BIR sahifada. Alohida "Boshqaruv paneli" yo'q. */
 export default async function LegalHomePage() {
-  const res = await apiServer<LegalDashboard>("/api/legal/dashboard");
+  const [res, tasks] = await Promise.all([apiServer<LegalDashboard>("/api/legal/dashboard"), fetchLegalTasks()]);
   const d = res.data;
   const k = d?.kpis ?? { activeMatters: 0, highRisk: 0, deadlinesThisWeek: 0, courtCases: 0, contractsToReview: 0, aiTasks: 0 };
   const fmt = (x: string | null) => (x ? new Date(x).toLocaleDateString() : "—");
@@ -82,6 +84,9 @@ export default async function LegalHomePage() {
         <StatTile label="Ko'rib chiqilishi kerak" value={String(k.contractsToReview)} tone="secondary" icon={<FileText weight="fill" className="size-4" />} />
         <StatTile label="AI vazifalari" value={String(k.aiTasks)} tone="primary" plain icon={<Robot weight="fill" className="size-4" />} />
       </div>
+
+      {/* Bugungi diqqat — real, harakat qilinadigan AI vazifalar navbati */}
+      <LegalTasksPanel initial={tasks} />
 
       {/* Real harakat — asosiy sirt: agent bilan ishlash */}
       <div className="rounded-3xl border border-border bg-card p-5">

@@ -270,6 +270,38 @@ export const legalMatters = pgTable(
   ],
 );
 
+/** "AI Vazifalari" navbati — Yuridik AI Agent proaktiv aniqlagan harakat kerak bo'lgan
+ * narsalar (muddat, yangi hujjat tahlili, shartnoma band muammosi). Mavjud debt-only
+ * `agent_tasks`dan butunlay mustaqil — uni almashtirmaydi, unga tegilmaydi. */
+export const legalAgentTasks = pgTable(
+  "legal_agent_tasks",
+  {
+    id: id(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    /** "urgent" (🔴 muddat) | "recommendation" (🟠 tavsiya) | "auto_check" (🔵 avtomatik tekshiruv) */
+    category: text("category").notNull(),
+    title: text("title").notNull(),
+    /** AI'ning bir gaplik asosi — nega bu vazifa yaratildi. */
+    reason: text("reason").notNull(),
+    legalMatterId: uuid("legal_matter_id").references(() => legalMatters.id, { onDelete: "cascade" }),
+    contractorId: uuid("contractor_id").references(() => contractors.id, { onDelete: "cascade" }),
+    documentId: uuid("document_id").references(() => documents.id, { onDelete: "cascade" }),
+    /** "pending" | "done" | "dismissed" */
+    status: text("status").notNull().default("pending"),
+    /** Generator turi — bir xil sabab bo'yicha takror vazifa yaratilmasligi uchun (source, sourceKey) unique. */
+    source: text("source").notNull(),
+    sourceKey: text("source_key").notNull(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex("legal_agent_tasks_source_uq").on(t.tenantId, t.source, t.sourceKey),
+    index("legal_agent_tasks_tenant_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
 export const payments = pgTable(
   "payments",
   {

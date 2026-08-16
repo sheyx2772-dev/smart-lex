@@ -8,6 +8,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
     "monitor:once": "tsx src/run-once.ts",
+    "legal-tasks:once": "tsx src/legal-tasks-once.ts",
     "backfill:receivables": "tsx src/backfill-receivables.ts",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint: worker ok'"

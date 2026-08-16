@@ -1,4 +1,4 @@
-import { agentTasks, auditLogs, contractors, legalMatters, withTenant } from "@lex/db";
+import { auditLogs, contractors, legalAgentTasks, legalMatters, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { Hono } from "hono";
@@ -32,7 +32,7 @@ legalDashboardRoutes.get("/legal/dashboard", async (c) => {
       .select({ n: sql<number>`count(*)::int` })
       .from(legalMatters)
       .where(and(eq(legalMatters.type, "contract_review"), inArray(legalMatters.status, ["new", "in_review"])));
-    const [ai] = await tx.select({ n: sql<number>`count(*)::int` }).from(agentTasks).where(eq(agentTasks.status, "pending"));
+    const [ai] = await tx.select({ n: sql<number>`count(*)::int` }).from(legalAgentTasks).where(eq(legalAgentTasks.status, "pending"));
 
     const recentMatters = await tx
       .select({
