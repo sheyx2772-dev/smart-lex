@@ -2,7 +2,6 @@
 
 import {
   Bell,
-  Briefcase,
   Buildings,
   ChartBar,
   CreditCard,
@@ -72,8 +71,7 @@ const LEGAL_GROUPS: { label: string; items: { href: string; key: string; icon: I
   {
     label: "groupMain",
     items: [
-      { href: "/legal", key: "dashboard", icon: Briefcase },
-      { href: "/legal/agent", key: "legalAgent", icon: Robot },
+      { href: "/legal", key: "legalAgent", icon: Robot },
       { href: "/studio", key: "studio", icon: NotePencil },
       { href: "/documents", key: "documents", icon: Files },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },

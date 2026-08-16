@@ -1,5 +1,7 @@
-import { LegalAgentChat } from "@/components/agent/legal-agent-chat";
+import { redirect } from "next/navigation";
 
-export default function LegalAgentPage() {
-  return <LegalAgentChat />;
+/** AI agent /legal sahifasiga ko'chirildi (KPI + agent bitta sahifada) — eski havolalar
+ * uchun 404 o'rniga qayta yo'naltirish. */
+export default function LegalAgentRedirect() {
+  redirect("/legal");
 }

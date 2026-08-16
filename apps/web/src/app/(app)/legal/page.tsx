@@ -1,5 +1,6 @@
 import { Briefcase, ChartBar, Clock, FileText, Gavel, Robot, ShieldWarning } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { LegalAgentChat } from "@/components/agent/legal-agent-chat";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,39 +48,55 @@ const STATUS_LABEL: Record<string, string> = {
   closed: "Yakunlangan",
 };
 
-export default async function LegalDashboardPage() {
+/** Yuridik ish rejimining yagona bosh sahifasi — Debitorlik tarafidagi /agent bilan bir xil
+ * falsafa: sof "ma'lumotlar bazasi" (raqamlar) emas, balki real ishlaydigan AI agent +
+ * kontekst uchun real ko'rsatkichlar BIR sahifada. Alohida "Boshqaruv paneli" yo'q. */
+export default async function LegalHomePage() {
   const res = await apiServer<LegalDashboard>("/api/legal/dashboard");
   const d = res.data;
-  if (!d) return <div className="text-sm text-muted-foreground">Ma'lumot yo'q</div>;
-  const k = d.kpis;
+  const k = d?.kpis ?? { activeMatters: 0, highRisk: 0, deadlinesThisWeek: 0, courtCases: 0, contractsToReview: 0, aiTasks: 0 };
   const fmt = (x: string | null) => (x ? new Date(x).toLocaleDateString() : "—");
 
   return (
     <div className="w-full space-y-5">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary-soft/60 via-card to-primary-soft/20 p-6">
-        <p className="text-sm text-muted-foreground">Yuridik jarayonlar</p>
-        <h1 className="mt-0.5 font-display text-2xl font-semibold tracking-tight">Boshqaruv markazi</h1>
-        <p className="mt-2 max-w-xl text-sm text-muted-foreground">Faol ishlar, muddatlar va AI vazifalarining umumiy holati — bitta ekranda.</p>
+      {/* Hero — Debitorlikdagi "AI Undiruv Agenti" bilan bir xil naqsh */}
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/12 via-card to-card p-6">
+        <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-primary/15 blur-3xl" />
+        <div className="relative flex items-center gap-3">
+          <span className="grid size-12 place-items-center rounded-2xl bg-primary text-primary-foreground">
+            <Robot weight="fill" className="size-6" />
+          </span>
+          <div>
+            <h1 className="font-display text-xl font-bold tracking-tight">Yuridik AI Agent</h1>
+            <p className="text-sm text-muted-foreground">Ishlar va shartnomalarni o'qiydi, xavfni tahlil qiladi, hujjat tayyorlaydi — siz tasdiqlaysiz.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* Real kontekst — nechta ish, qanchasi xavfli, muddat qachon */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatTile label="Faol ishlar" value={String(k.activeMatters)} tone="primary" icon={<Briefcase weight="fill" className="size-4" />} />
         <StatTile label="Yuqori xavf" value={String(k.highRisk)} tone="danger" icon={<ShieldWarning weight="fill" className="size-4" />} />
-        <StatTile label="Bu hafta muddatlar" value={String(k.deadlinesThisWeek)} tone="warning" icon={<Clock weight="fill" className="size-4" />} />
+        <StatTile label="Bu hafta muddat" value={String(k.deadlinesThisWeek)} tone="warning" icon={<Clock weight="fill" className="size-4" />} />
         <StatTile label="Sud ishlari" value={String(k.courtCases)} tone="primary" icon={<Gavel weight="fill" className="size-4" />} />
         <StatTile label="Ko'rib chiqilishi kerak" value={String(k.contractsToReview)} tone="secondary" icon={<FileText weight="fill" className="size-4" />} />
         <StatTile label="AI vazifalari" value={String(k.aiTasks)} tone="primary" plain icon={<Robot weight="fill" className="size-4" />} />
       </div>
 
+      {/* Real harakat — asosiy sirt: agent bilan ishlash */}
+      <div className="rounded-3xl border border-border bg-card p-5">
+        <LegalAgentChat />
+      </div>
+
+      {/* Qo'llab-quvvatlovchi kontekst — so'nggi ishlar va agent faoliyati */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>So'nggi ishlar</CardTitle>
-            <Link href="/legal/agent" className="text-xs font-medium text-primary hover:underline">AI agentga murojaat →</Link>
           </CardHeader>
           <CardContent className="p-0">
-            {d.recentMatters.length === 0 ? (
-              <p className="px-5 py-10 text-center text-sm text-muted-foreground">Hali yuridik ish yaratilmagan.</p>
+            {!d || d.recentMatters.length === 0 ? (
+              <p className="px-5 py-10 text-center text-sm text-muted-foreground">Hali yuridik ish yaratilmagan — agentdan so'rang.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -117,13 +134,13 @@ export default async function LegalDashboardPage() {
 
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>So'nggi faoliyat</CardTitle>
+            <CardTitle>Agent nima qildi</CardTitle>
             <Link href="/audit" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
               <ChartBar className="size-3.5" /> Audit
             </Link>
           </CardHeader>
           <CardContent>
-            {d.activity.length === 0 ? (
+            {!d || d.activity.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">Hali faoliyat yo'q</p>
             ) : (
               <ol className="space-y-3">

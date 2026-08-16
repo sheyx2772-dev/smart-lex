@@ -103,7 +103,7 @@ export function LegalAgentChat() {
   }
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-7rem)] min-h-0 w-full max-w-3xl flex-col">
+    <div className="mx-auto flex h-[600px] min-h-0 w-full max-w-3xl flex-col">
       <div ref={scrollRef} className="scroll-clean min-h-0 flex-1 space-y-4 overflow-y-auto pb-4">
         {messages.length === 0 && (
           <div className="flex h-full flex-col items-center justify-center gap-4 px-4 text-center">
