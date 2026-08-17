@@ -4,6 +4,7 @@ import { fetchLegalTasks } from "@/app/(app)/legal/actions";
 import { LegalAgentChat } from "@/components/agent/legal-agent-chat";
 import { StatTile } from "@/components/dashboard/stat-tile";
 import { LegalTasksPanel } from "@/components/legal/legal-tasks-panel";
+import { MATTER_RISK_TONE, MATTER_STATUS_LABEL } from "@/components/legal/matter-labels";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiServer } from "@/lib/api";
@@ -31,24 +32,6 @@ interface LegalDashboard {
   recentMatters: Matter[];
   activity: { id: string; actorType: string; action: string; detail: Record<string, unknown> | null; createdAt: string }[];
 }
-
-const RISK_TONE: Record<string, "danger" | "warning" | "success" | "primary"> = {
-  critical: "danger",
-  high: "danger",
-  medium: "warning",
-  low: "success",
-};
-const STATUS_LABEL: Record<string, string> = {
-  new: "Yangi",
-  in_review: "Ko'rib chiqilmoqda",
-  in_progress: "Jarayonda",
-  waiting_for_approval: "Tasdiq kutilmoqda",
-  filed: "Topshirildi",
-  in_court: "Sudda",
-  decision: "Qaror",
-  execution: "Ijroda",
-  closed: "Yakunlangan",
-};
 
 /** Yuridik ish rejimining yagona bosh sahifasi — Debitorlik tarafidagi /agent bilan bir xil
  * falsafa: sof "ma'lumotlar bazasi" (raqamlar) emas, balki real ishlaydigan AI agent +
@@ -116,15 +99,17 @@ export default async function LegalHomePage() {
                   <tbody>
                     {d.recentMatters.map((m) => (
                       <tr key={m.id} className="border-b border-border/60 last:border-0 hover:bg-muted/40">
-                        <td className="px-5 py-3">
-                          <p className="font-medium">{m.title}</p>
-                          <p className="text-xs text-muted-foreground">{m.matterNumber}</p>
+                        <td className="p-0">
+                          <Link href={`/legal/matters/${m.id}`} className="block px-5 py-3">
+                            <p className="font-medium">{m.title}</p>
+                            <p className="text-xs text-muted-foreground">{m.matterNumber}</p>
+                          </Link>
                         </td>
                         <td className="px-5 py-3 text-muted-foreground">{m.contractorName ?? "—"}</td>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-1.5">
-                            <Badge tone="primary">{STATUS_LABEL[m.status] ?? m.status}</Badge>
-                            {m.riskLevel && <Badge tone={RISK_TONE[m.riskLevel] ?? "primary"}>{m.riskLevel}</Badge>}
+                            <Badge tone="primary">{MATTER_STATUS_LABEL[m.status] ?? m.status}</Badge>
+                            {m.riskLevel && <Badge tone={MATTER_RISK_TONE[m.riskLevel] ?? "primary"}>{m.riskLevel}</Badge>}
                           </div>
                         </td>
                         <td className="px-5 py-3 text-muted-foreground">{fmt(m.dueDate)}</td>

@@ -1,9 +1,10 @@
 import { analyzeContractRisk, LEGAL_AGENT_SYS, runAgent, studioReply, type AgentToolDef } from "@lex/agents";
-import { approvalRequests, contractors, contracts, documents, legalMatters, withTenant } from "@lex/db";
+import { approvalRequests, auditLogs, contractors, contracts, documents, legalMatters, withTenant } from "@lex/db";
 import { ok } from "@lex/shared";
 import { desc, eq, ilike, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { type Variables } from "../lib/context";
+import { generateMatterNumber } from "../lib/legal-matters";
 
 /**
  * "Yuridik" ish rejimi uchun AI agent — apps/api/src/routes/agent-chat.ts bilan bir xil
@@ -14,12 +15,62 @@ export const legalAgentRoutes = new Hono<{ Variables: Variables }>();
 
 legalAgentRoutes.post("/legal/agent/chat", async (c) => {
   const locale = c.get("locale");
-  const { tenantId } = c.get("auth");
+  const { tenantId, userId } = c.get("auth");
   const body = (await c.req.json().catch(() => ({}))) as { messages?: { role: "user" | "assistant"; content: string }[] };
   const messages = Array.isArray(body.messages) ? body.messages.filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string") : [];
   if (!messages.length) return c.json(ok({ reply: "", steps: [] }, "common.ok", locale));
 
   const tools: AgentToolDef[] = [
+    {
+      name: "createMatter",
+      description:
+        "Yangi yuridik ish (legal_matters) ochadi. Foydalanuvchi yangi topshiriq/ish/nizo bergan bo'lsa, boshqa asboblardan (findContract, analyzeContractRisk) OLDIN shu asbobni chaqir — natijalarni shu ish ichida to'pla.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Ish sarlavhasi, qisqa va aniq" },
+          type: { type: "string", description: "contract_review | litigation | consultation | compliance | other" },
+          contractorName: { type: "string", description: "Bog'liq kontragent nomi, agar bo'lsa (ixtiyoriy)" },
+          description: { type: "string", description: "Qisqa tavsif — nima uchun bu ish ochilyapti (ixtiyoriy)" },
+        },
+        required: ["title"],
+      },
+      execute: async (args) =>
+        withTenant(tenantId, async (tx) => {
+          const title = String(args.title ?? "").trim();
+          if (!title) return { created: false, message: "Sarlavha bo'sh bo'lishi mumkin emas." };
+          const contractorName = String(args.contractorName ?? "").trim();
+          let contractorId: string | null = null;
+          if (contractorName) {
+            const [row] = await tx.select({ id: contractors.id }).from(contractors).where(ilike(contractors.name, `%${contractorName}%`)).limit(1);
+            contractorId = row?.id ?? null;
+          }
+          const matterNumber = await generateMatterNumber(tx);
+          const [ins] = await tx
+            .insert(legalMatters)
+            .values({
+              tenantId,
+              matterNumber,
+              title,
+              type: String(args.type ?? "other").trim() || "other",
+              contractorId,
+              assignedUserId: userId,
+              description: String(args.description ?? "").trim() || null,
+              status: "new",
+            })
+            .returning({ id: legalMatters.id });
+          await tx.insert(auditLogs).values({
+            tenantId,
+            actorType: "ai_agent",
+            actorId: "legal_agent",
+            action: "legal_matter.created",
+            entityType: "legal_matter",
+            entityId: ins!.id,
+            detail: { title, matterNumber, source: "ai_agent" },
+          });
+          return { created: true, matterId: ins!.id, matterNumber, message: `Ish ochildi: ${matterNumber}. Endi shu ish doirasida davom et.` };
+        }),
+    },
     {
       name: "findMatter",
       description: "Yuridik ishlarni (legal_matters) qidiradi — sarlavha, ish raqami yoki kontragent nomi bo'yicha. Ish haqidagi savoldan oldin shu asbobni chaqir.",

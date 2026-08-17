@@ -2,8 +2,10 @@
 
 import {
   Bell,
-  Buildings,
+  Briefcase,
   ChartBar,
+  Clock,
+  ClockCounterClockwise,
   CreditCard,
   Files,
   Gavel,
@@ -16,13 +18,15 @@ import {
   ScrollIcon,
   SealCheck,
   ShieldStar,
+  ShieldWarning,
   SignOut,
   Truck,
+  UserFocus,
   Wallet,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { setWorkMode } from "@/app/(app)/settings/actions";
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
@@ -39,7 +43,16 @@ import { cn } from "@/lib/utils";
 // "legal" — yuridik firmalar uchun umumiy ish yuritish (bank/davlat mijozlarining
 // so'rovi bilan qo'shildi) — bir xil yadro, faqat navigatsiya boshqacha guruhlangan.
 type WorkMode = "debt" | "legal";
-const DEBT_GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
+interface NavItem {
+  href: string;
+  key: string;
+  icon: Icon;
+  badge?: boolean;
+  /** "/legal/matters" kabi bir xil yo'lni turli `?filter=` qiymatlari bilan ajratish uchun
+   * (pathname o'zi query'ni ko'rmaydi — shuning uchun faollikni aniqlashda alohida solishtiriladi). */
+  matterFilter?: string;
+}
+const DEBT_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "groupMain",
     items: [
@@ -67,27 +80,38 @@ const DEBT_GROUPS: { label: string; items: { href: string; key: string; icon: Ic
     ],
   },
 ];
-const LEGAL_GROUPS: { label: string; items: { href: string; key: string; icon: Icon; badge?: boolean }[] }[] = [
+const LEGAL_GROUPS: { label: string; items: NavItem[] }[] = [
   {
-    label: "groupMain",
+    label: "legalGroupAi",
+    items: [{ href: "/legal", key: "legalAgent", icon: Robot }],
+  },
+  {
+    label: "legalGroupMatters",
     items: [
-      { href: "/legal", key: "legalAgent", icon: Robot },
-      { href: "/studio", key: "studio", icon: NotePencil },
+      { href: "/legal/matters", key: "allMatters", icon: Briefcase, matterFilter: "" },
+      { href: "/legal/matters", key: "myMatters", icon: UserFocus, matterFilter: "mine" },
+      { href: "/legal/matters", key: "dueSoonMatters", icon: Clock, matterFilter: "due" },
+      { href: "/legal/matters", key: "atRiskMatters", icon: ShieldWarning, matterFilter: "risk" },
+    ],
+  },
+  {
+    label: "legalGroupWork",
+    items: [
       { href: "/documents", key: "documents", icon: Files },
+      { href: "/contracts", key: "contracts", icon: ScrollIcon },
+      { href: "/court", key: "courtDisputes", icon: Gavel },
       { href: "/approvals", key: "approvals", icon: SealCheck, badge: true },
     ],
   },
   {
-    label: "groupWork",
+    label: "legalGroupControl",
     items: [
-      { href: "/contracts", key: "contracts", icon: ScrollIcon },
-      { href: "/companies", key: "companies", icon: Buildings },
-      { href: "/court", key: "court", icon: Gavel },
       { href: "/reports", key: "reports", icon: ChartBar },
+      { href: "/audit", key: "audit", icon: ClockCounterClockwise },
     ],
   },
   {
-    label: "groupSystem",
+    label: "legalGroupSystem",
     items: [
       { href: "/billing", key: "billing", icon: CreditCard },
       { href: "/settings", key: "settings", icon: GearSix },
@@ -110,6 +134,7 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
   const tAgent = useTranslations("agent");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [switching, startSwitch] = useTransition();
 
@@ -119,7 +144,16 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
 
   // "/legal" alohida ekzakt taqqoslanadi — aks holda "/legal/agent" ham unga mos kelib ketardi.
   const isActive = (href: string) => (href === "/" || href === "/legal" ? pathname === href : pathname.startsWith(href));
-  const activeItem = ALL_ITEMS.find((i) => isActive(i.href)) ?? ALL_ITEMS[0]!;
+  // "/legal/matters" bir nechta nav bandida turli `?filter=` bilan ishlatiladi — pathname
+  // query'ni ko'rmaydi, shuning uchun bunday bandlar uchun filtr qiymati ham solishtiriladi.
+  function isNavItemActive(item: NavItem): boolean {
+    if (item.matterFilter !== undefined) return pathname === item.href && (searchParams.get("filter") ?? "") === item.matterFilter;
+    return isActive(item.href);
+  }
+  function itemHref(item: NavItem): string {
+    return item.matterFilter ? `${item.href}?filter=${item.matterFilter}` : item.href;
+  }
+  const activeItem = ALL_ITEMS.find((i) => isNavItemActive(i)) ?? ALL_ITEMS[0]!;
   const ActiveIcon = activeItem.icon;
 
   function switchMode(next: WorkMode) {
@@ -243,13 +277,13 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
               </p>
               <div className="space-y-0.5">
                 {group.items.map((item) => {
-                  const active = isActive(item.href);
+                  const active = isNavItemActive(item);
                   const ItemIcon = item.icon;
                   const showBadge = item.badge && pendingApprovals > 0;
                   return (
                     <Link
-                      key={item.href}
-                      href={item.href}
+                      key={item.key}
+                      href={itemHref(item)}
                       className={cn(
                         "group relative flex items-center gap-3 rounded-lg py-2 pl-2.5 pr-2.5 text-[13px] font-medium transition-all",
                         active ? surfC(isLegal ? 6 : 10) : cn(inkC(65), "hover:opacity-90"),

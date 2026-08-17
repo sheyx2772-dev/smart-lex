@@ -1,6 +1,22 @@
 "use client";
 
-import { ArrowRight, Briefcase, CircleNotch, Gavel, type Icon, MagnifyingGlass, Paperclip, Robot, SealCheck, Sparkle, X } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Briefcase,
+  CircleNotch,
+  Clock,
+  FileText,
+  Gavel,
+  type Icon,
+  MagnifyingGlass,
+  Paperclip,
+  Robot,
+  Scroll,
+  SealCheck,
+  Sparkle,
+  Warning,
+  X,
+} from "@phosphor-icons/react";
 import { useLocale } from "next-intl";
 import { useRef, useState } from "react";
 import { legalAgentChat, type AgentStep } from "@/app/(app)/chat/actions";
@@ -36,9 +52,23 @@ export function LegalAgentChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const suggestions = ru
-    ? ["Найди дело по ABC MCHJ", "Проверь риски договора с ABC MCHJ", "Составь исковое заявление"]
-    : ["ABC MCHJ bo'yicha ishni top", "ABC MCHJ shartnomasi xavfini tekshir", "Da'vo arizasi tuz"];
+  const quickPrompts: { label: string; icon: Icon; prompt: string }[] = ru
+    ? [
+        { label: "Проверить договор", icon: Scroll, prompt: "Проверь риски договора с указанным контрагентом." },
+        { label: "Иск в суд", icon: Gavel, prompt: "Составь исковое заявление в суд." },
+        { label: "Претензия", icon: Warning, prompt: "Подготовь досудебную претензию контрагенту." },
+        { label: "Правовое заключение", icon: FileText, prompt: "Дай правовое заключение по ситуации, которую я опишу." },
+        { label: "Анализ судебного дела", icon: SealCheck, prompt: "Проанализируй судебное дело и оцени перспективы." },
+        { label: "Проверить сроки", icon: Clock, prompt: "Проверь ближайшие сроки по моим делам." },
+      ]
+    : [
+        { label: "Shartnomani tekshir", icon: Scroll, prompt: "Ko'rsatilgan kontragent bilan shartnoma xavfini tekshir." },
+        { label: "Da'vo arizasi tayyorla", icon: Gavel, prompt: "Sudga da'vo arizasi tayyorla." },
+        { label: "Pretenziya tayyorla", icon: Warning, prompt: "Kontragentga sud oldi pretenziya tayyorla." },
+        { label: "Huquqiy xulosa ber", icon: FileText, prompt: "Men tasvirlaydigan vaziyat bo'yicha huquqiy xulosa ber." },
+        { label: "Sud ishini tahlil qil", icon: SealCheck, prompt: "Sud ishini tahlil qil va istiqbolini bahola." },
+        { label: "Deadline'larni tekshir", icon: Clock, prompt: "Mening ishlarim bo'yicha yaqin muddatlarni tekshir." },
+      ];
 
   const stepLabel = (s: AgentStep) =>
     s.tool === "findMatter"
@@ -117,13 +147,14 @@ export function LegalAgentChat() {
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
-              {suggestions.map((s) => (
+              {quickPrompts.map((qp) => (
                 <button
-                  key={s}
-                  onClick={() => send(s)}
-                  className="rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                  key={qp.label}
+                  onClick={() => send(qp.prompt)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                 >
-                  {s}
+                  <qp.icon weight="fill" className="size-3.5" />
+                  {qp.label}
                 </button>
               ))}
             </div>

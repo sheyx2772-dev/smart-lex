@@ -20,6 +20,7 @@ import { studioRoutes } from "./routes/studio";
 import { agentChatRoutes } from "./routes/agent-chat";
 import { legalAgentRoutes } from "./routes/legal-agent";
 import { legalTaskRoutes } from "./routes/legal-tasks";
+import { legalMatterRoutes } from "./routes/legal-matters";
 import { companyRoutes } from "./routes/companies";
 import { contractRoutes } from "./routes/contracts";
 import { courtRoutes } from "./routes/court";
@@ -88,6 +89,7 @@ export function createApp() {
   api.route("/", agentChatRoutes);
   api.route("/", legalAgentRoutes);
   api.route("/", legalTaskRoutes);
+  api.route("/", legalMatterRoutes);
   api.route("/", contractRoutes);
   api.route("/", courtRoutes);
   api.route("/", receivableRoutes);
