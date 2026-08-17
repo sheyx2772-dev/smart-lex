@@ -88,13 +88,18 @@ function withFallback(models: LanguageModelV1[]): LanguageModelV1 | null {
 // ── Provayder bo'yicha model ro'yxatlari (faqat kaliti bor bo'lsa) ──
 function groqModels(): LanguageModelV1[] {
   if (!process.env.GROQ_API_KEY) return [];
-  const primary = process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
-  const secondary = process.env.GROQ_FALLBACK_MODEL ?? "llama-3.1-8b-instant"; // yuqori TPM — zaxira
+  // 2026-08: "llama-3.3-70b-versatile"/"llama-3.1-8b-instant" Groq'da o'chirilgan
+  // (model_not_found) — GPT-OSS (OpenAI ochiq-og'irlik modeli, Groq'да mezbonlangan)
+  // bilan almashtirilди: kuchliroq reasoning + tool-calling, hali ham bepul.
+  const primary = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+  const secondary = process.env.GROQ_FALLBACK_MODEL ?? "openai/gpt-oss-20b"; // tezroq — zaxira
   return [...new Set([primary, secondary])].map((id) => groq(id));
 }
 function geminiModels(): LanguageModelV1[] {
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) return [];
-  return [google(process.env.GEMINI_MODEL ?? "gemini-2.0-flash")];
+  // 2026-08: "gemini-2.0-flash" o'chirilgan (404). "-latest" alias ishlatilyapti —
+  // Google versiyani eskirtirganda ham qayta sinash shart bo'lmasin.
+  return [google(process.env.GEMINI_MODEL ?? "gemini-flash-latest")];
 }
 function anthropicModels(): LanguageModelV1[] {
   if (!process.env.ANTHROPIC_API_KEY) return [];
