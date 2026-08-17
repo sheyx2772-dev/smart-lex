@@ -45,6 +45,12 @@ export async function connectDidox(input: { pkcs7: string; signatureHex: string 
   return res;
 }
 
+export async function connectDidoxPassword(input: { password: string }) {
+  const res = await apiServer("/api/settings/didox/connect-password", { method: "POST", body: JSON.stringify(input) });
+  revalidatePath("/settings");
+  return res;
+}
+
 export async function saveDocTemplates(input: Record<string, string>) {
   const res = await apiServer("/api/settings/doc-templates", { method: "PUT", body: JSON.stringify(input) });
   revalidatePath("/settings");

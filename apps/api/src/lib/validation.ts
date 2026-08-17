@@ -115,6 +115,10 @@ export const didoxConnectSchema = z.object({
   signatureHex: z.string().min(1),
 });
 
+export const didoxPasswordConnectSchema = z.object({
+  password: z.string().min(1).max(200),
+});
+
 export const docTemplatesSchema = z.object({
   demand_letter: z.string().max(20000).optional(),
   court_claim: z.string().max(20000).optional(),

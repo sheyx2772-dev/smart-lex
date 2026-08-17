@@ -16,7 +16,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { cloneElement, isValidElement, type ReactElement, useRef, useState, useTransition } from "react";
 import { type Editor } from "@tiptap/react";
-import { connectDidox, createUser, saveCollection, saveCompany, saveDocTemplates, saveIntegrations, savePassword, saveProfile, updateUser } from "@/app/(app)/settings/actions";
+import { connectDidox, connectDidoxPassword, createUser, saveCollection, saveCompany, saveDocTemplates, saveIntegrations, savePassword, saveProfile, updateUser } from "@/app/(app)/settings/actions";
 import { plainToHtml } from "@/lib/doc-html";
 import { DEFAULT_DOC_TEMPLATES, DOC_TEMPLATE_VARS, type DocTemplateType } from "@/lib/doc-templates";
 import { type EimzoKeyOption, listEimzoKeys, signTinForDidox } from "@/lib/eimzo";
@@ -80,6 +80,7 @@ interface Signatory {
 }
 interface IntegrationStatus {
   didoxSet: boolean;
+  didoxPasswordSet: boolean;
   bankSet: boolean;
   eimzoSiteId: string;
   smsProvider: string;
@@ -628,6 +629,29 @@ function IntegrationsSection({ integrations, tin }: { integrations: IntegrationS
   const [didoxConnecting, setDidoxConnecting] = useState(false);
   const [didoxError, setDidoxError] = useState<string | null>(null);
   const [eimzoKeys, setEimzoKeys] = useState<EimzoKeyOption[] | null>(null);
+  const [didoxPw, setDidoxPw] = useState("");
+  const [didoxPwConnecting, setDidoxPwConnecting] = useState(false);
+  const [didoxPwError, setDidoxPwError] = useState<string | null>(null);
+
+  async function connectDidoxViaPassword() {
+    if (didoxPwConnecting || !didoxPw.trim()) return;
+    setDidoxPwError(null);
+    if (!tin) {
+      setDidoxPwError(ui("didoxTinMissing"));
+      return;
+    }
+    setDidoxPwConnecting(true);
+    try {
+      const res = await connectDidoxPassword({ password: didoxPw.trim() });
+      if (!res.success) throw new Error(res.message);
+      setDidoxPw("");
+      router.refresh();
+    } catch (e) {
+      setDidoxPwError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDidoxPwConnecting(false);
+    }
+  }
 
   async function connectDidoxViaEimzo() {
     if (didoxConnecting) return;
@@ -744,6 +768,24 @@ function IntegrationsSection({ integrations, tin }: { integrations: IntegrationS
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Didox — parol orqali ulanish (avtomatik token yangilanishi bilan) */}
+          <div className="space-y-2 rounded-lg border border-border bg-muted/20 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">{ui("didoxPasswordConnectTitle")}</p>
+                <p className="text-xs text-muted-foreground">{ui("didoxPasswordConnectDesc")}</p>
+              </div>
+              {integrations.didoxPasswordSet && <IntegrationBadge set tOn={ui("didoxPasswordConnected")} tOff="" />}
+            </div>
+            <div className="flex flex-wrap items-start gap-2">
+              <PasswordInput value={didoxPw} onChange={(e) => setDidoxPw(e.target.value)} placeholder={ui("didoxPasswordPlaceholder")} className="max-w-xs" />
+              <Button type="button" variant="outline" size="sm" onClick={connectDidoxViaPassword} disabled={didoxPwConnecting || !didoxPw.trim()}>
+                {didoxPwConnecting ? ui("didoxConnecting") : ui("didoxPasswordConnectButton")}
+              </Button>
+            </div>
+            {didoxPwError && <p className="text-xs text-danger">{didoxPwError}</p>}
           </div>
 
           {/* Maxfiy kalitlar */}

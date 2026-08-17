@@ -12,6 +12,7 @@ import {
   companySchema,
   createUserSchema,
   didoxConnectSchema,
+  didoxPasswordConnectSchema,
   docTemplatesSchema,
   integrationsSchema,
   passwordChangeSchema,
@@ -19,6 +20,7 @@ import {
   updateUserSchema,
   validate,
 } from "../lib/validation";
+import { fetchDidoxPasswordToken } from "@lex/integrations";
 
 export const settingsRoutes = new Hono<{ Variables: Variables }>();
 
@@ -27,6 +29,7 @@ function integrationStatus(settings: Record<string, unknown>) {
   const i = (settings.integrations ?? {}) as Record<string, string>;
   return {
     didoxSet: Boolean(i.didoxToken),
+    didoxPasswordSet: Boolean(i.didoxPassword),
     bankSet: Boolean(i.bankApiKey),
     eimzoSiteId: i.eimzoSiteId ?? "",
     smsProvider: i.smsProvider ?? "",
@@ -259,6 +262,44 @@ settingsRoutes.post("/didox/connect", async (c) => {
       .set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: encryptSecret(authData.token) } } })
       .where(eq(tenants.id, tenantId));
     await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.didox_connected", entityType: "tenant", entityId: tenantId });
+  });
+
+  return c.json(ok({ connected: true }, "integrations.didox_connected", locale));
+});
+
+/**
+ * Didox'ga PAROL orqali ulanish (Способ 2 — Didox qo'llab-quvvatlash tavsiyasi, 2026-08).
+ * E-IMZO'dan farqi: parol serverda saqlanadi (shifrlangan), shuning uchun token muddati
+ * tugaganda syncTenant o'zi jimgina yangi token oladi — foydalanuvchi qayta ulanmaydi.
+ */
+settingsRoutes.post("/didox/connect-password", async (c) => {
+  const locale = c.get("locale");
+  const { tenantId, role, userId } = c.get("auth");
+  if (!CAN_EDIT_COMPANY.has(role)) return c.json(fail(ERROR_CODE.FORBIDDEN, "auth.forbidden", locale), 403);
+
+  const parsed = validate(didoxPasswordConnectSchema, await c.req.json().catch(() => null));
+  if (!parsed.ok) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale, { fields: parsed.fields }), 422);
+
+  const [tenant] = await withTenant(tenantId, (tx) => tx.select({ tin: tenants.tin }).from(tenants).where(eq(tenants.id, tenantId)));
+  if (!tenant?.tin) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_tin_missing", locale), 422);
+
+  let token: string;
+  try {
+    token = await fetchDidoxPasswordToken(env.didox.apiUrl, tenant.tin, parsed.data.password);
+  } catch (e) {
+    console.error("[didox/connect-password] auth failed:", e);
+    return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "integrations.didox_connect_failed", locale), 502);
+  }
+
+  await withTenant(tenantId, async (tx) => {
+    const [existing] = await tx.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId));
+    const prev = existing?.settings ?? {};
+    const prevInt = (prev.integrations ?? {}) as Record<string, string>;
+    await tx
+      .update(tenants)
+      .set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: encryptSecret(token), didoxPassword: encryptSecret(parsed.data.password) } } })
+      .where(eq(tenants.id, tenantId));
+    await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "settings.didox_connected_password", entityType: "tenant", entityId: tenantId });
   });
 
   return c.json(ok({ connected: true }, "integrations.didox_connected", locale));

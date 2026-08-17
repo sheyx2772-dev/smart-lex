@@ -6,7 +6,7 @@ import { type DataSource } from "./types";
 
 export * from "./types";
 export { DidoxMockDataSource } from "./didox.mock";
-export { DidoxDataSource } from "./didox.real";
+export { DidoxDataSource, fetchDidoxPasswordToken } from "./didox.real";
 export { BankMockDataSource } from "./bank.mock";
 
 /**

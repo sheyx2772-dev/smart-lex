@@ -1,7 +1,8 @@
 import { auditLogs, contractors, contracts, documents, invoices, payables, tenants, withTenant } from "@lex/db";
-import { decryptSecret } from "@lex/shared/secrets";
+import { decryptSecret, encryptSecret } from "@lex/shared/secrets";
 import { and, eq, inArray } from "drizzle-orm";
 import { createDataSource } from "./datasource/index";
+import { fetchDidoxPasswordToken } from "./datasource/didox.real";
 
 export class SyncReconnectError extends Error {}
 
@@ -23,12 +24,26 @@ export async function syncTenant(tenantId: string) {
   try {
     snap = await source.fetchSnapshot();
   } catch (err) {
-    // Didox 401 / "Invalid user key" → tushunarli "qayta ulaning" xabari (500 emas).
     const msg = String((err as { message?: unknown })?.message ?? err).toLowerCase();
-    if (msg.includes("401") || msg.includes("invalid user key") || msg.includes("unauthorized")) {
+    const isAuthErr = msg.includes("401") || msg.includes("invalid user key") || msg.includes("unauthorized");
+    if (!isAuthErr) throw err;
+
+    // Token eskirgan. Parol saqlangan bo'lsa (Способ 2 — Didox tavsiyasi) — E-IMZO'dan farqli,
+    // foydalanuvchini "qayta ulaning" deb band qilmasdan, o'zi jimgina yangi token oladi va
+    // bir marta qayta urinadi. Parol yo'q bo'lsa — eski xatti-harakat (qo'lda qayta ulanish).
+    if (!integrations.didoxPassword || !tenant.tin) throw new SyncReconnectError("didox reconnect required");
+    try {
+      const freshToken = await fetchDidoxPasswordToken(process.env.DIDOX_API_URL ?? "https://api2.didox.uz", tenant.tin, decryptSecret(integrations.didoxPassword));
+      await withTenant(tenantId, async (tx) => {
+        const [existing] = await tx.select({ settings: tenants.settings }).from(tenants).where(eq(tenants.id, tenantId));
+        const prev = existing?.settings ?? {};
+        const prevInt = (prev.integrations ?? {}) as Record<string, string>;
+        await tx.update(tenants).set({ settings: { ...prev, integrations: { ...prevInt, didoxToken: encryptSecret(freshToken) } } }).where(eq(tenants.id, tenantId));
+      });
+      snap = await createDataSource(tenant.type, { userKey: freshToken }).fetchSnapshot();
+    } catch {
       throw new SyncReconnectError("didox reconnect required");
     }
-    throw err;
   }
 
   const counts = await withTenant(tenantId, async (tx) => {

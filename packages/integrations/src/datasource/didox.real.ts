@@ -67,6 +67,24 @@ const first = (o: RawDidoxDoc, keys: string[]): string | undefined => {
   return undefined;
 };
 
+/**
+ * Способ 2 — parol orqali token olish (Didox qo'llab-quvvatlash tavsiyasi, 2026-08).
+ * ECP (E-IMZO) shart emas — shuning uchun token muddati tugaganda avtomatik qayta
+ * chaqirish mumkin (E-IMZO'da esa foydalanuvchi qo'lda qayta ulanishi kerak).
+ */
+export async function fetchDidoxPasswordToken(baseUrl: string, taxId: string, password: string, locale = "ru"): Promise<string> {
+  const base = baseUrl.replace(/\/+$/, "");
+  const res = await fetch(`${base}/v1/auth/${encodeURIComponent(taxId)}/password/${locale}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) throw new Error(`Didox auth/password HTTP ${res.status}`);
+  const data = (await res.json().catch(() => null)) as { token?: string } | null;
+  if (!data?.token) throw new Error("Didox auth/password: javobda token yo'q");
+  return data.token;
+}
+
 export interface DidoxConfig {
   /** Default: https://api2.didox.uz */
   baseUrl: string;
