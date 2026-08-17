@@ -24,39 +24,11 @@ const PH = {
   boardroom: "https://images.unsplash.com/photo-1758691736424-4b4273948341?w=700&q=70&fm=jpg&fit=crop&auto=format",
 };
 
-const STEPS = [
-  { n: "01", t: "Yuklash", q: ["Shartnoma, hujjat yoki ishni yuklaysiz — AI ularni o'qib, ", "tomonlar va shartlarni", " ajratadi."], d: "Har bir hujjat — jarayonning boshlanishi.", photo: PH.desk },
-  { n: "02", t: "Tahlil", q: ["Ish yoki qarz bo'yicha ", "xavf va muddat", " avtomatik hisoblanadi."], d: "Tahlil bir zumda — nima birinchi bajarilishi kerakligini tizim aytadi.", photo: PH.books },
-  { n: "03", t: "Hujjat", q: ["Talabnoma, da'vo arizasi, yuridik xulosa — ", "bir zumda", " tayyorlanadi."], d: "Tayyor shablonlar bo'yicha, xatosiz.", photo: PH.typewriter },
-  { n: "04", t: "Ijro", q: ["E-SUD va E-IMZO orqali yuboriladi, ", "ijro nazorat", " qilinadi."], d: "Butun jarayon bir markazdan — siz tasdiqlaysiz.", photo: PH.handshake },
-];
-const ROLES = [
-  { n: "01", t: "Yuristlar", q: ["Da'vo, xulosa va talabnomani ", "qo'lda yozmang", " — AI tayyorlaydi, siz strategiyaga e'tibor berasiz."], photo: PH.lawyerDesk },
-  { n: "02", t: "Kredit va kollektor bo'limi", q: ["Portfelni ", "real vaqtda", " nazorat qiling — qaysi mijoz xavfli, tizim ogohlantiradi."], photo: PH.headset },
-  { n: "03", t: "Davlat tashkilotlari", q: ["Ariza, murojaat va tekshiruv jarayonlarini ", "AI agent orqali", " tezlashtiring — inson resursini tejang."], photo: PH.columns },
-  { n: "04", t: "Banklar va NBKT", q: ["Kredit shartnomasi, garov va undiruv ishlarini ", "bitta tizimda", " boshqaring."], photo: PH.office },
-  { n: "05", t: "Bizneslar", q: ["Shartnoma tahlili va ichki huquqiy ishlarni ", "maxsus yurist yollamasdan", " avtomatlashtiring."], photo: PH.team },
-  { n: "06", t: "Rahbariyat", q: ["Butun huquqiy va moliyaviy holat ", "bitta ekranda", " — hisobot va tahlil bir markazda."], photo: PH.boardroom },
-];
-const WHY = [
-  { n: "01", t: "Bir markazda", q: ["Didox, E-SUD, E-IMZO, pochta — ", "hammasi bitta oynada", ", o'tib-o'tib yurmaysiz."] },
-  { n: "02", t: "AI tahlil", q: ["Hujjatni ", "o'qiydi va tushunadi", " — summa, muddat, xavf o'zi hisoblanadi."] },
-  { n: "03", t: "Xatosiz hujjat", q: ["Tayyor shablon bo'yicha ", "huquqiy jihatdan to'g'ri", " hujjatlar."] },
-  { n: "04", t: "Tezlik", q: ["Kunlar emas, ", "daqiqalar", " — hujjat tayyorlash 5 daqiqada."] },
-  { n: "05", t: "Xavfsizlik", q: ["Multi-tenant, RLS, E-IMZO — ", "ma'lumot himoyada", ", imzo o'zingizda."] },
-];
+/** Tarjima kalitlaridagi qadam/rol ro'yxatlari shu tartibda rasmlarga bog'lanadi (index bo'yicha). */
+const STEP_PHOTOS = [PH.desk, PH.books, PH.typewriter, PH.handshake];
+const ROLE_PHOTOS = [PH.lawyerDesk, PH.headset, PH.columns, PH.office, PH.team, PH.boardroom];
+const BANNER_PHOTOS = [PH.desk, PH.books, PH.office, PH.columns].map((src) => src.replace("w=700", "w=900"));
 const CHIPS = ["Didox", "E-SUD", "E-IMZO", "Hybrid Post", "Xarid.uzex", "TrustContract"];
-const PHOTOS = [
-  { src: "https://images.unsplash.com/photo-1560415903-cca53660d61d?w=900&q=70&fm=jpg&fit=crop&auto=format", cap: "Hujjat tayyorlash" },
-  { src: "https://images.unsplash.com/photo-1576414160011-98dfab3aa889?w=900&q=70&fm=jpg&fit=crop&auto=format", cap: "Huquqiy tahlil" },
-  { src: "https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?w=900&q=70&fm=jpg&fit=crop&auto=format", cap: "Banklar va bizneslar" },
-  { src: "https://images.unsplash.com/photo-1719663478770-0e2857069b1b?w=900&q=70&fm=jpg&fit=crop&auto=format", cap: "Sud tizimi" },
-];
-const REVIEWS = [
-  { a: "A", n: "Alisher R.", r: "Bosh yurist, Kredit tashkiloti", txt: "Lex.AI bilan da'vo tayyorlash haftalardan daqiqalarga tushdi. Butun bo'lim endi bitta tizimda ishlaydi." },
-  { a: "D", n: "Dilnoza K.", r: "Moliyaviy direktor, Bank", txt: "E-SUD va E-IMZO integratsiyasi — aynan bizga kerak bo'lgan narsa." },
-  { a: "M", n: "Murod T.", r: "Yuridik bo'lim boshlig'i, davlat tashkiloti", txt: "Endi har bir ish AI yordamida boshlanadi — tahlil, hujjat, kuzatuv bitta joyda. Jamoaning yuki sezilarli kamaydi." },
-];
 /** Faqat haqiqiy logotip fayli yuklangan hamkorlar — matnli o'rinbosar ishlatilmaydi.
  * Yoshlar ishlari agentligi logotipi kelgach shu yerga qo'shiladi. */
 /** `h` — har bir logotipning o'z nisbatiga qarab qo'lda kalibrlangan balandligi (px),
@@ -71,7 +43,10 @@ const LOGO_SUPPORTERS = [
   { t: "Raqamli texnologiyalar vazirligi", logo: "/brand/supporters/raqamli-tex-vazirligi.png", h: 34 },
 ];
 
+type QItem = { t: string; qPre: string; qEm: string; qPost: string; d?: string };
+
 export default function LoginPage() {
+  const t = useTranslations("landing");
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -80,6 +55,28 @@ export default function LoginPage() {
     setMenuOpen(false);
     setLoginOpen(true);
   };
+
+  // Tarjima kalitlaridagi ro'yxatlarni statik rasmlar bilan birlashtiramiz (index bo'yicha).
+  const STEPS = (t.raw("steps.items") as QItem[]).map((it, i) => ({
+    n: String(i + 1).padStart(2, "0"),
+    t: it.t,
+    q: [it.qPre, it.qEm, it.qPost],
+    d: it.d,
+    photo: STEP_PHOTOS[i],
+  }));
+  const ROLES = (t.raw("roles.items") as QItem[]).map((it, i) => ({
+    n: String(i + 1).padStart(2, "0"),
+    t: it.t,
+    q: [it.qPre, it.qEm, it.qPost],
+    photo: ROLE_PHOTOS[i],
+  }));
+  const WHY = (t.raw("why.items") as QItem[]).map((it, i) => ({
+    n: String(i + 1).padStart(2, "0"),
+    t: it.t,
+    q: [it.qPre, it.qEm, it.qPost],
+  }));
+  const REVIEWS = t.raw("reviews.items") as { n: string; r: string; txt: string }[];
+  const PHOTOS = BANNER_PHOTOS.map((src, i) => ({ src, cap: t(`banner.photo${i + 1}` as "banner.photo1") }));
 
   // One-ID xato bilan qaytsa — modal ochamiz.
   useEffect(() => {
@@ -281,7 +278,9 @@ export default function LoginPage() {
         .lx-kick{display:flex;align-items:center;gap:16px;margin-bottom:20px}
         .lx-kick span{height:1px;width:52px;background:var(--blue)}
         .lx-kick b{font-size:11px;font-weight:800;letter-spacing:.4em;color:var(--blue);text-transform:uppercase}
-        .lx-h1{font-size:clamp(2.2rem,6.4vw,5.4rem);line-height:1.08;max-width:920px}
+        .lx-h1{font-size:clamp(2.2rem,6.4vw,5.4rem);line-height:1.08;max-width:920px;color:var(--ink);transition:color .2s}
+        .lx-h1:hover{color:var(--blue)}
+        .lx-h1:hover .lx-u{color:var(--blue)}
         .lx-h1 .l{display:block;overflow:hidden;padding-bottom:.06em}
         .lx-h1 .l>span{display:block;transform:translateY(112%);transition:transform 1s cubic-bezier(.16,.84,.24,1)}
         .lx-root.ready .lx-h1 .l>span{transform:none}
@@ -410,21 +409,21 @@ export default function LoginPage() {
             <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-7 w-auto object-contain" />
           </button>
           <nav className="lx-links">
-            <a href="#jarayon">Jarayon</a>
-            <a href="#kim">Kim uchun</a>
-            <a href="#nega">Nega</a>
+            <a href="#jarayon">{t("nav.jarayon")}</a>
+            <a href="#kim">{t("nav.kim")}</a>
+            <a href="#nega">{t("nav.nega")}</a>
           </nav>
           <div className="lx-right">
             <div className="hidden sm:block"><LocaleSwitcher variant="ghost" /></div>
-            <button className="lx-enter" onClick={openLogin}>Kirish</button>
+            <button className="lx-enter" onClick={openLogin}>{t("nav.kirish")}</button>
             <button className="lx-burger" onClick={() => setMenuOpen((o) => !o)} aria-label="Menu">{menuOpen ? <X className="size-5" /> : "≡"}</button>
           </div>
         </div>
         {menuOpen && (
           <div className="lx-mob">
-            <a href="#jarayon" onClick={() => setMenuOpen(false)}>Jarayon</a>
-            <a href="#kim" onClick={() => setMenuOpen(false)}>Kim uchun</a>
-            <a href="#nega" onClick={() => setMenuOpen(false)}>Nega</a>
+            <a href="#jarayon" onClick={() => setMenuOpen(false)}>{t("nav.jarayon")}</a>
+            <a href="#kim" onClick={() => setMenuOpen(false)}>{t("nav.kim")}</a>
+            <a href="#nega" onClick={() => setMenuOpen(false)}>{t("nav.nega")}</a>
             <div><LocaleSwitcher variant="ghost" /></div>
           </div>
         )}
@@ -433,21 +432,21 @@ export default function LoginPage() {
       {/* Hero */}
       <section className="lx-hero">
         <div className="lx-wrap">
-          <div className="lx-kick"><span /><b>Faoliyatdan natijaga</b></div>
+          <div className="lx-kick"><span /><b>{t("hero.kicker")}</b></div>
           <h1 className="lx-h1 font-display">
-            <span className="l"><span>Huquqiy va moliyaviy ishlarni</span></span>
-            <span className="l"><span><span className="lx-u">boshqaruvchi</span> AI agent</span></span>
+            <span className="l"><span>{t("hero.h1a")}</span></span>
+            <span className="l"><span><span className="lx-u">{t("hero.h1b")}</span> {t("hero.h1c")}</span></span>
           </h1>
           <div className="lx-herob">
-            <p>AI agent shartnoma va ishlarni tahlil qiladi, qarzdorlikni nazorat qiladi, sud hujjatlarini tayyorlaydi — davlat, bank va biznes uchun, Didox, E-SUD va E-IMZO bilan bir markazda.</p>
+            <p>{t("hero.body")}</p>
             <div className="lx-cta">
-              <button className="lx-btn solid" onClick={openLogin}>Boshlash <ArrowUpRight weight="bold" className="size-4" /></button>
-              <a className="lx-btn ghost" href="#jarayon">Qanday ishlaydi</a>
+              <button className="lx-btn solid" onClick={openLogin}>{t("hero.ctaStart")} <ArrowUpRight weight="bold" className="size-4" /></button>
+              <a className="lx-btn ghost" href="#jarayon">{t("hero.ctaHow")}</a>
             </div>
           </div>
         </div>
         <div className="lx-strip">
-          <div className="lx-strip-label">Bizni qo&apos;llab-quvvatlovchilar</div>
+          <div className="lx-strip-label">{t("hero.supporters")}</div>
           <div className="lx-strip-viewport">
             <div className="row">
               {[...LOGO_SUPPORTERS, ...LOGO_SUPPORTERS].map((s, i) => (
@@ -464,8 +463,8 @@ export default function LoginPage() {
       <section className="lx-banner">
         <div className="lx-wrap">
           <div data-rv className="lx-banner-in">
-            <h2 className="font-display">Qog&apos;ozbozorlik natijaga xalaqit bermasinmi?</h2>
-            <AgentDemo />
+            <h2 className="font-display">{t("banner.heading")}</h2>
+            <AgentDemo demoName={t("banner.demoName")} script={[t("banner.demoUser"), t("banner.demoAi1"), t("banner.demoAi2")]} />
             <div className="lx-shots">
               {PHOTOS.map((p) => (
                 <div className="lx-shot" key={p.cap}>
@@ -482,23 +481,23 @@ export default function LoginPage() {
       <section className="lx-sec lx-split-sec">
         <div className="lx-wrap">
           <div data-rv className="lx-sec-head" style={{ margin: "0 auto 40px", textAlign: "center" }}>
-            <span className="lx-kk">Ikki yo&apos;nalish, bitta platforma</span>
-            <h2 className="font-display">Debitorlikmi, yoki yuridik jarayonmi?</h2>
+            <span className="lx-kk">{t("split.kicker")}</span>
+            <h2 className="font-display">{t("split.heading")}</h2>
           </div>
           <div className="lx-split">
             <div data-rv className="lx-split-card">
-              <img src={PH.headset} alt="Debitorlik" loading="lazy" />
+              <img src={PH.headset} alt={t("split.debTag")} loading="lazy" />
               <div className="lx-split-in">
-                <span className="lx-split-tag">Debitorlik</span>
-                <p>Kredit tashkiloti yoki kollektor bo&apos;limisiz — qarzdorlikni AI kuzatadi, eslatma va talabnomani o&apos;zi tayyorlaydi, sud bosqichigacha olib boradi.</p>
+                <span className="lx-split-tag">{t("split.debTag")}</span>
+                <p>{t("split.debText")}</p>
               </div>
             </div>
-            <div className="lx-split-or">yoki</div>
+            <div className="lx-split-or">{t("split.or")}</div>
             <div data-rv className="lx-split-card">
-              <img src={PH.lawyerDesk} alt="Yuridik jarayon" loading="lazy" />
+              <img src={PH.lawyerDesk} alt={t("split.legTag")} loading="lazy" />
               <div className="lx-split-in">
-                <span className="lx-split-tag">Yuridik jarayon</span>
-                <p>Davlat tashkiloti, bank yoki biznessiz — har bir ish uchun AI tahlil qiladi, hujjat tayyorlaydi, jarayonni boshidan oxirigacha kuzatadi.</p>
+                <span className="lx-split-tag">{t("split.legTag")}</span>
+                <p>{t("split.legText")}</p>
               </div>
             </div>
           </div>
@@ -509,14 +508,14 @@ export default function LoginPage() {
       <section className="lx-state">
         <div className="st">
           <h2 className="font-display">
-            <span className="sa">Jarayondan</span>
-            <span className="sb">Natijagacha</span>
+            <span className="sa">{t("big.line1")}</span>
+            <span className="sb">{t("big.line2")}</span>
           </h2>
-          <div className="sub">Yuridik ish · Qarz undirish · Bitta AI agent</div>
+          <div className="sub">{t("big.sub")}</div>
         </div>
       </section>
 
-      <Pinned id="jarayon" kicker="Jarayon — 4 qadam" total="04" items={STEPS} />
+      <Pinned id="jarayon" kicker={t("steps.kicker")} total="04" items={STEPS} />
 
       <div className="lx-marq">
         <div className="row">
@@ -526,24 +525,24 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <Pinned id="kim" kicker="Kim uchun" total="06" items={ROLES} />
-      <Pinned id="nega" kicker="Nega Lex.AI" total="05" items={WHY} />
+      <Pinned id="kim" kicker={t("roles.kicker")} total="06" items={ROLES} />
+      <Pinned id="nega" kicker={t("why.kicker")} total="05" items={WHY} />
 
       {/* Reviews */}
       <section className="lx-revs">
         <div className="lx-wrap">
-          <div data-rv className="lx-kick" style={{ marginBottom: 12 }}><span /><b>Ishonch</b></div>
-          <h2 data-rv className="font-display" style={{ fontSize: "clamp(2rem,5vw,3.4rem)" }}>Ular ishonadi</h2>
+          <div data-rv className="lx-kick" style={{ marginBottom: 12 }}><span /><b>{t("reviews.kicker")}</b></div>
+          <h2 data-rv className="font-display" style={{ fontSize: "clamp(2rem,5vw,3.4rem)" }}>{t("reviews.heading")}</h2>
           <div className="lx-revgrid">
             <div data-rv className="lx-rev">
-              <p>«{REVIEWS[0].txt}»</p>
-              <div className="who"><div className="lx-av">{REVIEWS[0].a}</div><div><b>{REVIEWS[0].n}</b><span>{REVIEWS[0].r}</span></div></div>
+              <p>«{REVIEWS[0]!.txt}»</p>
+              <div className="who"><div className="lx-av">{REVIEWS[0]!.n.charAt(0)}</div><div><b>{REVIEWS[0]!.n}</b><span>{REVIEWS[0]!.r}</span></div></div>
             </div>
             <div className="lx-revsmall">
               {REVIEWS.slice(1).map((r) => (
                 <div data-rv key={r.n} className="lx-rev">
                   <p>«{r.txt}»</p>
-                  <div className="who"><div className="lx-av">{r.a}</div><div><b>{r.n}</b><span>{r.r}</span></div></div>
+                  <div className="who"><div className="lx-av">{r.n.charAt(0)}</div><div><b>{r.n}</b><span>{r.r}</span></div></div>
                 </div>
               ))}
             </div>
@@ -555,10 +554,10 @@ export default function LoginPage() {
       {/* Final CTA */}
       <section className="lx-final">
         <div className="lx-wrap">
-          <div data-rv className="lx-kick" style={{ justifyContent: "center" }}><span /><b>Bugun boshlang</b></div>
-          <h2 data-rv className="font-display">Huquqiy va moliyaviy ishlar — endi avtomatik</h2>
-          <p data-rv>Birinchi ishingizni bugun boshlang. Sozlash 5 daqiqa, natija — bir markazda.</p>
-          <button data-rv className="lx-btn solid" onClick={openLogin}>Bepul boshlash <ArrowRight weight="bold" className="size-4" /></button>
+          <div data-rv className="lx-kick" style={{ justifyContent: "center" }}><span /><b>{t("finalCta.kicker")}</b></div>
+          <h2 data-rv className="font-display">{t("finalCta.heading")}</h2>
+          <p data-rv>{t("finalCta.body")}</p>
+          <button data-rv className="lx-btn solid" onClick={openLogin}>{t("finalCta.button")} <ArrowRight weight="bold" className="size-4" /></button>
         </div>
       </section>
 
@@ -568,7 +567,7 @@ export default function LoginPage() {
           <div className="lx-footgrid">
             <div>
               <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-7 w-auto object-contain" />
-              <p className="lead">Yuridik ishdan qarz undirishgacha — bir platformada. Davlat, bank va biznes uchun AI agent.</p>
+              <p className="lead">{t("footer.lead")}</p>
               <div className="lx-soc">
                 <a href="https://instagram.com/smartlex.uz" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
@@ -582,29 +581,29 @@ export default function LoginPage() {
               </div>
             </div>
             <div>
-              <h4>Bog&apos;lanish</h4>
+              <h4>{t("footer.contact")}</h4>
               <a href="mailto:smartlex.uzbekistan@gmail.com">smartlex.uzbekistan@gmail.com</a>
               <a href="tel:+998977247999">+998 97 724 79 99</a>
               <a href="https://t.me/smartlex_uz" target="_blank" rel="noopener noreferrer">Telegram: @smartlex_uz</a>
             </div>
             <div>
-              <h4>Manzil</h4>
-              <div className="info">Toshkent shahar,<br />Mirobod tumani, 23-uy</div>
-              <h4 style={{ marginTop: 22 }}>Tashkilot</h4>
-              <div className="info">MC LEGAL yuridik firmasi</div>
-              <div className="info">STIR: 312559000</div>
+              <h4>{t("footer.address")}</h4>
+              <div className="info">{t("footer.addressLine1")}<br />{t("footer.addressLine2")}</div>
+              <h4 style={{ marginTop: 22 }}>{t("footer.org")}</h4>
+              <div className="info">{t("footer.orgName")}</div>
+              <div className="info">{t("footer.orgTin")}</div>
             </div>
             <div>
-              <h4>Sahifalar</h4>
-              <a href="#jarayon">Jarayon</a>
-              <a href="#kim">Kim uchun</a>
-              <a href="#nega">Nega Lex.AI</a>
-              <button className="lx-enter" style={{ padding: 0, background: "none", color: "var(--muted)", letterSpacing: ".01em", fontSize: 14, textTransform: "none", fontWeight: 400 }} onClick={openLogin}>Kirish</button>
+              <h4>{t("footer.pages")}</h4>
+              <a href="#jarayon">{t("nav.jarayon")}</a>
+              <a href="#kim">{t("nav.kim")}</a>
+              <a href="#nega">{t("why.kicker")}</a>
+              <button className="lx-enter" style={{ padding: 0, background: "none", color: "var(--muted)", letterSpacing: ".01em", fontSize: 14, textTransform: "none", fontWeight: 400 }} onClick={openLogin}>{t("nav.kirish")}</button>
             </div>
           </div>
           <div className="lx-footbar">
-            <div>© 2026 Lex.AI · MC LEGAL yuridik firmasi</div>
-            <div>Multi-tenant · RLS · E-IMZO</div>
+            <div>{t("footer.copyright")}</div>
+            <div>{t("footer.badge")}</div>
           </div>
         </div>
       </footer>
@@ -626,26 +625,27 @@ function ReadyFlag({ rootRef }: { rootRef: React.RefObject<HTMLDivElement | null
   return null;
 }
 
-const DEMO_SCRIPT: { who: "user" | "ai"; text: string }[] = [
-  { who: "user", text: "GLOBAL SNAB MCHJ bilan bog'liq ishni boshlang" },
-  { who: "ai", text: "Ish ochildi: 2026-LM-014. Shartnoma va kontragent tahlil qilinmoqda…" },
-  { who: "ai", text: "Xavf darajasi: past. Talabnoma loyihasi tayyor — tasdiqlaysizmi?" },
-];
-
-/** Haqiqiy AI agent suhbatiga o'xshab "yozib" ko'rsatadigan, sikllanuvchi animatsiya — video o'rnini bosadi. */
-function AgentDemo() {
+/** Haqiqiy AI agent suhbatiga o'xshab "yozib" ko'rsatadigan, sikllanuvchi animatsiya — video o'rnini bosadi.
+ * `script[0]` — foydalanuvchi xabari, qolganlari — AI javoblari (tilga qarab tarjima qilinadi). */
+function AgentDemo({ demoName, script }: { demoName: string; script: string[] }) {
+  const lines = script.map((text, i) => ({ who: i === 0 ? ("user" as const) : ("ai" as const), text }));
   const [lineIdx, setLineIdx] = useState(0);
   const [charIdx, setCharIdx] = useState(0);
 
   useEffect(() => {
-    const line = DEMO_SCRIPT[lineIdx].text;
+    setLineIdx(0);
+    setCharIdx(0);
+  }, [script.join("|")]);
+
+  useEffect(() => {
+    const line = lines[lineIdx]?.text ?? "";
     if (charIdx < line.length) {
       const t = setTimeout(() => setCharIdx((c) => c + 1), 28);
       return () => clearTimeout(t);
     }
-    const pause = lineIdx === DEMO_SCRIPT.length - 1 ? 2600 : 700;
+    const pause = lineIdx === lines.length - 1 ? 2600 : 700;
     const t = setTimeout(() => {
-      if (lineIdx === DEMO_SCRIPT.length - 1) {
+      if (lineIdx === lines.length - 1) {
         setLineIdx(0);
         setCharIdx(0);
       } else {
@@ -654,13 +654,13 @@ function AgentDemo() {
       }
     }, pause);
     return () => clearTimeout(t);
-  }, [lineIdx, charIdx]);
+  }, [lineIdx, charIdx, lines]);
 
   return (
     <div className="lx-demo">
-      <div className="lx-demo-chrome"><i /><i /><i /><span>Yuridik AI Agent</span></div>
+      <div className="lx-demo-chrome"><i /><i /><i /><span>{demoName}</span></div>
       <div className="lx-demo-body">
-        {DEMO_SCRIPT.slice(0, lineIdx + 1).map((m, i) => {
+        {lines.slice(0, lineIdx + 1).map((m, i) => {
           const isCurrent = i === lineIdx;
           const shown = isCurrent ? m.text.slice(0, charIdx) : m.text;
           return (
