@@ -221,6 +221,7 @@ export default function LoginPage() {
         <div className="lx-steps">
           {items.map((s, i) => (
             <div data-step key={s.n} className={cn("lx-step", i === 0 && "on")}>
+              {s.photo && <div className="lx-step-bg" style={{ backgroundImage: `url(${s.photo})` }} />}
               <div className="lx-wrap lx-step-grid">
                 <div className="lx-big font-display">{s.n}</div>
                 <div>
@@ -232,11 +233,6 @@ export default function LoginPage() {
                   </p>
                   {s.d && <p className="lx-d">{s.d}</p>}
                 </div>
-                {s.photo && (
-                  <div className="lx-step-photo">
-                    <img src={s.photo} alt={s.t} loading="lazy" />
-                  </div>
-                )}
               </div>
             </div>
           ))}
@@ -350,14 +346,12 @@ export default function LoginPage() {
         .lx-kk{font-size:11px;font-weight:800;letter-spacing:.34em;color:var(--blue);text-transform:uppercase}
         .lx-pn{font-size:clamp(2.2rem,5.5vw,4.2rem);line-height:.8;color:var(--muted);margin-left:auto}
         .lx-pn em{color:var(--blue);font-style:normal}
-        .lx-steps{position:relative;width:100%;z-index:3}
+        .lx-steps{position:absolute;inset:0;width:100%;z-index:3}
         .lx-step{position:absolute;inset:0;display:flex;align-items:center;opacity:0;transform:translateY(26px);transition:opacity .5s ease,transform .6s cubic-bezier(.16,.84,.24,1);pointer-events:none}
         .lx-step.on{opacity:1;transform:none}
-        .lx-step-grid{display:grid;grid-template-columns:auto 1fr auto;gap:34px;align-items:center}
+        .lx-step-grid{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center}
         .lx-big{font-size:clamp(4rem,10vw,8.5rem);line-height:.78;color:transparent;-webkit-text-stroke:1.5px rgba(11,18,32,.18)}
-        .lx-step-photo{width:min(260px,26vw);aspect-ratio:3/4;border-radius:18px;overflow:hidden;box-shadow:0 20px 50px -20px rgba(11,18,32,.35)}
-        .lx-step-photo img{display:block;width:100%;height:100%;object-fit:cover}
-        @media(max-width:1100px){.lx-step-photo{display:none}}
+        .lx-step-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;filter:blur(2px) grayscale(.35);opacity:.4;transition:opacity .6s ease}
         .lx-sh{font-size:clamp(1.8rem,4.4vw,3.2rem);line-height:.95;margin-bottom:14px;color:var(--ink)}
         .lx-q{font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;line-height:1.3;max-width:640px;color:var(--ink)}
         .lx-q em{color:var(--blue);font-style:normal}
