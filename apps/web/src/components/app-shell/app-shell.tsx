@@ -4,7 +4,6 @@ import {
   Bell,
   Briefcase,
   ChartBar,
-  Clock,
   ClockCounterClockwise,
   CreditCard,
   Files,
@@ -18,10 +17,8 @@ import {
   ScrollIcon,
   SealCheck,
   ShieldStar,
-  ShieldWarning,
   SignOut,
   Truck,
-  UserFocus,
   Wallet,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
@@ -83,15 +80,9 @@ const DEBT_GROUPS: { label: string; items: NavItem[] }[] = [
 const LEGAL_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "legalGroupAi",
-    items: [{ href: "/legal", key: "legalAgent", icon: Robot }],
-  },
-  {
-    label: "legalGroupMatters",
     items: [
-      { href: "/legal/matters", key: "allMatters", icon: Briefcase, matterFilter: "" },
-      { href: "/legal/matters", key: "myMatters", icon: UserFocus, matterFilter: "mine" },
-      { href: "/legal/matters", key: "dueSoonMatters", icon: Clock, matterFilter: "due" },
-      { href: "/legal/matters", key: "atRiskMatters", icon: ShieldWarning, matterFilter: "risk" },
+      { href: "/legal", key: "legalAgent", icon: Robot },
+      { href: "/legal/matters", key: "allMatters", icon: Briefcase },
     ],
   },
   {
