@@ -25,12 +25,12 @@ import {
   Wallet,
 } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { setWorkMode } from "@/app/(app)/settings/actions";
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
-import { AiWaveLogo } from "@/components/ai-wave-logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
 
@@ -130,7 +130,6 @@ interface Props {
 
 export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, workMode = "debt", children }: Props) {
   const t = useTranslations("nav");
-  const tApp = useTranslations("app");
   const tAgent = useTranslations("agent");
   const tCommon = useTranslations("common");
   const pathname = usePathname();
@@ -210,11 +209,10 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
 
         {/* Logo */}
         <div className="relative flex items-center gap-2.5 px-5 pb-4 pt-5">
-          <div className={cn("grid size-9 place-items-center rounded-xl shadow-lg ring-1", isLegal ? "bg-white ring-primary/20" : "bg-white ring-white/20")}>
-            <AiWaveLogo size={20} />
+          <div className={cn("flex h-11 items-center rounded-xl px-2.5 shadow-lg ring-1", isLegal ? "bg-white ring-primary/20" : "bg-white ring-white/20")}>
+            <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-6 w-auto object-contain" />
           </div>
           <div className="leading-tight">
-            <span className="block font-display text-[15px] font-semibold tracking-tight">{tApp("name")}</span>
             <span className={cn("block text-[10px] uppercase tracking-[0.14em]", inkC(45))}>{tenant.type}</span>
           </div>
         </div>

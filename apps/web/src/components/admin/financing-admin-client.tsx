@@ -38,7 +38,7 @@ export function FinancingAdminClient({ items }: { items: FinancingListingRow[] }
           <HandCoins weight="fill" className="size-6 text-primary" /> Factoring bozori (B2B)
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          B2B mijozlar ro'yxatga qo'ygan qarzlar — bank/NBKT (nobank kredit tashkiloti) hamkorlar bilan qo'lda moslashtiring. SmartLex talab huquqi yoki pulni o'ziga olmaydi; haqiqiy bitim (moliyalashtirish + talab tsessiyasi) platformadan tashqarida, xaridor bilan to'g'ridan-to'g'ri bo'ladi.
+          B2B mijozlar ro'yxatga qo'ygan qarzlar — bank/NBKT (nobank kredit tashkiloti) hamkorlar bilan qo'lda moslashtiring. Lex.AI talab huquqi yoki pulni o'ziga olmaydi; haqiqiy bitim (moliyalashtirish + talab tsessiyasi) platformadan tashqarida, xaridor bilan to'g'ridan-to'g'ri bo'ladi.
         </p>
       </div>
 

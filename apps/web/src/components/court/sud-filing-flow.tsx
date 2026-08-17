@@ -106,7 +106,7 @@ export function SudFilingFlow({ id, defendantTin, claimBody }: { id: string; def
   const [clickedNotDragged, setClickedNotDragged] = useState(false);
   const [showBookmarkHelp, setShowBookmarkHelp] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
-  // Brauzer kengaytmasi (SmartLex.AI) o'rnatilgan bo'lsa, bookmarklet umuman
+  // Brauzer kengaytmasi (Lex.AI) o'rnatilgan bo'lsa, bookmarklet umuman
   // shart emas — kengaytma cabinet.sud.uz'dagi tokenni o'zi kuzatib topadi.
   // null = hali tekshirilmoqda, true/false = aniqlandi.
   const [extensionDetected, setExtensionDetected] = useState<boolean | null>(null);
