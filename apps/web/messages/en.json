@@ -930,7 +930,8 @@
     "type": {
       "court_claim": "Court claim",
       "demand_letter": "Demand letter",
-      "write_off": "Write-off"
+      "write_off": "Write-off",
+      "matter_action": "Matter document"
     },
     "approveSigned": "Approve signed",
     "editable": "editable"

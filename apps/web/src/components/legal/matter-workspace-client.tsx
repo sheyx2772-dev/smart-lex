@@ -21,6 +21,7 @@ import {
   MATTER_STATUS_LABEL,
   MATTER_TYPE_LABEL,
 } from "@/components/legal/matter-labels";
+import { MatterDraftPanel } from "@/components/legal/matter-draft-panel";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
@@ -265,29 +266,41 @@ export function MatterWorkspaceClient({ data }: { data: MatterDetail }) {
           )}
 
           {tab === "approvals" && (
-            <Card>
-              <CardContent className="p-0">
-                {data.approvals.length === 0 ? (
-                  <p className="px-5 py-10 text-center text-sm text-muted-foreground">Bu ish bo'yicha loyiha/tasdiq yo'q.</p>
-                ) : (
-                  <ul className="divide-y divide-border">
-                    {data.approvals.map((a) => (
-                      <li key={a.id} className="flex items-center gap-3 px-5 py-3">
-                        <Warning className="size-4 shrink-0 text-muted-foreground" />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium">{a.type}</p>
-                          <p className="text-xs text-muted-foreground">{fmtDT(a.createdAt)}</p>
-                        </div>
-                        <Badge tone={a.status === "approved" ? "success" : a.status === "rejected" ? "danger" : "neutral"}>{a.status}</Badge>
-                        <Link href="/approvals" className="text-xs font-medium text-primary hover:underline">
-                          Ko'rish
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <MatterDraftPanel
+                matterId={matter.id}
+                matter={{
+                  title: matter.title,
+                  type: matter.type,
+                  contractorName: matter.contractorName,
+                  contractorTin: matter.contractorTin,
+                  description: matter.description,
+                }}
+              />
+              <Card>
+                <CardContent className="p-0">
+                  {data.approvals.length === 0 ? (
+                    <p className="px-5 py-10 text-center text-sm text-muted-foreground">Bu ish bo'yicha loyiha/tasdiq yo'q.</p>
+                  ) : (
+                    <ul className="divide-y divide-border">
+                      {data.approvals.map((a) => (
+                        <li key={a.id} className="flex items-center gap-3 px-5 py-3">
+                          <Warning className="size-4 shrink-0 text-muted-foreground" />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium">{a.type}</p>
+                            <p className="text-xs text-muted-foreground">{fmtDT(a.createdAt)}</p>
+                          </div>
+                          <Badge tone={a.status === "approved" ? "success" : a.status === "rejected" ? "danger" : "neutral"}>{a.status}</Badge>
+                          <Link href="/approvals" className="text-xs font-medium text-primary hover:underline">
+                            Ko'rish
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {tab === "timeline" && (

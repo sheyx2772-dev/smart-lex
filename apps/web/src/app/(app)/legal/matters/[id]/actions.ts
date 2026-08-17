@@ -55,3 +55,9 @@ export async function patchMatter(id: string, patch: { status?: string; priority
   }
   return res;
 }
+
+export async function submitMatterDraft(id: string, draft: { body: string; note?: string; docType?: string }) {
+  const res = await apiServer<{ queued: boolean; id: string }>(`/api/legal/matters/${id}/draft-approval`, { method: "POST", body: JSON.stringify(draft) });
+  if (res.success) revalidatePath(`/legal/matters/${id}`);
+  return res;
+}

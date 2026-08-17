@@ -438,7 +438,8 @@
     "type": {
       "demand_letter": "Talabnoma",
       "court_claim": "Da'vo (sud)",
-      "write_off": "Hisobdan chiqarish"
+      "write_off": "Hisobdan chiqarish",
+      "matter_action": "Ish bo'yicha hujjat"
     },
     "contractor": "Kontragent",
     "invoice": "Hisob-faktura",

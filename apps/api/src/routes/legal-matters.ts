@@ -188,3 +188,29 @@ legalMatterRoutes.patch("/legal/matters/:id", async (c) => {
   if (!done) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
   return c.json(ok({ updated: true }, "common.updated", locale));
 });
+
+/** Hujjat tayyorlash panelida tuzilgan loyihani Tasdiqlar bo'limiga yuboradi (queueApproval AI asbobi bilan bir xil mantiq, foydalanuvchi tomonidan boshlangan). */
+legalMatterRoutes.post("/legal/matters/:id/draft-approval", async (c) => {
+  const { tenantId, userId } = c.get("auth");
+  const locale = c.get("locale");
+  const id = c.req.param("id");
+  const body = (await c.req.json().catch(() => ({}))) as { body?: string; note?: string; docType?: string };
+  const text = typeof body.body === "string" ? body.body.trim() : "";
+  if (!text) return c.json(fail(ERROR_CODE.VALIDATION_FAILED, "common.validation_failed", locale), 422);
+  const note = typeof body.note === "string" ? body.note.trim() : "";
+  const docType = typeof body.docType === "string" ? body.docType.trim() : "";
+
+  const result = await withTenant(tenantId, async (tx) => {
+    const [matter] = await tx.select({ id: legalMatters.id }).from(legalMatters).where(eq(legalMatters.id, id)).limit(1);
+    if (!matter) return null;
+    const [ins] = await tx
+      .insert(approvalRequests)
+      .values({ tenantId, type: "matter_action", payload: { matterId: id, body: text, note, docType, source: "studio" } })
+      .returning({ id: approvalRequests.id });
+    await tx.insert(auditLogs).values({ tenantId, actorType: "user", actorId: userId, action: "legal_matter.draft_submitted", entityType: "legal_matter", entityId: id, detail: { docType, approvalId: ins!.id } });
+    return ins;
+  });
+
+  if (!result) return c.json(fail(ERROR_CODE.NOT_FOUND, "common.not_found", locale), 404);
+  return c.json(ok({ queued: true, id: result.id }, "common.created", locale));
+});

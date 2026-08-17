@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle, Clock, FileText, Gavel, PenNib, SealCheck, ShieldCheck, XCircle } from "@phosphor-icons/react";
+import { Briefcase, CheckCircle, Clock, FileText, Gavel, PenNib, SealCheck, ShieldCheck, XCircle } from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { decideApproval, didoxPrepare, didoxSign } from "@/app/(app)/approvals/actions";
@@ -16,7 +16,7 @@ import { type OverrideItem, PendingOverrides } from "./pending-overrides";
 
 export interface Approval {
   id: string;
-  type: "demand_letter" | "court_claim" | "write_off";
+  type: "demand_letter" | "court_claim" | "write_off" | "matter_action";
   status: string;
   payload: {
     subject?: string;
@@ -45,7 +45,7 @@ function fmtMinor(minor?: string, currency = "UZS"): string {
   return `${neg ? "-" : ""}${major},${frac} ${currency}`;
 }
 
-const TYPE_ICON = { demand_letter: FileText, court_claim: Gavel, write_off: XCircle } as const;
+const TYPE_ICON = { demand_letter: FileText, court_claim: Gavel, write_off: XCircle, matter_action: Briefcase } as const;
 
 export function ApprovalsClient({
   pending,

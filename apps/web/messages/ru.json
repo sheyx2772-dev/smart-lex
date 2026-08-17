@@ -930,7 +930,8 @@
     "type": {
       "court_claim": "Иск (суд)",
       "demand_letter": "Претензия",
-      "write_off": "Списание"
+      "write_off": "Списание",
+      "matter_action": "Документ по делу"
     },
     "approveSigned": "Подписать и подтвердить",
     "editable": "редактируется"
