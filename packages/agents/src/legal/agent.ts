@@ -67,9 +67,10 @@ export async function runAgent(opts: {
       tool({
         description: td.description,
         parameters: jsonSchema(td.parameters as Parameters<typeof jsonSchema>[0]),
-        execute: async (args: Record<string, unknown>) => {
+        execute: async (rawArgs: unknown) => {
+          const args = (rawArgs ?? {}) as Record<string, unknown>;
           try {
-            const result = await td.execute(args ?? {});
+            const result = await td.execute(args);
             steps.push({ tool: td.name, args, ok: true });
             return result;
           } catch (e) {

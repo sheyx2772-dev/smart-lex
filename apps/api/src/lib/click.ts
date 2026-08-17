@@ -74,5 +74,5 @@ export const PLAN_PRICES: Record<string, number> = {
   Professional: 5_000_000,
 };
 export function planPrice(plan: string): number {
-  return PLAN_PRICES[plan] ?? PLAN_PRICES["Boshlang'ich"];
+  return PLAN_PRICES[plan] ?? PLAN_PRICES["Boshlang'ich"]!;
 }
