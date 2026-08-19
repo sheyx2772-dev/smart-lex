@@ -96,80 +96,81 @@
     "liveActivity": "12 documents processed today"
   },
   "landing": {
-    "nav": { "jarayon": "Process", "kim": "Who it's for", "nega": "Why", "kirish": "Sign in" },
+    "nav": { "jarayon": "Features", "kim": "Industries", "nega": "FAQ", "kirish": "Sign in" },
     "hero": {
-      "kicker": "From activity to results",
-      "h1a": "The AI agent that",
-      "h1b": "runs",
-      "h1c": "your legal and financial work",
-      "body": "The AI agent analyzes contracts and matters, tracks debt, and prepares court documents — for government, banks, and business, with Didox, E-SUD, and E-IMZO in one place.",
-      "ctaStart": "Get started",
+      "kicker": "Debt management",
+      "h1a": "Automate debt",
+      "h1b": "collection",
+      "h1c": "with AI",
+      "body": "Lex.AI is an AI agent that tracks debt in real time, drafts reminders and documents, and runs the collection process from start to finish. For banks, MFIs, leasing, and trading companies.",
+      "ctaStart": "Start for free",
       "ctaHow": "How it works",
       "supporters": "Backed by"
     },
     "banner": {
-      "heading": "Don't let paperwork stand in the way of results",
-      "demoName": "Legal AI Agent",
-      "photo1": "Drafting documents",
-      "photo2": "Legal analysis",
+      "heading": "Paperwork and spreadsheets — a thing of the past",
+      "demoName": "Collections AI Agent",
+      "photo1": "Debt tracking",
+      "photo2": "Drafting documents",
       "photo3": "Banks & business",
-      "photo4": "Court system",
-      "demoUser": "Start a matter for GLOBAL SNAB LLC",
-      "demoAi1": "Matter opened: 2026-LM-014. Analyzing the contract and counterparty…",
-      "demoAi2": "Risk level: low. A draft demand letter is ready — approve it?"
+      "photo4": "Court & collection",
+      "demoUser": "Check the debt for GLOBAL SNAB LLC",
+      "demoAi1": "Debt found: 42 days overdue. Calculating the contract and penalty…",
+      "demoAi2": "Risk level: medium. A draft demand letter is ready — approve it?"
     },
-    "split": {
-      "kicker": "Two paths, one platform",
-      "heading": "Debt collection, or legal process?",
-      "debTag": "Debt collection",
-      "debText": "A lending institution or collections team — AI tracks debt, drafts reminders and demand letters, and carries it through to court.",
-      "or": "or",
-      "legTag": "Legal process",
-      "legText": "A government body, bank, or business — AI analyzes every matter, drafts documents, and tracks the process from start to finish."
-    },
-    "big": { "line1": "From process", "line2": "to results", "sub": "Legal matters · Debt collection · One AI agent" },
-    "steps": {
-      "kicker": "Process — 4 steps",
+    "industries": {
+      "kicker": "Industries",
+      "heading": "Any industry — one AI agent",
       "items": [
-        { "t": "Upload", "qPre": "Upload a contract, document, or matter — AI reads it and separates ", "qEm": "parties and terms", "qPost": ".", "d": "Every document is the start of a process." },
-        { "t": "Analyze", "qPre": "Risk and deadlines for the matter or debt are ", "qEm": "calculated automatically", "qPost": ".", "d": "Analysis in seconds — the system tells you what to do first." },
-        { "t": "Draft", "qPre": "Demand letters, claims, legal opinions — prepared ", "qEm": "instantly", "qPost": ".", "d": "From ready templates, error-free." },
-        { "t": "Execute", "qPre": "Sent via E-SUD and E-IMZO, ", "qEm": "execution is tracked", "qPost": ".", "d": "The whole process from one place — you approve." }
+        { "t": "Banks & NBFIs", "d": "Monitor your loan portfolio, automate collection." },
+        { "t": "Microfinance institutions", "d": "Track many small debts in bulk and send reminders." },
+        { "t": "Leasing companies", "d": "Monitor lease payments in real time." },
+        { "t": "Credit unions", "d": "Track members' debt status in one place." },
+        { "t": "Trade & manufacturing", "d": "Manage customer and supplier debt." },
+        { "t": "Law firms", "d": "Automate the collection process for your clients." }
       ]
     },
-    "roles": {
-      "kicker": "Who it's for",
+    "features": {
+      "kicker": "Features",
+      "heading": "From debt to results — in one system",
       "items": [
-        { "t": "Lawyers", "qPre": "Don't draft claims and demand letters ", "qEm": "by hand", "qPost": " — AI prepares them, you focus on strategy." },
-        { "t": "Credit & collections teams", "qPre": "Monitor your portfolio ", "qEm": "in real time", "qPost": " — the system flags which clients are at risk." },
-        { "t": "Government bodies", "qPre": "Speed up applications and requests ", "qEm": "with an AI agent", "qPost": " — save on headcount." },
-        { "t": "Banks & NBFIs", "qPre": "Manage loan agreements, collateral, and collection ", "qEm": "in one system", "qPost": "." },
-        { "t": "Businesses", "qPre": "Automate contract review and in-house legal work ", "qEm": "without hiring a lawyer", "qPost": "." },
-        { "t": "Leadership", "qPre": "See your entire legal and financial position ", "qEm": "on one screen", "qPost": " — reporting and analysis in one place." }
+        { "t": "Real-time tracking", "d": "Every debt's status and deadline is monitored automatically." },
+        { "t": "Automatic reminders", "d": "Payment-due reminders are sent via SMS and Telegram." },
+        { "t": "Document drafting", "d": "Demand letters and claims are drafted by AI instantly." },
+        { "t": "3 collection paths", "d": "Court (E-SUD), sell to a bank/NBFI, or pressure via the tax authority." },
+        { "t": "Official integrations", "d": "Works in one place with Didox, E-IMZO, and OneID." },
+        { "t": "Reports & analytics", "d": "Your entire portfolio status — on one screen, in real time." }
       ]
     },
-    "why": {
-      "kicker": "Why Lex.AI",
+    "stats": {
+      "kicker": "By the numbers",
+      "heading": "The platform is already running",
       "items": [
-        { "t": "One place", "qPre": "Didox, E-SUD, E-IMZO, mail — ", "qEm": "all in one window", "qPost": ", no more switching between systems." },
-        { "t": "AI analysis", "qPre": "It ", "qEm": "reads and understands", "qPost": " the document — amount, deadline, risk calculated automatically." },
-        { "t": "Error-free documents", "qPre": "From ready templates — ", "qEm": "legally sound", "qPost": " documents." },
-        { "t": "Speed", "qPre": "Not days — ", "qEm": "minutes", "qPost": " — a document is ready in 5 minutes." },
-        { "t": "Security", "qPre": "Multi-tenant, RLS, E-IMZO — ", "qEm": "your data is protected", "qPost": ", the signature stays yours." }
+        { "n": "10+", "d": "active B2B clients" },
+        { "n": "297.5B+ UZS", "d": "in debt tracked on the platform" },
+        { "n": "486.7M+ UZS", "d": "successfully collected" }
       ]
     },
-    "reviews": {
-      "kicker": "Trust",
-      "heading": "They trust us",
+    "faq": {
+      "kicker": "FAQ",
+      "heading": "Frequently asked questions",
       "items": [
-        { "n": "Alisher R.", "r": "Chief Legal Officer, lending institution", "txt": "With Lex.AI, preparing a claim went from weeks to minutes. The whole team now works in one system." },
-        { "n": "Dilnoza K.", "r": "CFO, bank", "txt": "The E-SUD and E-IMZO integration is exactly what we needed." },
-        { "n": "Murod T.", "r": "Head of legal, government body", "txt": "Now every matter starts with AI — analysis, drafting, and tracking all in one place. The team's workload dropped noticeably." }
+        { "q": "How does Lex.AI work?", "a": "AI tracks debt status in real time and automatically drafts reminders and documents (demand letters, claims). Every action only happens after your approval." },
+        { "q": "Does the AI send documents itself?", "a": "No. The AI only prepares a draft — sending it or filing with a court only happens after your approval." },
+        { "q": "What systems does it integrate with?", "a": "It works directly with Didox, E-IMZO, E-SUD, and OneID." },
+        { "q": "Is my data safe?", "a": "Yes — each client's data is fully isolated (multi-tenant isolation), and the signature always stays on your own E-IMZO key." },
+        { "q": "How do I get started?", "a": "Click \"Start for free\" or reach out for a consultation — setup takes just a few minutes." }
       ]
     },
-    "finalCta": { "kicker": "Start today", "heading": "Legal and financial work — now automatic", "body": "Start your first matter today. Setup takes 5 minutes, results in one place.", "button": "Start for free" },
+    "finalCta": {
+      "kicker": "Start today",
+      "heading": "Debt collection — now automatic",
+      "body": "Add your first debt to the system today. Setup takes a few minutes, results in one place.",
+      "button": "Start for free",
+      "segments": ["Banks", "MFIs", "Leasing", "Trade", "Law firms", "Other"]
+    },
     "footer": {
-      "lead": "From legal matters to debt collection — on one platform. An AI agent for government, banks, and business.",
+      "lead": "From debt tracking to collection — on one platform. An AI agent for banks, MFIs, and business.",
       "contact": "Contact",
       "address": "Address",
       "addressLine1": "Tashkent,",

@@ -25,8 +25,6 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
-import { setWorkMode } from "@/app/(app)/settings/actions";
 import { AgentPanel } from "@/components/agent-panel/agent-panel";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { cn } from "@/lib/utils";
@@ -126,11 +124,9 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [switching, startSwitch] = useTransition();
 
   const GROUPS = workMode === "legal" ? LEGAL_GROUPS : DEBT_GROUPS;
   const ALL_ITEMS = GROUPS.flatMap((g) => g.items);
-  const canSwitchMode = user.role === "owner" || user.role === "admin";
 
   // "/legal" alohida ekzakt taqqoslanadi — aks holda "/legal/agent" ham unga mos kelib ketardi.
   const isActive = (href: string) => (href === "/" || href === "/legal" ? pathname === href : pathname.startsWith(href));
@@ -145,15 +141,6 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
   }
   const activeItem = ALL_ITEMS.find((i) => isNavItemActive(i)) ?? ALL_ITEMS[0]!;
   const ActiveIcon = activeItem.icon;
-
-  function switchMode(next: WorkMode) {
-    if (next === workMode || switching) return;
-    startSwitch(async () => {
-      await setWorkMode(next);
-      router.push(next === "legal" ? "/legal" : "/agent");
-      router.refresh();
-    });
-  }
 
   async function logout() {
     await fetch("/api/session", { method: "DELETE" });
@@ -208,33 +195,8 @@ export function AppShell({ user, tenant, pendingApprovals, isPlatformAdmin, work
           </div>
         </div>
 
-        {/* Ish rejimi — Debitorlik / Yuridik jarayon (faqat owner/admin almashtira oladi) */}
-        {canSwitchMode && (
-          <div className="relative mx-3.5 mb-3.5">
-            <div className={cn("grid grid-cols-2 gap-1 rounded-lg border p-1", borderC(10), surfC(4))}>
-              <button
-                onClick={() => switchMode("debt")}
-                disabled={switching}
-                className={cn(
-                  "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
-                  workMode === "debt" ? "bg-primary text-primary-foreground shadow-sm" : cn(inkC(55), "hover:opacity-80"),
-                )}
-              >
-                Debitorlik
-              </button>
-              <button
-                onClick={() => switchMode("legal")}
-                disabled={switching}
-                className={cn(
-                  "rounded-md px-2 py-1.5 text-[11px] font-semibold transition-all disabled:opacity-50",
-                  workMode === "legal" ? "bg-primary text-primary-foreground shadow-sm" : cn(inkC(55), "hover:opacity-80"),
-                )}
-              >
-                Yuridik
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Ish rejimi almashtirgichi olib tashlandi — Yuridik bo'lim vaqtincha yopiq
+            (Oliy sud integratsiyasi kechiktirildi). Faqat Debitorlik rejimi ishlaydi. */}
 
         {/* Agent status */}
         <div className={cn("relative mx-3.5 mb-4 overflow-hidden rounded-xl border p-3 backdrop-blur", borderC(10), surfC(isLegal ? 3 : 4))}>

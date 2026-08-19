@@ -1,6 +1,26 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight, Eye, EyeSlash, ShieldCheck, X } from "@phosphor-icons/react";
+import {
+  Bank,
+  Buildings,
+  Car,
+  CaretDown,
+  ChartLineUp,
+  ChartPieSlice,
+  Scales,
+  BellRinging,
+  ArrowRight,
+  ArrowUpRight,
+  Eye,
+  EyeSlash,
+  FileText,
+  GitFork,
+  PlugsConnected,
+  ShieldCheck,
+  Storefront,
+  UsersThree,
+  X,
+} from "@phosphor-icons/react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -12,43 +32,36 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Unsplash — bepul litsenziya (unsplash.com/license), tijorat maqsadida foydalanish uchun ochiq. */
 const PH = {
-  typewriter: "https://images.unsplash.com/photo-1560415903-cca53660d61d?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  books: "https://images.unsplash.com/photo-1576414160011-98dfab3aa889?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  office: "https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  columns: "https://images.unsplash.com/photo-1719663478770-0e2857069b1b?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  headset: "https://images.unsplash.com/photo-1553775282-20af80779df7?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  desk: "https://images.unsplash.com/photo-1630561535290-24c621d6b463?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  handshake: "https://images.unsplash.com/photo-1672380135241-c024f7fbfa13?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  lawyerDesk: "https://images.unsplash.com/photo-1762417691650-f2e4bcca7eaf?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  team: "https://images.unsplash.com/photo-1568992688065-536aad8a12f6?w=700&q=70&fm=jpg&fit=crop&auto=format",
-  boardroom: "https://images.unsplash.com/photo-1758691736424-4b4273948341?w=700&q=70&fm=jpg&fit=crop&auto=format",
+  desk: "https://images.unsplash.com/photo-1630561535290-24c621d6b463?w=1200&q=70&fm=jpg&fit=crop&auto=format",
+  office: "https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?w=1200&q=70&fm=jpg&fit=crop&auto=format",
+  headset: "https://images.unsplash.com/photo-1553775282-20af80779df7?w=1200&q=70&fm=jpg&fit=crop&auto=format",
+  handshake: "https://images.unsplash.com/photo-1672380135241-c024f7fbfa13?w=1200&q=70&fm=jpg&fit=crop&auto=format",
+  team: "https://images.unsplash.com/photo-1568992688065-536aad8a12f6?w=1200&q=70&fm=jpg&fit=crop&auto=format",
+  boardroom: "https://images.unsplash.com/photo-1758691736424-4b4273948341?w=1200&q=70&fm=jpg&fit=crop&auto=format",
 };
+/** Har bir soha uchun mos rasm — ICAN'dagi kabi tab bosilganda almashadigan, pastki qismi
+ * yarim-oy (elliptik) shaklda kesilgan rasm. Tartib `industries.items`ga mos (index bo'yicha). */
+const INDUSTRY_PHOTOS = [PH.boardroom, PH.office, PH.desk, PH.team, PH.handshake, PH.headset];
 
-/** Tarjima kalitlaridagi qadam/rol ro'yxatlari shu tartibda rasmlarga bog'lanadi (index bo'yicha). */
-const STEP_PHOTOS = [PH.desk, PH.books, PH.typewriter, PH.handshake];
-const ROLE_PHOTOS = [PH.lawyerDesk, PH.headset, PH.columns, PH.office, PH.team, PH.boardroom];
-const BANNER_PHOTOS = [PH.desk, PH.books, PH.office, PH.columns].map((src) => src.replace("w=700", "w=900"));
-const CHIPS = ["Didox", "E-SUD", "E-IMZO", "Hybrid Post", "Xarid.uzex", "TrustContract"];
-/** Faqat haqiqiy logotip fayli yuklangan hamkorlar — matnli o'rinbosar ishlatilmaydi.
- * Yoshlar ishlari agentligi logotipi kelgach shu yerga qo'shiladi. */
-/** `h` — har bir logotipning o'z nisbatiga qarab qo'lda kalibrlangan balandligi (px),
- * shunda barchasi bir xil vizual og'irlikda ko'rinadi (kvadrat belgilar tor logotiplarga teng kelishi uchun). */
+/** Tarjima kalitlaridagi sohalar/imkoniyatlar ro'yxatlari shu tartibda ikonkalarga bog'lanadi (index bo'yicha). */
+const INDUSTRY_ICONS = [Bank, Buildings, Car, UsersThree, Storefront, Scales];
+const FEATURE_ICONS = [ChartLineUp, BellRinging, FileText, GitFork, PlugsConnected, ChartPieSlice];
+
+/** Faqat haqiqiy logotip fayli yuklangan hamkorlar — matnli o'rinbosar ishlatilmaydi. */
 const LOGO_SUPPORTERS = [
-  { t: "Oliy sud", logo: "/brand/supporters/oliy-sud.png", h: 40 },
-  { t: "Adliya vazirligi", logo: "/brand/supporters/adliya-vazirligi.png", h: 54 },
-  { t: "Yoshlar Ventures", logo: "/brand/supporters/yoshlar-ventures.png", h: 44 },
-  { t: "Uzcombinator", logo: "/brand/supporters/uzcombinator.png", h: 26 },
-  { t: "Didox", logo: "/brand/supporters/didox.png", h: 32 },
-  { t: "Soliq xizmati", logo: "/brand/supporters/soliq-xizmati.png", h: 54 },
-  { t: "Raqamli texnologiyalar vazirligi", logo: "/brand/supporters/raqamli-tex-vazirligi.png", h: 34 },
+  { t: "Adliya vazirligi", logo: "/brand/supporters/adliya-vazirligi.png", h: 50 },
+  { t: "Yoshlar Ventures", logo: "/brand/supporters/yoshlar-ventures.png", h: 40 },
+  { t: "Uzcombinator", logo: "/brand/supporters/uzcombinator.png", h: 24 },
+  { t: "Didox", logo: "/brand/supporters/didox.png", h: 30 },
+  { t: "Soliq xizmati", logo: "/brand/supporters/soliq-xizmati.png", h: 50 },
+  { t: "Raqamli texnologiyalar vazirligi", logo: "/brand/supporters/raqamli-tex-vazirligi.png", h: 32 },
 ];
 
-type QItem = { t: string; qPre: string; qEm: string; qPost: string; d?: string };
+type NamedItem = { t: string; d: string };
 
 export default function LoginPage() {
   const t = useTranslations("landing");
   const rootRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const openLogin = () => {
@@ -56,357 +69,141 @@ export default function LoginPage() {
     setLoginOpen(true);
   };
 
-  // Tarjima kalitlaridagi ro'yxatlarni statik rasmlar bilan birlashtiramiz (index bo'yicha).
-  const STEPS = (t.raw("steps.items") as QItem[]).map((it, i) => ({
-    n: String(i + 1).padStart(2, "0"),
-    t: it.t,
-    q: [it.qPre, it.qEm, it.qPost],
-    d: it.d,
-    photo: STEP_PHOTOS[i],
-  }));
-  const ROLES = (t.raw("roles.items") as QItem[]).map((it, i) => ({
-    n: String(i + 1).padStart(2, "0"),
-    t: it.t,
-    q: [it.qPre, it.qEm, it.qPost],
-    photo: ROLE_PHOTOS[i],
-  }));
-  const WHY = (t.raw("why.items") as QItem[]).map((it, i) => ({
-    n: String(i + 1).padStart(2, "0"),
-    t: it.t,
-    q: [it.qPre, it.qEm, it.qPost],
-  }));
-  const REVIEWS = t.raw("reviews.items") as { n: string; r: string; txt: string }[];
-  const PHOTOS = BANNER_PHOTOS.map((src, i) => ({ src, cap: t(`banner.photo${i + 1}` as "banner.photo1") }));
+  const INDUSTRIES = (t.raw("industries.items") as NamedItem[]).map((it, i) => ({ ...it, Icon: INDUSTRY_ICONS[i] }));
+  const FEATURES = (t.raw("features.items") as NamedItem[]).map((it, i) => ({ ...it, Icon: FEATURE_ICONS[i] }));
+  const STATS = t.raw("stats.items") as { n: string; d: string }[];
+  const FAQS = t.raw("faq.items") as { q: string; a: string }[];
+  const SEGMENTS = t.raw("finalCta.segments") as string[];
 
   // One-ID xato bilan qaytsa — modal ochamiz.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).has("oneid_error")) setLoginOpen(true);
   }, []);
 
-  // Oqadigan bulut fon (canvas) — och (light) tema uchun moslashtirilgan.
-  useEffect(() => {
-    const cv = canvasRef.current;
-    if (!cv) return;
-    const ctx = cv.getContext("2d");
-    if (!ctx) return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const DPR = Math.min(2, window.devicePixelRatio || 1);
-    let raf = 0;
-    let w = 0;
-    let h = 0;
-    type Puff = { ax: number; ay: number; bx: number; by: number; r: number; sp: number; ph: number; al: number; drift: number };
-    const puffs: Puff[] = [];
-    for (let i = 0; i < 11; i++)
-      puffs.push({ ax: 0.05 + Math.random() * 0.9, ay: 0.05 + Math.random() * 0.9, bx: 0.09 + Math.random() * 0.26, by: 0.06 + Math.random() * 0.18, r: 0.28 + Math.random() * 0.4, sp: 0.28 + Math.random() * 0.6, ph: Math.random() * 6.28, al: 0.05 + Math.random() * 0.07, drift: (0.02 + Math.random() * 0.05) * (Math.random() < 0.5 ? -1 : 1) });
-    const resize = () => {
-      w = cv.clientWidth;
-      h = cv.clientHeight;
-      cv.width = Math.max(1, Math.floor(w * DPR));
-      cv.height = Math.max(1, Math.floor(h * DPR));
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    };
-    const frame = (now: number) => {
-      const t = now * 0.00015;
-      ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = "#f5f5f4";
-      ctx.fillRect(0, 0, w, h);
-      const M = Math.max(w, h);
-      for (const p of puffs) {
-        const fx = (((p.ax + p.drift * t) % 1.2) + 1.2) % 1.2 - 0.1;
-        const cx = (fx + Math.cos(t * p.sp + p.ph) * p.bx) * w;
-        const cy = (p.ay + Math.sin(t * p.sp * 0.9 + p.ph * 1.3) * p.by) * h;
-        const r = p.r * M * (0.9 + 0.14 * Math.sin(t * p.sp + p.ph));
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        g.addColorStop(0, `rgba(11,18,32,${p.al})`);
-        g.addColorStop(0.5, `rgba(11,18,32,${p.al * 0.4})`);
-        g.addColorStop(1, "rgba(11,18,32,0)");
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, 6.2832);
-        ctx.fill();
-      }
-      for (let b = 0; b < 6; b++) {
-        const yB = h * (0.12 + b * 0.14);
-        const amp = h * (0.06 + (b % 3) * 0.03);
-        const sp = 0.3 + b * 0.1;
-        const a = 0.05 - b * 0.004;
-        const gr = ctx.createLinearGradient(0, 0, w, 0);
-        gr.addColorStop(0, "rgba(11,18,32,0)");
-        gr.addColorStop(0.5, `rgba(11,18,32,${a > 0 ? a : 0.01})`);
-        gr.addColorStop(1, "rgba(11,18,32,0)");
-        ctx.strokeStyle = gr;
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        for (let x = 0; x <= w; x += 9) {
-          const y = yB + Math.sin(x * 0.0038 + t * sp + b) * amp + Math.sin(x * 0.011 - t * sp * 0.7 + b * 1.7) * amp * 0.4;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-      if (!reduce) raf = requestAnimationFrame(frame);
-    };
-    resize();
-    if (reduce) frame(0);
-    else raf = requestAnimationFrame(frame);
-    window.addEventListener("resize", resize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  // Pinned bo'limlar (qadam almashish + % + progress) va progress chizig'i.
+  // Reveal-on-scroll (bir tomonlama).
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
-    const prog = root.querySelector<HTMLElement>("[data-prog]");
-    const pins = Array.from(root.querySelectorAll<HTMLElement>("[data-pin]")).map((sec) => ({
-      sec,
-      steps: Array.from(sec.querySelectorAll<HTMLElement>("[data-step]")),
-      cn: sec.querySelector<HTMLElement>("[data-cn]"),
-      pc: sec.querySelector<HTMLElement>("[data-pc]"),
-      pb: sec.querySelector<HTMLElement>("[data-pb]"),
-      veil: sec.querySelector<HTMLElement>("[data-veil]"),
-    }));
-    const onScroll = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (prog) prog.style.width = `${max > 0 ? (window.scrollY / max) * 100 : 0}%`;
-      for (const P of pins) {
-        const rect = P.sec.getBoundingClientRect();
-        const total = P.sec.offsetHeight - window.innerHeight;
-        const p = Math.min(1, Math.max(0, -rect.top / total));
-        const n = P.steps.length;
-        const idx = Math.min(n - 1, Math.floor(p * n + 0.0001));
-        P.steps.forEach((s, i) => s.classList.toggle("on", i === idx));
-        if (P.cn) P.cn.textContent = `0${idx + 1}`;
-        const perc = Math.round(p * 100);
-        if (P.pc) P.pc.textContent = String(perc);
-        if (P.pb) P.pb.style.width = `${perc}%`;
-        if (P.veil) P.veil.style.opacity = (0.9 - 0.75 * p).toFixed(3);
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    onScroll();
-    // Reveal (bir tomonlama)
     const io = new IntersectionObserver(
       (es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add("in"), io.unobserve(e.target))),
-      { threshold: 0.2 },
+      { threshold: 0.15 },
     );
     root.querySelectorAll("[data-rv]").forEach((el) => io.observe(el));
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      io.disconnect();
-    };
+    return () => io.disconnect();
   }, []);
 
-  const Pinned = ({ id, kicker, total, items }: { id: string; kicker: string; total: string; items: { n: string; t: string; q: string[]; d?: string; photo?: string }[] }) => (
-    <section data-pin id={id} className="lx-pin" style={{ height: `${(items.length + 1) * 100}vh` }}>
-      <div className="lx-sticky">
-        <div className="lx-bg" />
-        <div data-veil className="lx-veil" />
-        <div className="lx-phead">
-          <div className="lx-wrap">
-            <span className="lx-kk">{kicker}</span>
-            <span className="lx-pn font-display">
-              <em data-cn>01</em> / {total}
-            </span>
-          </div>
-        </div>
-        <div className="lx-steps">
-          {items.map((s, i) => (
-            <div data-step key={s.n} className={cn("lx-step", i === 0 && "on")}>
-              {s.photo && <div className="lx-step-bg" style={{ backgroundImage: `url(${s.photo})` }} />}
-              <div className="lx-wrap lx-step-grid">
-                <div className="lx-big font-display">{s.n}</div>
-                <div>
-                  <h3 className="lx-sh font-display">{s.t}</h3>
-                  <p className="lx-q">
-                    {s.q[0]}
-                    <em>{s.q[1]}</em>
-                    {s.q[2]}
-                  </p>
-                  {s.d && <p className="lx-d">{s.d}</p>}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="lx-counter">
-          <div className="lx-wrap lx-counter-in">
-            <div className="lx-pct font-display">
-              <span data-pc>0</span>
-              <s>%</s>
-            </div>
-            <div className="lx-cbar">
-              <i data-pb />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  const [faqOpen, setFaqOpen] = useState(0);
+  const [activeIndustry, setActiveIndustry] = useState(0);
 
   return (
     <div ref={rootRef} className="lx-root">
       <style>{`
-        .lx-root{--blue:#111318;--ink:#0b1220;--muted:rgba(11,18,32,.52);--line:rgba(11,18,32,.1);--bg:#f5f5f4;
+        .lx-root{--teal:#1CA9BB;--teal-dk:#178E9B;--ink:#0f1f38;--muted:rgba(15,31,56,.58);--line:rgba(15,31,56,.1);--bg:#ffffff;--soft:#f6f9fa;
           position:relative;min-height:100vh;background:var(--bg);color:var(--ink);overflow-x:clip}
-        .lx-root .font-display{font-family:Georgia,'Times New Roman',var(--font-space-grotesk),serif;letter-spacing:-.006em;font-weight:600}
-        .lx-fx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-        .lx-prog{position:fixed;left:0;top:0;height:2px;background:var(--blue);z-index:60;width:0}
-        .lx-wrap{position:relative;z-index:10;width:min(1180px,88%);margin-inline:auto}
-        .lx-nav{position:fixed;inset-inline:0;top:0;z-index:50;background:linear-gradient(var(--bg),rgba(245,245,244,0))}
-        .lx-nav-in{display:flex;align-items:center;justify-content:space-between;padding:20px 0;width:min(1180px,88%);margin-inline:auto;position:relative;z-index:10}
+        .lx-root .font-display{font-family:var(--font-space-grotesk),Arial,sans-serif;letter-spacing:-.01em;font-weight:700}
+        .lx-wrap{position:relative;z-index:10;width:min(1180px,90%);margin-inline:auto}
+        .lx-nav{position:sticky;inset-inline:0;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+        .lx-nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 0;width:min(1180px,90%);margin-inline:auto}
         .lx-brand{display:flex;align-items:center;background:none;border:0;cursor:pointer;padding:0}
         .lx-links{display:flex;gap:30px}
-        .lx-links a{color:var(--muted);text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+        .lx-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:600}
         .lx-links a:hover{color:var(--ink)}
         .lx-right{display:flex;align-items:center;gap:12px}
-        .lx-enter{border:0;border-radius:999px;padding:9px 20px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;background:var(--blue);transition:.2s}
-        .lx-enter:hover{opacity:.88}
+        .lx-enter{border:0;border-radius:999px;padding:10px 22px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;background:var(--teal);transition:.2s}
+        .lx-enter:hover{background:var(--teal-dk)}
         .lx-burger{display:none;width:40px;height:40px;border:1px solid var(--line);border-radius:999px;color:var(--ink);background:none;cursor:pointer}
         @media(max-width:860px){.lx-links{display:none}.lx-burger{display:grid;place-items:center}}
-        .lx-mob{border-top:1px solid var(--line);background:var(--bg);padding:16px 6%;display:flex;flex-direction:column;gap:14px;position:relative;z-index:10}
-        .lx-mob a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-        .lx-btn{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:15px 28px;font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:.2s;background:none}
-        .lx-btn.solid{background:var(--blue);color:#fff}.lx-btn.solid:hover{transform:translateY(-2px)}
+        .lx-mob{border-top:1px solid var(--line);background:var(--bg);padding:16px 5%;display:flex;flex-direction:column;gap:14px}
+        .lx-mob a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:600}
+        .lx-btn{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:15px 28px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;border:1px solid transparent;transition:.2s;background:none}
+        .lx-btn.solid{background:var(--teal);color:#fff}.lx-btn.solid:hover{background:var(--teal-dk)}
         .lx-btn.ghost{border-color:var(--line);color:var(--ink)}.lx-btn.ghost:hover{border-color:var(--ink)}
-        .lx-hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:110px 0 108px}
-        .lx-kick{display:flex;align-items:center;gap:16px;margin-bottom:20px}
-        .lx-kick span{height:1px;width:52px;background:var(--blue)}
-        .lx-kick b{font-size:11px;font-weight:800;letter-spacing:.4em;color:var(--blue);text-transform:uppercase}
-        .lx-h1{font-size:clamp(2.2rem,6.4vw,5.4rem);line-height:1.08;max-width:920px;color:var(--ink);transition:color .2s}
-        .lx-h1:hover{color:var(--blue)}
-        .lx-h1:hover .lx-u{color:var(--blue)}
-        .lx-h1 .l{display:block;overflow:hidden;padding-bottom:.06em}
-        .lx-h1 .l>span{display:block;transform:translateY(112%);transition:transform 1s cubic-bezier(.16,.84,.24,1)}
-        .lx-root.ready .lx-h1 .l>span{transform:none}
-        .lx-h1 .l:nth-child(2)>span{transition-delay:.09s}.lx-h1 .l:nth-child(3)>span{transition-delay:.18s}
-        .lx-red{color:var(--blue)}
-        .lx-u{text-decoration:underline;text-decoration-color:var(--blue);text-decoration-thickness:3px;text-underline-offset:6px}
-        .lx-herob{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:30px;margin-top:42px}
-        .lx-herob p{max-width:520px;color:var(--muted);font-size:16px;line-height:1.6}
-        .lx-cta{display:flex;gap:12px;flex-wrap:wrap}
-        .lx-strip{position:absolute;left:0;bottom:0;width:100%;display:flex;align-items:center;gap:16px;border-top:1px solid var(--line);padding:12px 0;background:rgba(245,245,244,.75);backdrop-filter:blur(4px)}
-        .lx-strip-label{flex:0 0 auto;max-width:92px;padding-left:6%;font-size:9.5px;line-height:1.35;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:normal}
-        .lx-strip-viewport{flex:1;min-width:0;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}
-        .lx-strip .row{display:inline-flex;align-items:center;height:54px;animation:lxScroll 26s linear infinite}
-        .lx-strip-logo{display:inline-flex;align-items:center;margin:0 22px;flex-shrink:0}
-        .lx-strip-logo img{display:block;width:auto;object-fit:contain;filter:grayscale(1);opacity:.6;transition:filter .2s,opacity .2s}
-        .lx-strip-logo:hover img{filter:grayscale(0);opacity:1}
-        @media(max-width:700px){.lx-strip-label{display:none}}
-        @keyframes lxScroll{to{transform:translateX(-50%)}}
-        .lx-banner{position:relative;z-index:10;padding:80px 0}
-        .lx-banner-in{background:#0b0b0c;border-radius:28px;padding:64px 6% 56px;text-align:center}
-        .lx-banner-in h2{color:#fff;font-size:clamp(1.6rem,3.6vw,2.6rem);line-height:1.25;max-width:680px;margin:0 auto}
-        .lx-demo{max-width:560px;margin:40px auto 0;background:#151517;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;text-align:left}
-        .lx-demo-chrome{display:flex;align-items:center;gap:5px;padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.06)}
-        .lx-demo-chrome i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15)}
-        .lx-demo-chrome span{margin-left:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+        .lx-hero{position:relative;padding:96px 0 0;text-align:center}
+        .lx-kick{display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--teal-dk);text-transform:uppercase}
+        .lx-h1{font-size:clamp(2.1rem,5.6vw,4.2rem);line-height:1.1;max-width:820px;margin:0 auto;color:var(--ink)}
+        .lx-h1 .u{color:var(--teal)}
+        .lx-body{max-width:640px;margin:22px auto 0;color:var(--muted);font-size:17px;line-height:1.6}
+        .lx-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:30px}
+        .lx-tabs{display:flex;gap:28px;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;margin-top:56px}
+        .lx-tabs::-webkit-scrollbar{display:none}
+        .lx-tab{flex:0 0 auto;background:none;border:0;cursor:pointer;padding:14px 2px 15px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent;transition:.2s}
+        .lx-tab.active{color:var(--ink);border-bottom-color:var(--teal)}
+        .lx-tab.active,.lx-tab:hover{color:var(--ink)}
+        .lx-tab-photo{border-radius:0 0 32% 32%;overflow:hidden;height:clamp(220px,40vw,440px);margin-top:0;background:var(--soft)}
+        .lx-tab-photo img{display:block;width:100%;height:100%;object-fit:cover}
+        .lx-tab-desc{text-align:center;color:var(--muted);font-size:15px;line-height:1.6;margin:26px auto 0;max-width:560px;padding-bottom:70px}
+        .lx-strip{border-top:1px solid var(--line);margin-top:64px;padding:20px 0;overflow:hidden}
+        .lx-strip-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+        .lx-strip-row{display:flex;align-items:center;justify-content:center;gap:44px;flex-wrap:wrap}
+        .lx-strip-row img{display:block;filter:grayscale(1);opacity:.55}
+        .lx-demo{max-width:560px;margin:36px auto 0;background:#0f1f38;border-radius:16px;overflow:hidden;text-align:left}
+        .lx-demo-chrome{display:flex;align-items:center;gap:5px;padding:11px 13px;border-bottom:1px solid rgba(255,255,255,.08)}
+        .lx-demo-chrome i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.18)}
+        .lx-demo-chrome span{margin-left:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4)}
         .lx-demo-body{padding:20px;min-height:120px;display:flex;flex-direction:column;gap:10px}
         .lx-demo-msg{max-width:82%;padding:9px 13px;border-radius:11px;font-size:13.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-        .lx-demo-msg.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:3px}
-        .lx-demo-msg.a{align-self:flex-start;background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);border-bottom-left-radius:3px}
+        .lx-demo-msg.u{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:3px}
+        .lx-demo-msg.a{align-self:flex-start;background:rgba(255,255,255,.08);color:rgba(255,255,255,.92);border-bottom-left-radius:3px}
         .lx-demo-caret{display:inline-block;width:2px;height:13px;background:currentColor;margin-left:2px;vertical-align:-2px;animation:lxCaret .8s step-end infinite}
         @keyframes lxCaret{50%{opacity:0}}
-        .lx-shots{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1040px;margin:48px auto 0}
-        @media(max-width:900px){.lx-shots{grid-template-columns:1fr 1fr}}
-        @media(max-width:520px){.lx-shots{grid-template-columns:1fr}}
-        .lx-shot{background:#151517;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;text-align:left}
-        .lx-shot img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
-        .lx-shot-cap{padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.6);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
-        .lx-sec{position:relative;z-index:10;padding:70px 0}
-        .lx-sec-head h2{font-size:clamp(1.7rem,3.6vw,2.6rem);line-height:1.2;color:var(--ink)}
-        .lx-split{display:grid;grid-template-columns:1fr auto 1fr;gap:22px;align-items:center;max-width:1040px;margin:0 auto}
-        @media(max-width:760px){.lx-split{grid-template-columns:1fr}}
-        .lx-split-card{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden}
-        .lx-split-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
-        .lx-split-in{padding:24px}
-        .lx-split-tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);border:1px solid var(--line);border-radius:999px;padding:5px 14px;margin-bottom:14px}
-        .lx-split-in p{color:var(--muted);font-size:15px;line-height:1.55}
-        .lx-split-or{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--muted);font-size:15px}
-        @media(max-width:760px){.lx-split-or{text-align:center}}
-        .lx-state{position:relative;height:260vh}
-        .lx-state .st{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-        .lx-state h2{font-size:clamp(2.6rem,11vw,8.5rem);line-height:.92}
-        .lx-state h2 span{display:block}
-        .lx-state .sa{color:rgba(11,18,32,.12)}
-        .lx-state .sb{color:var(--blue)}
-        .lx-state .sub{position:absolute;bottom:14vh;width:100%;color:var(--muted);font-size:clamp(11px,1.4vw,14px);letter-spacing:.24em;text-transform:uppercase}
-        .lx-pin{position:relative}
-        .lx-sticky{position:sticky;top:0;height:100vh;overflow:hidden;display:flex;align-items:center}
-        .lx-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(120% 90% at 72% 28%,rgba(11,18,32,.045),transparent 60%),repeating-linear-gradient(115deg,rgba(11,18,32,.025) 0 2px,transparent 2px 26px),var(--bg)}
-        .lx-veil{position:absolute;inset:0;z-index:1;background:var(--bg);opacity:.9}
-        .lx-phead{position:absolute;top:12vh;left:0;width:100%;z-index:3}
-        .lx-phead .lx-wrap{display:flex;align-items:baseline;gap:20px;flex-wrap:wrap}
-        .lx-kk{font-size:11px;font-weight:800;letter-spacing:.34em;color:var(--blue);text-transform:uppercase}
-        .lx-pn{font-size:clamp(2.2rem,5.5vw,4.2rem);line-height:.8;color:var(--muted);margin-left:auto}
-        .lx-pn em{color:var(--blue);font-style:normal}
-        .lx-steps{position:absolute;inset:0;width:100%;z-index:3}
-        .lx-step{position:absolute;inset:0;display:flex;align-items:center;opacity:0;transform:translateY(26px);transition:opacity .5s ease,transform .6s cubic-bezier(.16,.84,.24,1);pointer-events:none}
-        .lx-step.on{opacity:1;transform:none}
-        .lx-step-grid{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:center}
-        .lx-big{font-size:clamp(4rem,10vw,8.5rem);line-height:.78;color:transparent;-webkit-text-stroke:1.5px rgba(11,18,32,.18)}
-        .lx-step-bg{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;filter:blur(2px) grayscale(.35);opacity:.4;transition:opacity .6s ease}
-        .lx-sh{font-size:clamp(1.8rem,4.4vw,3.2rem);line-height:.95;margin-bottom:14px;color:var(--ink)}
-        .lx-q{font-size:clamp(1.1rem,2vw,1.5rem);font-weight:600;line-height:1.3;max-width:640px;color:var(--ink)}
-        .lx-q em{color:var(--blue);font-style:normal}
-        .lx-d{margin-top:18px;padding-left:18px;border-left:2px solid var(--blue);color:var(--muted);max-width:520px;font-size:15px;line-height:1.6}
-        .lx-counter{position:absolute;right:0;bottom:9vh;z-index:4;width:100%}
-        .lx-counter-in{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-        .lx-pct{font-size:clamp(2.4rem,5.5vw,4.2rem);line-height:.8;color:var(--ink)}
-        .lx-pct s{color:var(--blue);text-decoration:none;font-size:.4em;vertical-align:super;margin-left:4px}
-        .lx-cbar{width:min(320px,60vw);height:3px;background:rgba(11,18,32,.12);border-radius:2px;overflow:hidden}
-        .lx-cbar i{display:block;height:100%;width:0;background:var(--blue)}
-        @media(max-width:860px){.lx-step-grid{grid-template-columns:1fr;gap:12px}.lx-big{font-size:26vw}}
-        [data-rv]{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.16,.84,.24,1),transform .9s}
-        [data-rv].in{opacity:1;transform:none}
-        @media(prefers-reduced-motion:reduce){[data-rv]{opacity:1;transform:none}.lx-step{transition:opacity .2s}.lx-h1 .l>span{transform:none}}
-        .lx-marq{border-block:1px solid var(--line);padding:24px 0;overflow:hidden;white-space:nowrap;position:relative;z-index:10}
-        .lx-marq .row{display:inline-flex;animation:lxScroll 30s linear infinite}
-        .lx-marq b{font-size:clamp(2.4rem,6vw,4.6rem);margin:0 26px;color:transparent;-webkit-text-stroke:1.5px rgba(11,18,32,.22)}
-        .lx-marq b i{-webkit-text-stroke:0;color:var(--blue);font-style:normal;margin:0 8px}
-        .lx-revs{position:relative;z-index:10;padding:120px 0}
-        .lx-revgrid{display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-top:40px}
-        .lx-rev{border:1px solid var(--line);background:#fff;border-radius:16px;padding:28px}
-        .lx-rev p{font-size:16px;line-height:1.5;color:var(--ink)}
-        .lx-rev .who{margin-top:20px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);padding-top:16px}
-        .lx-av{width:42px;height:42px;border-radius:50%;background:var(--blue);display:grid;place-items:center;font-family:Georgia,serif;color:#fff;font-weight:700}
-        .lx-rev .who b{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
-        .lx-rev .who span{display:block;color:var(--muted);font-size:12px}
-        .lx-revsmall{display:grid;gap:20px}
-        @media(max-width:860px){.lx-revgrid{grid-template-columns:1fr}}
-        .lx-final{position:relative;z-index:10;text-align:center;padding:150px 0 70px}
-        .lx-final h2{font-size:clamp(2.6rem,9vw,7rem);line-height:.88;max-width:960px;margin:18px auto 22px}
-        .lx-final p{color:var(--muted);max-width:520px;margin:0 auto 34px;font-size:16px}
-        .lx-foot{position:relative;z-index:10;border-top:1px solid var(--line);padding:64px 0 26px;margin-top:80px}
+        .lx-sec{position:relative;padding:88px 0}
+        .lx-sec.soft{background:var(--soft)}
+        .lx-sec-head{text-align:center;max-width:640px;margin:0 auto 48px}
+        .lx-sec-head h2{font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.2;color:var(--ink);margin-top:8px}
+        .lx-sec-head p{color:var(--muted);margin-top:12px;font-size:15px}
+        .lx-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+        @media(max-width:900px){.lx-grid3{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.lx-grid3{grid-template-columns:1fr}}
+        .lx-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}
+        .lx-card .ic{width:44px;height:44px;border-radius:12px;background:rgba(28,169,187,.12);color:var(--teal-dk);display:grid;place-items:center;margin-bottom:16px}
+        .lx-card h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px}
+        .lx-card p{font-size:14px;line-height:1.55;color:var(--muted)}
+        .lx-stats{background:var(--ink);border-radius:28px;padding:64px 6%;text-align:center}
+        .lx-stats h2{color:#fff;font-size:clamp(1.6rem,3.2vw,2.2rem)}
+        .lx-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:44px}
+        @media(max-width:760px){.lx-stats-grid{grid-template-columns:1fr}}
+        .lx-stat-n{font-size:clamp(2.2rem,4.5vw,3.4rem);color:var(--teal);font-weight:700}
+        .lx-stat-d{color:rgba(255,255,255,.65);font-size:14px;margin-top:8px;max-width:220px;margin-inline:auto}
+        .lx-faq{max-width:760px;margin:0 auto}
+        .lx-faq-item{border-bottom:1px solid var(--line);padding:20px 0}
+        .lx-faq-q{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;background:none;border:0;width:100%;text-align:left;font-size:16px;font-weight:600;color:var(--ink)}
+        .lx-faq-q svg{flex:0 0 auto;transition:transform .2s;color:var(--teal-dk)}
+        .lx-faq-item.open .lx-faq-q svg{transform:rotate(180deg)}
+        .lx-faq-a{max-height:0;overflow:hidden;transition:max-height .25s ease}
+        .lx-faq-item.open .lx-faq-a{max-height:200px}
+        .lx-faq-a p{padding-top:12px;color:var(--muted);font-size:14.5px;line-height:1.6}
+        .lx-final{border-radius:28px;background:linear-gradient(135deg,var(--teal),var(--teal-dk));padding:64px 6%;text-align:center;color:#fff}
+        .lx-final h2{font-size:clamp(1.9rem,4.2vw,2.8rem);line-height:1.15;max-width:640px;margin:12px auto 14px}
+        .lx-final p{opacity:.92;max-width:520px;margin:0 auto 30px;font-size:15px}
+        .lx-seg{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:26px}
+        .lx-seg span{border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:8px 18px;font-size:13px;font-weight:600}
+        .lx-final .lx-btn.solid{background:#fff;color:var(--teal-dk)}
+        .lx-final .lx-btn.solid:hover{opacity:.92;background:#fff}
+        .lx-foot{position:relative;border-top:1px solid var(--line);padding:64px 0 26px;margin-top:80px}
         .lx-footgrid{display:grid;grid-template-columns:1.5fr 1fr 1.1fr 1fr;gap:34px}
-        .lx-foot h4{font-size:11px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--blue);margin-bottom:16px}
+        .lx-foot h4{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal-dk);margin-bottom:16px}
         .lx-foot a{color:var(--muted);text-decoration:none;display:block;margin-bottom:9px;font-size:14px}
         .lx-foot a:hover{color:var(--ink)}
         .lx-foot .info{color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:9px}
         .lx-foot .lead{color:var(--muted);font-size:14px;line-height:1.6;max-width:290px;margin:16px 0 22px}
         .lx-soc{display:flex;gap:10px}
         .lx-soc a{width:40px;height:40px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;margin:0;color:var(--ink)}
-        .lx-soc a:hover{border-color:var(--blue);background:rgba(11,18,32,.05);color:var(--blue)}
+        .lx-soc a:hover{border-color:var(--teal);background:rgba(28,169,187,.08);color:var(--teal-dk)}
         .lx-soc svg{width:18px;height:18px}
-        .lx-footbar{margin-top:46px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+        .lx-footbar{margin-top:46px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
         @media(max-width:860px){.lx-footgrid{grid-template-columns:1fr 1fr}}
         @media(max-width:520px){.lx-footgrid{grid-template-columns:1fr}}
+        [data-rv]{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,.84,.24,1),transform .7s}
+        [data-rv].in{opacity:1;transform:none}
+        @media(prefers-reduced-motion:reduce){[data-rv]{opacity:1;transform:none}}
         .lx-in{animation:lxIn .3s ease}@keyframes lxIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
       `}</style>
-
-      <canvas ref={canvasRef} className="lx-fx" aria-hidden />
-      <div data-prog className="lx-prog" />
 
       {/* Navbar */}
       <header className="lx-nav">
         <div className="lx-nav-in">
           <button className="lx-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-7 w-auto object-contain" />
+            <Image src="/brand/smartlex-logo-teal.png" alt="Smartlex" width={1942} height={617} className="h-7 w-auto object-contain" />
           </button>
           <nav className="lx-links">
             <a href="#jarayon">{t("nav.jarayon")}</a>
@@ -432,44 +229,84 @@ export default function LoginPage() {
       {/* Hero */}
       <section className="lx-hero">
         <div className="lx-wrap">
-          <div className="lx-kick"><span /><b>{t("hero.kicker")}</b></div>
+          <div className="lx-kick">{t("hero.kicker")}</div>
           <h1 className="lx-h1 font-display">
-            <span className="l"><span>{t("hero.h1a")}</span></span>
-            <span className="l"><span><span className="lx-u">{t("hero.h1b")}</span> {t("hero.h1c")}</span></span>
+            {t("hero.h1a")} <span className="u">{t("hero.h1b")}</span> {t("hero.h1c")}
           </h1>
-          <div className="lx-herob">
-            <p>{t("hero.body")}</p>
-            <div className="lx-cta">
-              <button className="lx-btn solid" onClick={openLogin}>{t("hero.ctaStart")} <ArrowUpRight weight="bold" className="size-4" /></button>
-              <a className="lx-btn ghost" href="#jarayon">{t("hero.ctaHow")}</a>
-            </div>
+          <p className="lx-body">{t("hero.body")}</p>
+          <div className="lx-cta">
+            <button className="lx-btn solid" onClick={openLogin}>{t("hero.ctaStart")} <ArrowUpRight weight="bold" className="size-4" /></button>
+            <a className="lx-btn ghost" href="#jarayon">{t("hero.ctaHow")}</a>
           </div>
-        </div>
-        <div className="lx-strip">
-          <div className="lx-strip-label">{t("hero.supporters")}</div>
-          <div className="lx-strip-viewport">
-            <div className="row">
-              {[...LOGO_SUPPORTERS, ...LOGO_SUPPORTERS].map((s, i) => (
-                <div className="lx-strip-logo" key={i}>
-                  <img src={s.logo} alt={s.t} loading="lazy" style={{ height: s.h }} />
-                </div>
+
+          <div className="lx-strip">
+            <div className="lx-strip-label">{t("hero.supporters")}</div>
+            <div className="lx-strip-row">
+              {LOGO_SUPPORTERS.map((s) => (
+                <img key={s.t} src={s.logo} alt={s.t} loading="lazy" style={{ height: s.h }} />
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Qog'ozbozorlik natijaga xalaqit bermasin — mahsulot ko'rinishi */}
-      <section className="lx-banner">
+      {/* Mahsulot ko'rinishi — AI agent demo */}
+      <section className="lx-sec" style={{ paddingTop: 24 }}>
         <div className="lx-wrap">
-          <div data-rv className="lx-banner-in">
-            <h2 className="font-display">{t("banner.heading")}</h2>
+          <div data-rv style={{ textAlign: "center" }}>
+            <h2 className="font-display" style={{ fontSize: "clamp(1.4rem,2.6vw,1.9rem)" }}>{t("banner.heading")}</h2>
             <AgentDemo demoName={t("banner.demoName")} script={[t("banner.demoUser"), t("banner.demoAi1"), t("banner.demoAi2")]} />
-            <div className="lx-shots">
-              {PHOTOS.map((p) => (
-                <div className="lx-shot" key={p.cap}>
-                  <img src={p.src} alt={p.cap} loading="lazy" />
-                  <div className="lx-shot-cap">{p.cap}</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Sohalar — ICAN'dagidek tab bosilganda almashadigan, pastki qismi yarim-oy shaklidagi rasm */}
+      <section id="kim" className="lx-sec" style={{ paddingBottom: 0 }}>
+        <div className="lx-wrap">
+          <div className="lx-tabs">
+            {INDUSTRIES.map((it, i) => (
+              <button key={it.t} className={cn("lx-tab", activeIndustry === i && "active")} onClick={() => setActiveIndustry(i)}>
+                {it.t}
+              </button>
+            ))}
+          </div>
+          <div data-rv className="lx-tab-photo">
+            <img src={INDUSTRY_PHOTOS[activeIndustry]} alt={INDUSTRIES[activeIndustry]!.t} />
+          </div>
+          <p className="lx-tab-desc">{INDUSTRIES[activeIndustry]!.d}</p>
+        </div>
+      </section>
+
+      {/* Imkoniyatlar */}
+      <section id="jarayon" className="lx-sec">
+        <div className="lx-wrap">
+          <div data-rv className="lx-sec-head">
+            <span className="lx-kick" style={{ marginBottom: 0 }}>{t("features.kicker")}</span>
+            <h2 className="font-display">{t("features.heading")}</h2>
+          </div>
+          <div className="lx-grid3">
+            {FEATURES.map((it) => (
+              <div data-rv key={it.t} className="lx-card">
+                <div className="ic"><it.Icon weight="bold" className="size-5" /></div>
+                <h3>{it.t}</h3>
+                <p>{it.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Raqamlarda */}
+      <section className="lx-sec">
+        <div className="lx-wrap">
+          <div data-rv className="lx-stats">
+            <span className="lx-kick" style={{ color: "var(--teal)", marginBottom: 0 }}>{t("stats.kicker")}</span>
+            <h2 className="font-display">{t("stats.heading")}</h2>
+            <div className="lx-stats-grid">
+              {STATS.map((s) => (
+                <div key={s.d}>
+                  <div className="lx-stat-n font-display">{s.n}</div>
+                  <div className="lx-stat-d">{s.d}</div>
                 </div>
               ))}
             </div>
@@ -477,87 +314,41 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* Ikki yo'nalish — Debitorlik yoki Yuridik jarayon */}
-      <section className="lx-sec lx-split-sec">
+      {/* FAQ */}
+      <section id="nega" className="lx-sec soft">
         <div className="lx-wrap">
-          <div data-rv className="lx-sec-head" style={{ margin: "0 auto 40px", textAlign: "center" }}>
-            <span className="lx-kk">{t("split.kicker")}</span>
-            <h2 className="font-display">{t("split.heading")}</h2>
+          <div data-rv className="lx-sec-head">
+            <span className="lx-kick" style={{ marginBottom: 0 }}>{t("faq.kicker")}</span>
+            <h2 className="font-display">{t("faq.heading")}</h2>
           </div>
-          <div className="lx-split">
-            <div data-rv className="lx-split-card">
-              <img src={PH.headset} alt={t("split.debTag")} loading="lazy" />
-              <div className="lx-split-in">
-                <span className="lx-split-tag">{t("split.debTag")}</span>
-                <p>{t("split.debText")}</p>
+          <div data-rv className="lx-faq">
+            {FAQS.map((f, i) => (
+              <div key={f.q} className={cn("lx-faq-item", faqOpen === i && "open")}>
+                <button className="lx-faq-q" onClick={() => setFaqOpen(faqOpen === i ? -1 : i)}>
+                  {f.q}
+                  <CaretDown weight="bold" className="size-4" />
+                </button>
+                <div className="lx-faq-a"><p>{f.a}</p></div>
               </div>
-            </div>
-            <div className="lx-split-or">{t("split.or")}</div>
-            <div data-rv className="lx-split-card">
-              <img src={PH.lawyerDesk} alt={t("split.legTag")} loading="lazy" />
-              <div className="lx-split-in">
-                <span className="lx-split-tag">{t("split.legTag")}</span>
-                <p>{t("split.legText")}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Katta bayonot */}
-      <section className="lx-state">
-        <div className="st">
-          <h2 className="font-display">
-            <span className="sa">{t("big.line1")}</span>
-            <span className="sb">{t("big.line2")}</span>
-          </h2>
-          <div className="sub">{t("big.sub")}</div>
-        </div>
-      </section>
-
-      <Pinned id="jarayon" kicker={t("steps.kicker")} total="04" items={STEPS} />
-
-      <div className="lx-marq">
-        <div className="row">
-          {[...CHIPS, ...CHIPS].map((c, i) => (
-            <b className="font-display" key={i}>{c}<i>◆</i></b>
-          ))}
-        </div>
-      </div>
-
-      <Pinned id="kim" kicker={t("roles.kicker")} total="06" items={ROLES} />
-      <Pinned id="nega" kicker={t("why.kicker")} total="05" items={WHY} />
-
-      {/* Reviews */}
-      <section className="lx-revs">
-        <div className="lx-wrap">
-          <div data-rv className="lx-kick" style={{ marginBottom: 12 }}><span /><b>{t("reviews.kicker")}</b></div>
-          <h2 data-rv className="font-display" style={{ fontSize: "clamp(2rem,5vw,3.4rem)" }}>{t("reviews.heading")}</h2>
-          <div className="lx-revgrid">
-            <div data-rv className="lx-rev">
-              <p>«{REVIEWS[0]!.txt}»</p>
-              <div className="who"><div className="lx-av">{REVIEWS[0]!.n.charAt(0)}</div><div><b>{REVIEWS[0]!.n}</b><span>{REVIEWS[0]!.r}</span></div></div>
-            </div>
-            <div className="lx-revsmall">
-              {REVIEWS.slice(1).map((r) => (
-                <div data-rv key={r.n} className="lx-rev">
-                  <p>«{r.txt}»</p>
-                  <div className="who"><div className="lx-av">{r.n.charAt(0)}</div><div><b>{r.n}</b><span>{r.r}</span></div></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
 
       {/* Final CTA */}
-      <section className="lx-final">
+      <section className="lx-sec" style={{ paddingTop: 0 }}>
         <div className="lx-wrap">
-          <div data-rv className="lx-kick" style={{ justifyContent: "center" }}><span /><b>{t("finalCta.kicker")}</b></div>
-          <h2 data-rv className="font-display">{t("finalCta.heading")}</h2>
-          <p data-rv>{t("finalCta.body")}</p>
-          <button data-rv className="lx-btn solid" onClick={openLogin}>{t("finalCta.button")} <ArrowRight weight="bold" className="size-4" /></button>
+          <div data-rv className="lx-final">
+            <span className="lx-kick" style={{ color: "#fff", opacity: 0.85, marginBottom: 0 }}>{t("finalCta.kicker")}</span>
+            <h2 className="font-display">{t("finalCta.heading")}</h2>
+            <p>{t("finalCta.body")}</p>
+            <div className="lx-seg">
+              {SEGMENTS.map((s) => (
+                <span key={s}>{s}</span>
+              ))}
+            </div>
+            <button className="lx-btn solid" onClick={openLogin}>{t("finalCta.button")} <ArrowRight weight="bold" className="size-4" /></button>
+          </div>
         </div>
       </section>
 
@@ -566,7 +357,7 @@ export default function LoginPage() {
         <div className="lx-wrap">
           <div className="lx-footgrid">
             <div>
-              <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-7 w-auto object-contain" />
+              <Image src="/brand/smartlex-logo-teal.png" alt="Smartlex" width={1942} height={617} className="h-7 w-auto object-contain" />
               <p className="lead">{t("footer.lead")}</p>
               <div className="lx-soc">
                 <a href="https://instagram.com/smartlex.uz" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
@@ -597,8 +388,8 @@ export default function LoginPage() {
               <h4>{t("footer.pages")}</h4>
               <a href="#jarayon">{t("nav.jarayon")}</a>
               <a href="#kim">{t("nav.kim")}</a>
-              <a href="#nega">{t("why.kicker")}</a>
-              <button className="lx-enter" style={{ padding: 0, background: "none", color: "var(--muted)", letterSpacing: ".01em", fontSize: 14, textTransform: "none", fontWeight: 400 }} onClick={openLogin}>{t("nav.kirish")}</button>
+              <a href="#nega">{t("nav.nega")}</a>
+              <button className="lx-enter" style={{ padding: 0, background: "none", color: "var(--muted)", fontSize: 14, fontWeight: 400 }} onClick={openLogin}>{t("nav.kirish")}</button>
             </div>
           </div>
           <div className="lx-footbar">
@@ -609,20 +400,8 @@ export default function LoginPage() {
       </footer>
 
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
-      <ReadyFlag rootRef={rootRef} />
     </div>
   );
-}
-
-/** Hero sarlavha reveal'ini yuklashdan keyin ishga tushiradi. */
-function ReadyFlag({ rootRef }: { rootRef: React.RefObject<HTMLDivElement | null> }) {
-  useEffect(() => {
-    const r = rootRef.current;
-    if (!r) return;
-    const id = requestAnimationFrame(() => r.classList.add("ready"));
-    return () => cancelAnimationFrame(id);
-  }, [rootRef]);
-  return null;
 }
 
 /** Haqiqiy AI agent suhbatiga o'xshab "yozib" ko'rsatadigan, sikllanuvchi animatsiya — video o'rnini bosadi.
@@ -738,7 +517,7 @@ function LoginModal({ onClose }: { onClose: () => void }) {
       <div className="lx-in w-full max-w-[420px] rounded-3xl border border-black/10 bg-white p-7 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="mb-6 flex items-start justify-between">
           <div className="flex items-center gap-2.5">
-            <Image src="/brand/lex-ai-logo-full.png" alt="Lex.AI" width={1049} height={426} className="h-7 w-auto object-contain" />
+            <Image src="/brand/smartlex-logo-teal.png" alt="Smartlex" width={1942} height={617} className="h-7 w-auto object-contain" />
           </div>
           <button onClick={onClose} className="grid size-8 place-items-center rounded-lg text-black/40 hover:bg-black/5 hover:text-black"><X className="size-4" /></button>
         </div>

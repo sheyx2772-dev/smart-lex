@@ -25,7 +25,10 @@ miscRoutes.get("/me", async (c) => {
         tenant: tenant ? { id: tenant.id, name: tenant.name, type: tenant.type, tin: tenant.tin, defaultLocale: tenant.defaultLocale } : null,
         isPlatformAdmin: Boolean(env.platformTenantId) && tenantId === env.platformTenantId && (role === "owner" || role === "admin"),
         subscription: readSub(tenant?.settings as Record<string, unknown> | undefined),
-        workMode: settings.workMode === "legal" ? "legal" : "debt",
+        // Yuridik rejim vaqtincha yopilgan (Oliy sud integratsiyasi kechiktirildi) — saqlangan
+        // qiymatdan qat'i nazar har doim "debt" qaytariladi. Qayta ochish uchun shu qatorni
+        // avvalgi holiga qaytaring: settings.workMode === "legal" ? "legal" : "debt".
+        workMode: "debt",
       },
       "common.ok",
       c.get("locale"),

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="600" height="160">
+  <defs>
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22B6C4"/>
+      <stop offset="100%" stop-color="#178E9B"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <circle cx="80" cy="80" r="72" fill="url(#tealGrad)"/>
+    <path d="M 101.8,46.4 A 40,40 0 1,1 58.2,46.4" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+    <line x1="80" y1="26" x2="80" y2="74" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <text x="180" y="105" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="800" fill="#12233B">Smart<tspan fill="#1CA9BB">lex</tspan></text>
+</svg>

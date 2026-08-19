@@ -96,80 +96,81 @@
     "liveActivity": "Bugun 12 hujjat qayta ishlandi"
   },
   "landing": {
-    "nav": { "jarayon": "Jarayon", "kim": "Kim uchun", "nega": "Nega", "kirish": "Kirish" },
+    "nav": { "jarayon": "Imkoniyatlar", "kim": "Sohalar", "nega": "Savollar", "kirish": "Kirish" },
     "hero": {
-      "kicker": "Faoliyatdan natijaga",
-      "h1a": "Huquqiy va moliyaviy ishlarni",
-      "h1b": "boshqaruvchi",
-      "h1c": "AI agent",
-      "body": "AI agent shartnoma va ishlarni tahlil qiladi, qarzdorlikni nazorat qiladi, sud hujjatlarini tayyorlaydi — davlat, bank va biznes uchun, Didox, E-SUD va E-IMZO bilan bir markazda.",
-      "ctaStart": "Boshlash",
+      "kicker": "Qarzdorlikni boshqarish",
+      "h1a": "Qarzdorlikni undirishni",
+      "h1b": "AI",
+      "h1c": "bilan avtomatlashtiring",
+      "body": "Lex.AI — qarzdorlikni real vaqtda kuzatadigan, eslatma va hujjat tayyorlaydigan, undirish jarayonini boshidan oxirigacha boshqaradigan AI agent. Banklar, MFI, lizing va savdo kompaniyalari uchun.",
+      "ctaStart": "Bepul boshlash",
       "ctaHow": "Qanday ishlaydi",
       "supporters": "Bizni qo'llab-quvvatlovchilar"
     },
     "banner": {
-      "heading": "Qog'ozbozorlik natijaga xalaqit bermasinmi?",
-      "demoName": "Yuridik AI Agent",
-      "photo1": "Hujjat tayyorlash",
-      "photo2": "Huquqiy tahlil",
+      "heading": "Qog'ozbozlik va Excel — o'tmishda qoldi",
+      "demoName": "Undirish AI Agent",
+      "photo1": "Qarzdorlik kuzatuvi",
+      "photo2": "Hujjat tayyorlash",
       "photo3": "Banklar va bizneslar",
-      "photo4": "Sud tizimi",
-      "demoUser": "GLOBAL SNAB MCHJ bilan bog'liq ishni boshlang",
-      "demoAi1": "Ish ochildi: 2026-LM-014. Shartnoma va kontragent tahlil qilinmoqda…",
-      "demoAi2": "Xavf darajasi: past. Talabnoma loyihasi tayyor — tasdiqlaysizmi?"
+      "photo4": "Sud va undiruv",
+      "demoUser": "GLOBAL SNAB MCHJ bo'yicha qarzdorlikni tekshir",
+      "demoAi1": "Qarz aniqlandi: 42 kun kechikish. Shartnoma va penya hisoblanmoqda…",
+      "demoAi2": "Xavf darajasi: o'rta. Talabnoma loyihasi tayyor — tasdiqlaysizmi?"
     },
-    "split": {
-      "kicker": "Ikki yo'nalish, bitta platforma",
-      "heading": "Debitorlikmi, yoki yuridik jarayonmi?",
-      "debTag": "Debitorlik",
-      "debText": "Kredit tashkiloti yoki kollektor bo'limisiz — qarzdorlikni AI kuzatadi, eslatma va talabnomani o'zi tayyorlaydi, sud bosqichigacha olib boradi.",
-      "or": "yoki",
-      "legTag": "Yuridik jarayon",
-      "legText": "Davlat tashkiloti, bank yoki biznessiz — har bir ish uchun AI tahlil qiladi, hujjat tayyorlaydi, jarayonni boshidan oxirigacha kuzatadi."
-    },
-    "big": { "line1": "Jarayondan", "line2": "Natijagacha", "sub": "Yuridik ish · Qarz undirish · Bitta AI agent" },
-    "steps": {
-      "kicker": "Jarayon — 4 qadam",
+    "industries": {
+      "kicker": "Sohalar",
+      "heading": "Qaysi soha bo'lmasin — bitta AI agent",
       "items": [
-        { "t": "Yuklash", "qPre": "Shartnoma, hujjat yoki ishni yuklaysiz — AI ularni o'qib, ", "qEm": "tomonlar va shartlarni", "qPost": " ajratadi.", "d": "Har bir hujjat — jarayonning boshlanishi." },
-        { "t": "Tahlil", "qPre": "Ish yoki qarz bo'yicha ", "qEm": "xavf va muddat", "qPost": " avtomatik hisoblanadi.", "d": "Tahlil bir zumda — nima birinchi bajarilishi kerakligini tizim aytadi." },
-        { "t": "Hujjat", "qPre": "Talabnoma, da'vo arizasi, yuridik xulosa — ", "qEm": "bir zumda", "qPost": " tayyorlanadi.", "d": "Tayyor shablonlar bo'yicha, xatosiz." },
-        { "t": "Ijro", "qPre": "E-SUD va E-IMZO orqali yuboriladi, ", "qEm": "ijro nazorat", "qPost": " qilinadi.", "d": "Butun jarayon bir markazdan — siz tasdiqlaysiz." }
+        { "t": "Banklar va NBKT", "d": "Kredit portfelini nazorat qiling, undiruv jarayonini avtomatlashtiring." },
+        { "t": "Mikromoliya tashkilotlari", "d": "Ko'plab kichik qarzlarni ommaviy kuzating va eslatma yuboring." },
+        { "t": "Lizing kompaniyalari", "d": "Lizing to'lovlarini real vaqtda nazorat qiling." },
+        { "t": "Kredit uyushmalari", "d": "A'zolarning qarz holatini bitta oynada kuzating." },
+        { "t": "Savdo va ishlab chiqarish", "d": "Mijoz va yetkazib beruvchi qarzdorligini boshqaring." },
+        { "t": "Yuridik firmalar", "d": "Mijozlaringiz uchun undiruv jarayonini avtomatlashtiring." }
       ]
     },
-    "roles": {
-      "kicker": "Kim uchun",
+    "features": {
+      "kicker": "Imkoniyatlar",
+      "heading": "Qarzdorlikdan natijagacha — bitta tizimda",
       "items": [
-        { "t": "Yuristlar", "qPre": "Da'vo, xulosa va talabnomani ", "qEm": "qo'lda yozmang", "qPost": " — AI tayyorlaydi, siz strategiyaga e'tibor berasiz." },
-        { "t": "Kredit va kollektor bo'limi", "qPre": "Portfelni ", "qEm": "real vaqtda", "qPost": " nazorat qiling — qaysi mijoz xavfli, tizim ogohlantiradi." },
-        { "t": "Davlat tashkilotlari", "qPre": "Ariza, murojaat va tekshiruv jarayonlarini ", "qEm": "AI agent orqali", "qPost": " tezlashtiring — inson resursini tejang." },
-        { "t": "Banklar va NBKT", "qPre": "Kredit shartnomasi, garov va undiruv ishlarini ", "qEm": "bitta tizimda", "qPost": " boshqaring." },
-        { "t": "Bizneslar", "qPre": "Shartnoma tahlili va ichki huquqiy ishlarni ", "qEm": "maxsus yurist yollamasdan", "qPost": " avtomatlashtiring." },
-        { "t": "Rahbariyat", "qPre": "Butun huquqiy va moliyaviy holat ", "qEm": "bitta ekranda", "qPost": " — hisobot va tahlil bir markazda." }
+        { "t": "Real vaqtda kuzatuv", "d": "Har bir qarzdorlik holati va muddati avtomatik nazoratda." },
+        { "t": "Avtomatik eslatma", "d": "SMS va Telegram orqali to'lov muddati haqida eslatma yuboriladi." },
+        { "t": "Hujjat tayyorlash", "d": "Talabnoma va da'vo arizasi AI tomonidan bir zumda tayyorlanadi." },
+        { "t": "3 usulda undirish", "d": "Sud (E-SUD), bank/NBKT'ga sotish yoki soliq organi orqali bosim." },
+        { "t": "Rasmiy integratsiyalar", "d": "Didox, E-IMZO va OneID bilan bir markazda ishlaydi." },
+        { "t": "Hisobot va tahlil", "d": "Butun portfel holati — bitta ekranda, real vaqtda." }
       ]
     },
-    "why": {
-      "kicker": "Nega Lex.AI",
+    "stats": {
+      "kicker": "Raqamlarda",
+      "heading": "Platforma allaqachon ishlab turibdi",
       "items": [
-        { "t": "Bir markazda", "qPre": "Didox, E-SUD, E-IMZO, pochta — ", "qEm": "hammasi bitta oynada", "qPost": ", o'tib-o'tib yurmaysiz." },
-        { "t": "AI tahlil", "qPre": "Hujjatni ", "qEm": "o'qiydi va tushunadi", "qPost": " — summa, muddat, xavf o'zi hisoblanadi." },
-        { "t": "Xatosiz hujjat", "qPre": "Tayyor shablon bo'yicha ", "qEm": "huquqiy jihatdan to'g'ri", "qPost": " hujjatlar." },
-        { "t": "Tezlik", "qPre": "Kunlar emas, ", "qEm": "daqiqalar", "qPost": " — hujjat tayyorlash 5 daqiqada." },
-        { "t": "Xavfsizlik", "qPre": "Multi-tenant, RLS, E-IMZO — ", "qEm": "ma'lumot himoyada", "qPost": ", imzo o'zingizda." }
+        { "n": "10+", "d": "faol B2B mijoz" },
+        { "n": "297,5+ mlrd so'm", "d": "platformada kuzatilayotgan qarzdorlik" },
+        { "n": "486,7+ mln so'm", "d": "muvaffaqiyatli undirilgan mablag'" }
       ]
     },
-    "reviews": {
-      "kicker": "Ishonch",
-      "heading": "Ular ishonadi",
+    "faq": {
+      "kicker": "Savollar",
+      "heading": "Ko'p so'raladigan savollar",
       "items": [
-        { "n": "Alisher R.", "r": "Bosh yurist, Kredit tashkiloti", "txt": "Lex.AI bilan da'vo tayyorlash haftalardan daqiqalarga tushdi. Butun bo'lim endi bitta tizimda ishlaydi." },
-        { "n": "Dilnoza K.", "r": "Moliyaviy direktor, Bank", "txt": "E-SUD va E-IMZO integratsiyasi — aynan bizga kerak bo'lgan narsa." },
-        { "n": "Murod T.", "r": "Yuridik bo'lim boshlig'i, davlat tashkiloti", "txt": "Endi har bir ish AI yordamida boshlanadi — tahlil, hujjat, kuzatuv bitta joyda. Jamoaning yuki sezilarli kamaydi." }
+        { "q": "Lex.AI qanday ishlaydi?", "a": "AI qarzdorlik holatini real vaqtda kuzatadi, eslatma va hujjat (talabnoma, da'vo arizasi) avtomatik tayyorlaydi. Har bir amal siz tasdiqlagandan keyingina bajariladi." },
+        { "q": "Hujjatlarni AI o'zi yuboradimi?", "a": "Yo'q. AI faqat hujjat loyihasini tayyorlaydi — yuborish yoki sudga topshirish faqat sizning tasdig'ingizdan so'ng amalga oshadi." },
+        { "q": "Qanday tizimlar bilan integratsiya bor?", "a": "Didox, E-IMZO, E-SUD va OneID bilan to'g'ridan-to'g'ri ishlaydi." },
+        { "q": "Ma'lumotlarim xavfsizmi?", "a": "Ha — har bir mijoz ma'lumoti alohida ajratilgan (multi-tenant izolyatsiya), imzo har doim sizning E-IMZO kalitingizda qoladi." },
+        { "q": "Qanday boshlasam bo'ladi?", "a": "\"Bepul boshlash\" tugmasini bosing yoki bog'lanish orqali konsultatsiya so'rang — sozlash bir necha daqiqa vaqt oladi." }
       ]
     },
-    "finalCta": { "kicker": "Bugun boshlang", "heading": "Huquqiy va moliyaviy ishlar — endi avtomatik", "body": "Birinchi ishingizni bugun boshlang. Sozlash 5 daqiqa, natija — bir markazda.", "button": "Bepul boshlash" },
+    "finalCta": {
+      "kicker": "Bugun boshlang",
+      "heading": "Qarz undirish — endi avtomatik",
+      "body": "Birinchi qarzdorlikni bugun tizimga qo'shing. Sozlash bir necha daqiqa, natija — bir markazda.",
+      "button": "Bepul boshlash",
+      "segments": ["Banklar", "MFI", "Lizing", "Savdo", "Yuridik firmalar", "Boshqa"]
+    },
     "footer": {
-      "lead": "Yuridik ishdan qarz undirishgacha — bir platformada. Davlat, bank va biznes uchun AI agent.",
+      "lead": "Qarzdorlikni kuzatishdan undirishgacha — bitta platformada. Bank, MFI va biznes uchun AI agent.",
       "contact": "Bog'lanish",
       "address": "Manzil",
       "addressLine1": "Toshkent shahar,",
